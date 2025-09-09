@@ -1,0 +1,535 @@
+openapi: 3.0.3
+info:
+  title: WriteIt LLM Article Pipeline API
+  description: Internal API for WriteIt TUI application to manage article generation pipelines
+  version: 0.1.0
+  contact:
+    name: WriteIt Development Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local embedded FastAPI server
+
+paths:
+  /pipeline/start:
+    post:
+      summary: Start new pipeline execution
+      operationId: start_pipeline
+      tags:
+        - Pipeline Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pipeline_path:
+                  type: string
+                  description: Path to pipeline YAML configuration
+                  example: "pipelines/tech-article.yaml"
+                user_inputs:
+                  type: object
+                  description: Initial user inputs for pipeline
+                  properties:
+                    source_material:
+                      type: string
+                      description: Raw content to transform
+                    target_audience:
+                      type: string  
+                      description: Intended audience
+                      default: "technical professionals"
+                  required:
+                    - source_material
+              required:
+                - pipeline_path
+                - user_inputs
+      responses:
+        '201':
+          description: Pipeline started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipeline_run_id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier for this pipeline execution
+                  first_step:
+                    $ref: '#/components/schemas/StepInfo'
+                required:
+                  - pipeline_run_id
+                  - first_step
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Pipeline configuration not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /pipeline/{pipeline_run_id}/status:
+    get:
+      summary: Get pipeline execution status
+      operationId: get_pipeline_status
+      tags:
+        - Pipeline Management
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Pipeline status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_step:
+                    type: string
+                    enum: [angles, outline, draft, polish]
+                  completed_steps:
+                    type: array
+                    items:
+                      type: string
+                      enum: [angles, outline, draft, polish]
+                  status:
+                    type: string
+                    enum: [INITIALIZING, RUNNING, PAUSED, COMPLETED, ERROR]
+                  progress_percent:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                required:
+                  - current_step
+                  - completed_steps
+                  - status
+                  - progress_percent
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /step/{pipeline_run_id}/execute:
+    post:
+      summary: Execute pipeline step with streaming response
+      operationId: execute_step
+      tags:
+        - Step Execution
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                step_name:
+                  type: string
+                  enum: [angles, outline, draft, polish]
+                user_feedback:
+                  type: string
+                  description: Optional user guidance for this step
+                regenerate:
+                  type: boolean
+                  default: false
+                  description: Regenerate current step rather than advance
+              required:
+                - step_name
+      responses:
+        '202':
+          description: Step execution started, use WebSocket for streaming results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  websocket_url:
+                    type: string
+                    example: "ws://localhost:8000/step/{pipeline_run_id}/stream"
+                  models:
+                    type: array
+                    items:
+                      type: string
+                    description: AI models that will be used for this step
+                required:
+                  - websocket_url
+                  - models
+        '409':
+          description: Step already in progress or invalid state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /step/{pipeline_run_id}/select:
+    post:
+      summary: Select response and proceed to next step
+      operationId: select_response
+      tags:
+        - Step Execution  
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                response_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: Selected AI response IDs
+                  minItems: 1
+                merge_instruction:
+                  type: string
+                  description: How to combine responses if multiple selected
+                user_feedback:
+                  type: string
+                  description: Comments for next step
+              required:
+                - response_ids
+      responses:
+        '200':
+          description: Response selected and step completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  merged_output:
+                    type: string
+                    description: Final content for this step
+                  next_step:
+                    $ref: '#/components/schemas/StepInfo'
+                required:
+                  - merged_output
+        '400':
+          description: Invalid response selection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /step/{pipeline_run_id}/rewind:
+    post:
+      summary: Rewind pipeline to previous step
+      operationId: rewind_pipeline
+      tags:
+        - History & Branching
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_step:
+                  type: string
+                  enum: [angles, outline, draft, polish]
+                  description: Step to rewind to
+              required:
+                - target_step
+      responses:
+        '200':
+          description: Pipeline rewound successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_current_step:
+                    type: string
+                    enum: [angles, outline, draft, polish]
+                  invalidated_steps:
+                    type: array
+                    items:
+                      type: string
+                      enum: [angles, outline, draft, polish]
+                required:
+                  - new_current_step
+                  - invalidated_steps
+
+  /step/{pipeline_run_id}/fork:
+    post:
+      summary: Create alternative pipeline branch from current step
+      operationId: fork_pipeline
+      tags:
+        - History & Branching
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from_response_id:
+                  type: string
+                  format: uuid
+                  description: Response to branch from
+                branch_name:
+                  type: string
+                  description: Optional branch identifier
+              required:
+                - from_response_id
+      responses:
+        '201':
+          description: Branch created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_pipeline_run_id:
+                    type: string
+                    format: uuid
+                  branch_point:
+                    type: string
+                    enum: [angles, outline, draft, polish]
+                required:
+                  - new_pipeline_run_id
+                  - branch_point
+
+  /pipeline/{pipeline_run_id}/save:
+    post:
+      summary: Export pipeline run to YAML file
+      operationId: save_pipeline
+      tags:
+        - Persistence
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                output_path:
+                  type: string
+                  description: Optional custom output path
+                include_history:
+                  type: boolean
+                  default: true
+                  description: Include complete execution history
+      responses:
+        '200':
+          description: Pipeline saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved_path:
+                    type: string
+                    description: Full path where pipeline was saved
+                  file_size:
+                    type: integer
+                    description: Size of saved file in bytes
+                required:
+                  - saved_path
+                  - file_size
+
+  /artifacts/{pipeline_run_id}:
+    get:
+      summary: Get all artifacts for pipeline run
+      operationId: get_artifacts
+      tags:
+        - Persistence
+      parameters:
+        - name: pipeline_run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: step_name
+          in: query
+          schema:
+            type: string
+            enum: [angles, outline, draft, polish]
+          description: Filter artifacts by step
+        - name: include_responses
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include AI responses in results
+      responses:
+        '200':
+          description: Artifacts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pipeline_run_id:
+                    type: string
+                    format: uuid
+                  artifacts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Artifact'
+                  total_count:
+                    type: integer
+                required:
+                  - pipeline_run_id
+                  - artifacts
+                  - total_count
+
+components:
+  schemas:
+    StepInfo:
+      type: object
+      properties:
+        step_name:
+          type: string
+          enum: [angles, outline, draft, polish]
+        description:
+          type: string
+        models:
+          type: array
+          items:
+            type: string
+          description: AI models configured for this step
+        template:
+          type: string
+          description: Prompt template for this step
+      required:
+        - step_name
+        - description
+        - models
+        - template
+
+    Artifact:
+      type: object
+      properties:
+        artifact_id:
+          type: string
+          format: uuid
+        pipeline_run_id:
+          type: string
+          format: uuid
+        step_name:
+          type: string
+          enum: [angles, outline, draft, polish]
+        model_name:
+          type: string
+        response_index:
+          type: integer
+          minimum: 0
+        prompt_used:
+          type: string
+        raw_output:
+          type: string
+        selected_for_next:
+          type: boolean
+        user_feedback:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        parent_artifact_id:
+          type: string
+          format: uuid
+          nullable: true
+        tokens_used:
+          type: integer
+          minimum: 0
+        processing_time:
+          type: number
+          minimum: 0
+        merged_output:
+          type: string
+          nullable: true
+      required:
+        - artifact_id
+        - pipeline_run_id  
+        - step_name
+        - model_name
+        - response_index
+        - prompt_used
+        - raw_output
+        - selected_for_next
+        - timestamp
+        - tokens_used
+        - processing_time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+      required:
+        - error
+        - message
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  # WebSocket is not part of OpenAPI 3.0 spec but documented here for reference
+  # WebSocket Endpoint: /step/{pipeline_run_id}/stream
+  # Purpose: Stream AI responses in real-time
+  # Message Format:
+  #   {
+  #     "type": "stream_token|stream_complete|error",
+  #     "model": "string",
+  #     "content": "string", 
+  #     "response_index": "integer",
+  #     "timestamp": "string"
+  #   }

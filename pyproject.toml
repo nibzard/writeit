@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "writeit"
+version = "0.1.0"
+description = "LLM-powered writing pipeline tool with terminal UI"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.104.0",
+    "textual>=0.45.0",
+    "llm>=0.12.0",
+    "lmdb>=1.4.1",
+    "uvicorn>=0.24.0",
+    "websockets>=11.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "aiofiles>=23.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "httpx>=0.25.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+]
+
+[project.scripts]
+writeit = "writeit.cli.main:main"
+
+[dependency-groups]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.19",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/writeit"]

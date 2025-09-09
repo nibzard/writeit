@@ -1,0 +1,71 @@
+site_name: WriteIt Documentation
+site_description: LLM Article Pipeline TUI Application
+site_author: WriteIt Team
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+nav:
+  - Home: README.md
+  - User Guide:
+    - Installation: user/installation.md
+    - Quickstart: user/quickstart.md
+  - Developer Guide:
+    - Getting Started: developer/getting-started.md
+    - Examples: examples/pipeline-examples.md
+  - Architecture:
+    - System Architecture: architecture/system-architecture.md
+    - Data Models: architecture/data-models.md
+    - Storage Architecture: architecture/storage-architecture.md
+    - State Management: architecture/state-management.md
+  - API Reference:
+    - REST API: api/rest-api.md
+  - Deployment:
+    - Deployment Guide: deployment/deployment.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-username/writeit
