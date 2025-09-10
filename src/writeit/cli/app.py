@@ -3,7 +3,6 @@
 
 import typer
 from typing import Optional
-from pathlib import Path
 
 from writeit import __version__
 from writeit.cli.output import console, print_info

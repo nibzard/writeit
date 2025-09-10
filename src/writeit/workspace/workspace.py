@@ -1,6 +1,5 @@
 # ABOUTME: Core Workspace class for managing centralized ~/.writeit directory
 # ABOUTME: Handles workspace creation, configuration, and file operations
-import os
 from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field

@@ -3,8 +3,8 @@
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Set, Optional
-from .validation_result import ValidationResult, IssueType
+from typing import Dict, Any
+from .validation_result import ValidationResult
 
 
 class StyleValidator:
@@ -38,7 +38,8 @@ class StyleValidator:
             file_path=file_path,
             is_valid=True,
             issues=[],
-            metadata={}
+            metadata={},
+            file_type="style"
         )
         
         try:
@@ -235,20 +236,20 @@ class StyleValidator:
             # Check if it has any content
             if not word_data:
                 result.add_info(
-                    f"Empty word guidance section",
+                    "Empty word guidance section",
                     location=location,
                     suggestion="Add word preferences or examples"
                 )
         elif isinstance(word_data, list):
             if len(word_data) == 0:
                 result.add_info(
-                    f"Empty word list",
+                    "Empty word list",
                     location=location,
                     suggestion="Add word examples"
                 )
         else:
             result.add_warning(
-                f"Word guidance should be a dictionary or list",
+                "Word guidance should be a dictionary or list",
                 location=location
             )
     

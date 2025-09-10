@@ -7,19 +7,16 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 import llm
-import concurrent.futures
 import uuid
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Container, Horizontal, ScrollableContainer
 from textual.widgets import (
-    Header, Footer, Static, Input, Button, TextArea, 
-    Select, RadioSet, RadioButton, ProgressBar, Label
+    Header, Footer, Static, Button, TextArea, 
+    Select, ProgressBar
 )
 from textual.reactive import reactive
 from textual.binding import Binding
-from textual.validation import Function
-from textual import events
 
 from writeit.workspace.workspace import Workspace
 from writeit.llm.token_usage import TokenUsageTracker
@@ -153,25 +150,20 @@ class StepExecutionWidget(Container):
         yield Static("Preparing...", id="step-status")
         
         # Response display area
-        yield ScrollableContainer(
-            TextArea(
-                "Generated responses will appear here...",
-                read_only=True,
-                id="responses-display",
-                show_line_numbers=False
-            ),
+        yield TextArea(
+            "Generated responses will appear here...",
+            read_only=True,
+            id="responses-display",
+            show_line_numbers=False,
             classes="responses-area"
         )
         
         # User feedback area
         yield Static("💬 Your Feedback (optional)")
-        yield ScrollableContainer(
-            TextArea(
-                placeholder="Provide feedback to guide the next step...",
-                id="user-feedback",
-                classes="feedback-area"
-            ),
-            classes="feedback-container"
+        yield TextArea(
+            placeholder="Provide feedback to guide the next step...",
+            id="user-feedback",
+            classes="feedback-area"
         )
         
         # Action buttons
@@ -194,12 +186,10 @@ class PipelineSummaryWidget(Container):
         
         # Final output
         final_result = self.results.get("final_output", "")
-        yield ScrollableContainer(
-            TextArea(
-                final_result,
-                read_only=True,
-                id="final-output"
-            ),
+        yield TextArea(
+            final_result,
+            read_only=True,
+            id="final-output",
             classes="final-output"
         )
         
@@ -241,13 +231,9 @@ class PipelineRunnerApp(App[None]):
         margin: 1 0;
     }
     
-    .feedback-container {
+    .feedback-area {
         height: 8;
         margin: 1 0;
-    }
-    
-    .feedback-area {
-        margin: 0;
     }
     
     .final-output {
@@ -350,7 +336,7 @@ class PipelineRunnerApp(App[None]):
         yield Header()
         
         with ScrollableContainer(id="main-content"):
-            yield Static(f"🚀 WriteIt Pipeline Runner", classes="section-header")
+            yield Static("🚀 WriteIt Pipeline Runner", classes="section-header")
             yield Static(f"Pipeline: {self.pipeline_path.stem}", id="pipeline-info")
             yield Static(f"Workspace: {self.workspace_name}", id="workspace-info")
             
@@ -551,7 +537,7 @@ class PipelineRunnerApp(App[None]):
         except Exception as e:
             # Show error in both status bar and inline
             self.update_status_bar(f"❌ Error in {step.name}: {str(e)}")
-            status.update(f"❌ Error occurred")
+            status.update("❌ Error occurred")
             responses_display.text = f"**Error:**\n{str(e)}"
         
         # Enable buttons
@@ -681,7 +667,7 @@ class PipelineRunnerApp(App[None]):
         
         # Update header to show pipeline and tracking started
         self.sub_title = f"Pipeline: {pipeline_name} | Token tracking: ON"
-        self.update_status_bar(f"🚀 Starting pipeline execution")
+        self.update_status_bar("🚀 Starting pipeline execution")
         
         await self.show_execution_phase()
     
@@ -750,111 +736,143 @@ class PipelineRunnerApp(App[None]):
     def action_scroll_down(self) -> None:
         """Scroll main content down."""
         try:
-            # Try to scroll the focused widget first, then main content
-            focused = self.screen.focused
-            if focused and hasattr(focused.parent, 'scroll_down'):
-                focused.parent.scroll_down()
-            else:
-                scrollable = self.query_one("#main-content", ScrollableContainer)
-                scrollable.scroll_down()
+            # Always scroll main content, not nested containers
+            main_content = self.query_one("#main-content", ScrollableContainer)
+            main_content.scroll_down(animate=False)
         except Exception:
             pass
     
     def action_scroll_up(self) -> None:
         """Scroll main content up."""
         try:
-            # Try to scroll the focused widget first, then main content
-            focused = self.screen.focused
-            if focused and hasattr(focused.parent, 'scroll_up'):
-                focused.parent.scroll_up()
-            else:
-                scrollable = self.query_one("#main-content", ScrollableContainer)
-                scrollable.scroll_up()
+            # Always scroll main content, not nested containers
+            main_content = self.query_one("#main-content", ScrollableContainer)
+            main_content.scroll_up(animate=False)
         except Exception:
             pass
     def _ensure_focused_visible(self) -> None:
         """Ensure the currently focused widget is visible by scrolling to it."""
         try:
             focused = self.screen.focused
-            if focused:
-                # Try to scroll the widget itself into view
-                focused.scroll_visible()
+            if not focused:
+                return
                 
-                # Also ensure main container scrolls to show the widget
-                main_content = self.query_one("#main-content", ScrollableContainer)
+            # Get main scrollable container
+            main_content = self.query_one("#main-content", ScrollableContainer)
+            
+            # Get the focused widget's position relative to viewport
+            focused_offset = focused.virtual_region_with_margin
+            main_viewport = main_content.scrollable_content_region
+            
+            # Calculate if widget is outside visible area
+            visible_top = main_content.scroll_y
+            visible_bottom = visible_top + main_content.region.height
+            widget_top = focused_offset.y
+            widget_bottom = focused_offset.bottom
+            
+            # Scroll to make widget visible with some padding
+            padding = 2
+            if widget_top < visible_top:
+                # Widget is above visible area - scroll up
+                scroll_target = max(0, widget_top - padding)
+                main_content.scroll_to(y=scroll_target, animate=False)
+            elif widget_bottom > visible_bottom:
+                # Widget is below visible area - scroll down
+                scroll_target = widget_bottom - main_content.region.height + padding
+                scroll_target = max(0, min(scroll_target, main_content.max_scroll_y))
+                main_content.scroll_to(y=scroll_target, animate=False)
                 
-                # Get widget position relative to main content
-                widget_region = focused.region
-                main_region = main_content.region
-                
-                # If widget is outside visible area, scroll to it
-                if widget_region.y < main_region.y:
-                    # Widget is above visible area
-                    main_content.scroll_to(y=widget_region.y - main_region.y)
-                elif widget_region.bottom > main_region.bottom:
-                    # Widget is below visible area
-                    scroll_amount = widget_region.bottom - main_region.bottom
-                    main_content.scroll_relative(y=scroll_amount)
         except Exception:
-            # Fallback to basic scrolling if coordinate-based fails
+            # Fallback to simple visibility check
             try:
                 focused = self.screen.focused
                 if focused:
-                    focused.scroll_visible()
+                    focused.scroll_visible(animate=False)
             except Exception:
                 pass
     
     def _focus_next_interactive(self) -> None:
         """Focus next interactive widget, skipping read-only elements."""
         try:
-            # Get all potentially focusable widgets
+            # Get current active container (dynamic content area)
+            dynamic_content = self.query_one("#dynamic-content")
             current_focus = self.screen.focused
-            all_focusable = self.query("TextArea, Select, Input, Button").filter(
-                lambda w: w.can_focus and not w.disabled and getattr(w, 'focusable', True)
+            
+            # Get focusable widgets within active area only
+            active_focusable = dynamic_content.query("TextArea, Select, Input, Button").filter(
+                lambda w: (w.can_focus and not w.disabled and 
+                          not getattr(w, 'read_only', False) and
+                          w.display and w.region.height > 0)
             )
             
-            if not all_focusable or not current_focus:
+            # Include start/continue/action buttons from current phase
+            action_buttons = self.query(".action-buttons Button").filter(
+                lambda w: w.can_focus and not w.disabled and w.display
+            )
+            
+            all_focusable = [*active_focusable, *action_buttons]
+            
+            if not all_focusable:
                 self.screen.focus_next()
                 return
                 
             # Find current position and move to next
-            try:
-                current_idx = list(all_focusable).index(current_focus)
+            if current_focus and current_focus in all_focusable:
+                current_idx = all_focusable.index(current_focus)
                 next_idx = (current_idx + 1) % len(all_focusable)
                 all_focusable[next_idx].focus()
-            except (ValueError, IndexError):
-                self.screen.focus_next()
+            else:
+                # Focus first available widget
+                all_focusable[0].focus()
         except Exception:
             self.screen.focus_next()
     
     def _focus_previous_interactive(self) -> None:
         """Focus previous interactive widget, skipping read-only elements."""
         try:
-            # Get all potentially focusable widgets
+            # Get current active container (dynamic content area)
+            dynamic_content = self.query_one("#dynamic-content")
             current_focus = self.screen.focused
-            all_focusable = self.query("TextArea, Select, Input, Button").filter(
-                lambda w: w.can_focus and not w.disabled and getattr(w, 'focusable', True)
+            
+            # Get focusable widgets within active area only
+            active_focusable = dynamic_content.query("TextArea, Select, Input, Button").filter(
+                lambda w: (w.can_focus and not w.disabled and 
+                          not getattr(w, 'read_only', False) and
+                          w.display and w.region.height > 0)
             )
             
-            if not all_focusable or not current_focus:
+            # Include start/continue/action buttons from current phase
+            action_buttons = self.query(".action-buttons Button").filter(
+                lambda w: w.can_focus and not w.disabled and w.display
+            )
+            
+            all_focusable = [*active_focusable, *action_buttons]
+            
+            if not all_focusable:
                 self.screen.focus_previous()
                 return
                 
             # Find current position and move to previous
-            try:
-                current_idx = list(all_focusable).index(current_focus)
+            if current_focus and current_focus in all_focusable:
+                current_idx = all_focusable.index(current_focus)
                 prev_idx = (current_idx - 1) % len(all_focusable)
                 all_focusable[prev_idx].focus()
-            except (ValueError, IndexError):
-                self.screen.focus_previous()
+            else:
+                # Focus last available widget
+                all_focusable[-1].focus()
         except Exception:
             self.screen.focus_previous()
     
     def _focus_first_input(self) -> None:
         """Focus the first input field and ensure it's visible."""
         try:
-            # Find first focusable widget in document order
-            focusable_widgets = self.query("TextArea, Select, Input, Button").filter(lambda w: w.can_focus and not w.disabled)
+            # Find first focusable widget in current dynamic content
+            dynamic_content = self.query_one("#dynamic-content")
+            focusable_widgets = dynamic_content.query("TextArea, Select, Input").filter(
+                lambda w: (w.can_focus and not w.disabled and 
+                          not getattr(w, 'read_only', False) and
+                          w.display and w.region.height > 0)
+            )
             if focusable_widgets:
                 first_widget = focusable_widgets.first()
                 first_widget.focus()

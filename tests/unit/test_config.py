@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 import yaml
 
 from writeit.workspace.config import ConfigLoader, get_writeit_home, get_active_workspace
-from writeit.workspace.workspace import Workspace, GlobalConfig, WorkspaceConfig
+from writeit.workspace.workspace import Workspace
 
 
 class TestConfigLoader:

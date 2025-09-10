@@ -3,7 +3,6 @@
 
 import typer
 from typing import List
-from pathlib import Path
 
 from writeit.workspace.workspace import Workspace
 from writeit.workspace.template_manager import TemplateManager, TemplateType, TemplateScope
@@ -127,7 +126,6 @@ def show_completion(shell: str = None):
     """Show completion script for manual installation."""
     try:
         from writeit.cli.output import print_error
-        import subprocess
         import os
         
         # Get shell type

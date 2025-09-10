@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 import yaml
-from pydantic import BaseModel
 
 class ConfigLoader:
     """Hierarchical configuration loader for WriteIt settings."""

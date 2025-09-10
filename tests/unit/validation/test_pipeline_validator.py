@@ -1,10 +1,9 @@
 # ABOUTME: Unit tests for PipelineValidator class
 # ABOUTME: Tests YAML parsing, structure validation, and variable reference checking
-import pytest
 import yaml
 import tempfile
 from pathlib import Path
-from writeit.validation import PipelineValidator, ValidationResult, IssueType
+from writeit.validation import PipelineValidator
 
 
 class TestPipelineValidator:

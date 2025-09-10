@@ -2,7 +2,7 @@
 # ABOUTME: Centralized logic for finding templates/styles across workspace and global scopes
 
 from pathlib import Path
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple
 from enum import Enum
 
 from .workspace import Workspace

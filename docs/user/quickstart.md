@@ -69,12 +69,20 @@ writeit list-pipelines
 ```
 
 **⚡ Now start the pipeline (works from ANY directory!):**
+
+**Option 1: Interactive TUI Mode (Default)**
 ```bash
 # No need for .yaml extension - tab completion works!
 writeit run tech-article
 ```
 
-You should see the WriteIt TUI interface:
+**Option 2: CLI Mode (Simple Prompts)**
+```bash
+# For automation or simpler interface
+writeit run tech-article --cli
+```
+
+For this tutorial, we'll use the **TUI mode** for the full interactive experience. You should see the WriteIt TUI interface:
 ```
 ┌─ Pipeline: tech-article.yaml ──────────────────────────────┐
 │ Step 1/4: angles (outline → draft → polish remaining)      │
@@ -430,6 +438,99 @@ writeit --no-color run tech-article.yaml
 - Press `Ctrl+Q` to quit
 - Run the same command again
 - Your previous work is automatically saved
+
+## 🤖 CLI Mode Alternative Workflow
+
+If you prefer simple text prompts or need automation capabilities, try CLI mode:
+
+### CLI Mode Tutorial
+```bash
+# Start the same pipeline in CLI mode
+writeit run tech-article --cli
+```
+
+**CLI Workflow Example:**
+```
+Pipeline: tech-article
+Path: ~/.writeit/templates/tech-article.yaml
+Scope: Global
+Workspace: tutorial
+
+Starting CLI pipeline execution...
+
+Pipeline Input Collection
+Pipeline: Technical Article Pipeline
+Description: 4-step pipeline for technical articles
+
+Enter your source material (press Ctrl+D when finished)
+Source Material: Recent advances in WebAssembly are enabling new possibilities...
+[Ctrl+D]
+
+What's your target audience?
+Target Audience:
+  1. general - General readers
+  2. technical - Technical professionals  
+  3. academic - Academic researchers
+Select option (number): 2
+
+Executing Pipeline: Technical Article Pipeline
+
+Step 1/4: Generate Angles
+Generate different article approaches
+Execute step: Generate Angles? [y/n] (y): y
+
+⠋ Processing with LLM...
+
+✅ Response:
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Here are 5 angles for your WebAssembly performance article:               ┃
+┃ 1. **Breaking the Browser Speed Barrier**: How WASM achieves near-native  ┃
+┃    performance                                                             ┃
+┃ 2. **From JavaScript to WASM**: A performance migration guide             ┃
+┃ 3. **Enterprise WASM**: Production use cases and benchmarks              ┃
+┃ [Additional angles...]                                                     ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Accept this response? [y/n] (y): y
+
+[Process continues through all 4 steps...]
+
+✅ Pipeline Completed!
+
+Token Usage Summary:
+  Total Input Tokens: 1,456
+  Total Output Tokens: 3,289
+  Total Steps: 4
+
+Executed 4 steps:
+  angles: ✅ Completed
+  outline: ✅ Completed
+  write: ✅ Completed  
+  polish: ✅ Completed
+```
+
+### When to Use CLI Mode
+- **Automation**: Batch content generation, CI/CD pipelines
+- **Simplicity**: Prefer text prompts over visual interface
+- **Scripting**: Integrate with shell scripts and workflows
+- **Remote**: SSH sessions or terminal-only environments
+
+### CLI Mode Automation Example
+```bash
+#!/bin/bash
+# Generate multiple articles with CLI mode
+
+topics=(
+  "WebAssembly Performance"
+  "Rust for Web Development"
+  "Modern CSS Features"
+)
+
+for topic in "${topics[@]}"; do
+  echo -e "${topic}\n2\ny\ny\ny\ny" | \
+    writeit run tech-article --cli --workspace blog
+done
+```
 
 ## 🔧 Template Development & Validation
 

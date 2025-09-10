@@ -5,7 +5,6 @@ import typer
 from typing import Optional
 
 from writeit.workspace.workspace import Workspace
-from writeit.workspace.config import get_active_workspace
 from writeit.storage.manager import StorageManager
 from writeit.cli.output import (
     console, print_success, print_error, print_warning,
@@ -13,7 +12,6 @@ from writeit.cli.output import (
     confirm_with_style, create_directory_tree
 )
 from writeit.cli.completion import complete_workspace_name
-from writeit.cli.app import get_workspace_override
 
 
 app = typer.Typer(

@@ -2,7 +2,6 @@
 # ABOUTME: Handles WriteIt initialization with Rich progress display
 
 import typer
-from typing import Optional
 
 from writeit.workspace.workspace import Workspace
 from writeit.workspace.migration import find_and_migrate_workspaces
@@ -88,8 +87,8 @@ def init(
                     console.print("[secondary]No local workspaces found to migrate[/secondary]")
         
         # Final success message
-        console.print(f"\n[success]WriteIt initialized successfully![/success]")
-        console.print(f"Use [primary]'writeit workspace list'[/primary] to see available workspaces.")
+        console.print("\n[success]WriteIt initialized successfully![/success]")
+        console.print("Use [primary]'writeit workspace list'[/primary] to see available workspaces.")
         
     except Exception as e:
         print_error(f"Error initializing WriteIt: {e}")

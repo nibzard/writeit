@@ -4,7 +4,6 @@
 import sys
 
 from writeit.cli.app import app
-from writeit.cli.commands.init import app as init_app
 from writeit.cli.commands.workspace import app as workspace_app
 from writeit.cli.commands.pipeline import app as pipeline_app
 from writeit.cli.commands.validate import app as validate_app

@@ -3,8 +3,8 @@
 import yaml
 import re
 from pathlib import Path
-from typing import Dict, Any, List, Set, Optional
-from .validation_result import ValidationResult, IssueType
+from typing import Dict, Any, Set
+from .validation_result import ValidationResult
 
 
 class PipelineValidator:
@@ -32,7 +32,8 @@ class PipelineValidator:
             file_path=file_path,
             is_valid=True,
             issues=[],
-            metadata={}
+            metadata={},
+            file_type="pipeline"
         )
         
         try:
@@ -252,7 +253,7 @@ class PipelineValidator:
                         )
             elif not isinstance(models, str):
                 result.add_error(
-                    f"Model preference must be string or list of strings",
+                    "Model preference must be string or list of strings",
                     location=f"{location}.model_preference"
                 )
         
@@ -261,12 +262,12 @@ class PipelineValidator:
             template = step_config['prompt_template']
             if not isinstance(template, str):
                 result.add_error(
-                    f"Prompt template must be a string",
+                    "Prompt template must be a string",
                     location=f"{location}.prompt_template"
                 )
             elif not template.strip():
                 result.add_error(
-                    f"Prompt template cannot be empty",
+                    "Prompt template cannot be empty",
                     location=f"{location}.prompt_template"
                 )
         
@@ -275,7 +276,7 @@ class PipelineValidator:
             count = step_config['response_count']
             if not isinstance(count, int) or count < 1:
                 result.add_error(
-                    f"Response count must be a positive integer",
+                    "Response count must be a positive integer",
                     location=f"{location}.response_count"
                 )
     

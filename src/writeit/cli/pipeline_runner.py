@@ -9,11 +9,11 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
 import llm
+from jinja2 import Template
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
-from rich.markdown import Markdown
 
 from writeit.workspace.workspace import Workspace
 from writeit.llm.token_usage import TokenUsageTracker
@@ -291,7 +291,13 @@ class CLIPipelineRunner:
                 
                 # Display response
                 self.console.print("\n[bold green]Response:[/bold green]")
-                self.console.print(Panel(response.text, expand=False))
+                if hasattr(response, 'text') and callable(response.text):
+                    response_text = response.text()
+                elif hasattr(response, 'text'):
+                    response_text = str(response.text)
+                else:
+                    response_text = str(response)
+                self.console.print(Panel(response_text, expand=False))
                 
                 # Ask for user feedback/approval
                 if step.type == "generate":
@@ -304,8 +310,15 @@ class CLIPipelineRunner:
                             return False
                 
                 # Store results
+                if hasattr(response, 'text') and callable(response.text):
+                    response_text = response.text()
+                elif hasattr(response, 'text'):
+                    response_text = str(response.text)
+                else:
+                    response_text = str(response)
+                    
                 self.step_results[step.key] = {
-                    "response": response.text,
+                    "response": response_text,
                     "approved": True
                 }
                 
@@ -318,25 +331,58 @@ class CLIPipelineRunner:
             self.console.print(f"[red]Error executing step {step.name}: {e}[/red]")
             return Confirm.ask("Continue despite error?", default=False)
 
+    def _build_template_context(self) -> Dict[str, Any]:
+        """Build template context for Jinja2 rendering."""
+        context = {
+            'inputs': self.pipeline_values,
+            'steps': {},
+            'defaults': self.pipeline_config.defaults if self.pipeline_config else {}
+        }
+        
+        # Add step results
+        for step_key, result in self.step_results.items():
+            context['steps'][step_key] = {
+                'selected_response': result.get('response', ''),
+                'response': result.get('response', '')
+            }
+            
+        return context
+    
+    def _render_template(self, template_str: str) -> str:
+        """Render a Jinja2 template string with current context."""
+        if not template_str:
+            return template_str
+            
+        try:
+            template = Template(template_str)
+            context = self._build_template_context()
+            return template.render(**context)
+        except Exception as e:
+            # Fallback to original string if template rendering fails
+            self.console.print(f"[yellow]Warning: Template rendering failed: {e}[/yellow]")
+            return template_str
+    
     def _build_prompt(self, template: str) -> str:
         """Build prompt from template using collected values."""
-        # Simple template substitution using double curly braces
-        prompt = template
-        
-        # Substitute input values
-        for key, value in self.pipeline_values.items():
-            prompt = prompt.replace(f"{{{{{key}}}}}", str(value))
-        
-        # Substitute step results
-        for step_key, result in self.step_results.items():
-            prompt = prompt.replace(f"{{{{{step_key}}}}}", result.get('response', ''))
-        
-        return prompt
+        return self._render_template(template)
 
-    def _get_llm_model(self, model_preference: List[str]):
+    def _get_llm_model(self, model_preference):
         """Get LLM model based on preference."""
-        # Try preferred models first
+        # Handle both string and list preferences
+        if isinstance(model_preference, str):
+            model_preference = [model_preference]
+        elif not isinstance(model_preference, list):
+            model_preference = []
+        
+        # Resolve template variables in model preferences
+        resolved_preferences = []
         for model_name in model_preference:
+            if isinstance(model_name, str):
+                resolved_name = self._render_template(model_name)
+                resolved_preferences.append(resolved_name)
+        
+        # Try preferred models first
+        for model_name in resolved_preferences:
             try:
                 return llm.get_model(model_name)
             except Exception:
@@ -355,7 +401,7 @@ class CLIPipelineRunner:
         # Show token usage summary if available
         if self.token_tracker.completed_runs:
             last_run = self.token_tracker.completed_runs[-1]
-            self.console.print(f"\nToken Usage Summary:")
+            self.console.print("\nToken Usage Summary:")
             self.console.print(f"  Total Input Tokens: {last_run.total_input_tokens}")
             self.console.print(f"  Total Output Tokens: {last_run.total_output_tokens}")
             self.console.print(f"  Total Steps: {len(last_run.steps)}")

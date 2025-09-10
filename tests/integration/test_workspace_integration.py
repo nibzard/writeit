@@ -3,8 +3,6 @@
 import pytest
 import tempfile
 import shutil
-import subprocess
-import sys
 from pathlib import Path
 import yaml
 import os

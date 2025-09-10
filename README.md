@@ -1,8 +1,8 @@
 # WriteIt
 
-> LLM-powered article pipeline TUI application for guided writing workflows
+> LLM-powered writing pipeline application with interactive TUI and automation-friendly CLI modes
 
-WriteIt transforms raw content into polished articles through an interactive, 4-step AI-powered pipeline with human-in-the-loop feedback. Build better content faster with streaming AI responses, branching workflows, and complete pipeline history.
+WriteIt transforms raw content into polished articles through a 4-step AI-powered pipeline with human-in-the-loop feedback. Choose interactive TUI mode for rich visual feedback or CLI mode for automation and scripting. Build better content faster with streaming AI responses, branching workflows, and complete pipeline history.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -17,6 +17,7 @@ WriteIt transforms raw content into polished articles through an interactive, 4-
 - **🌲 Branching & Rewind**: Explore alternatives without losing work
 - **📚 Complete History**: Every decision and response saved
 - **🎨 Beautiful CLI**: Rich-formatted terminal interface with colors & tables
+- **🖥️ Dual Execution Modes**: Interactive TUI or simple CLI for automation
 - **⌨️ Shell Completion**: Tab-complete commands, workspaces, and pipelines
 - **🏠 Centralized Workspaces**: Organized project management with `~/.writeit`
 - **🌐 Run from Anywhere**: Access all your content from any directory
@@ -148,14 +149,60 @@ writeit run tech-article         # Interactive TUI mode
 
 ### CLI Mode
 Streamlined command-line interface for automation and simplicity:
-- Simple text prompts (y/n, numbered choices)
-- Non-interactive execution
-- Perfect for scripts and automation
-- Lighter resource usage
-- Same powerful pipeline logic
+- **Simple prompts**: Text input, numbered choices, y/n confirmations
+- **Non-interactive execution**: Perfect for scripts and CI/CD pipelines
+- **Automation-friendly**: Consistent interface for programmatic use
+- **Lighter resource usage**: No TUI dependencies required
+- **Same pipeline logic**: Identical YAML configs and LLM integration
+- **Progress indicators**: Visual feedback with Rich formatting
+- **Error handling**: Graceful failures with continue/abort options
+- **Token tracking**: Complete usage monitoring and reporting
 
 ```bash
 writeit run tech-article --cli   # Simple CLI prompts
+writeit run quick-article --cli --workspace my-blog  # With workspace
+echo -e "Python Basics\n1\ny" | writeit run tutorial --cli  # Scriptable
+```
+
+#### CLI Mode Input Types
+- **Text**: Simple text input with validation
+- **Choice/Select**: Numbered options for selection
+- **Radio**: Single selection from multiple options
+- **Textarea**: Multi-line text input (Ctrl+D to finish)
+
+## 🤖 Automation & Scripting
+
+CLI mode makes WriteIt perfect for automated content generation:
+
+### Batch Processing
+```bash
+#!/bin/bash
+# Generate multiple articles from a list
+articles=(
+  "Python Best Practices"
+  "Docker Fundamentals"
+  "API Design Patterns"
+)
+
+for topic in "${articles[@]}"; do
+  echo -e "${topic}\n2\ny" | writeit run tech-article --cli --workspace dev-blog
+done
+```
+
+### CI/CD Integration
+```yaml
+# GitHub Actions example
+- name: Generate Documentation
+  run: |
+    echo -e "API Documentation\n1\ny" | \
+      writeit run api-docs --cli --workspace production
+```
+
+### Environment Variables
+```bash
+export WRITEIT_WORKSPACE=my-blog
+export WRITEIT_HOME=/custom/path
+writeit run article-template --cli
 ```
 
 ## 🎯 How It Works
@@ -194,6 +241,8 @@ Output: Publication-ready article with improved flow and clarity
 
 - **[Installation Guide](docs/user/installation.md)** - Complete setup instructions
 - **[Quick Start Tutorial](docs/user/quickstart.md)** - Your first article in 10 minutes
+- **[CLI Mode Guide](docs/user/cli-mode.md)** - Automation & scripting with CLI mode
+- **[CLI Examples](docs/user/cli-examples.md)** - Screenshots & command examples
 - **[Developer Guide](docs/developer/getting-started.md)** - Contributing and development
 - **[API Documentation](docs/api/rest-api.md)** - REST and WebSocket APIs
 

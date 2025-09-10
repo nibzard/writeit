@@ -3,13 +3,12 @@
 
 import typer
 from typing import Optional
-from pathlib import Path
 
 from writeit.workspace.workspace import Workspace
 from writeit.workspace.config import get_active_workspace
 from writeit.workspace.template_manager import TemplateManager, TemplateType, TemplateScope
 from writeit.cli.output import (
-    console, print_success, print_error, print_warning,
+    console, print_error, print_warning,
     create_pipeline_table
 )
 from writeit.cli.completion import complete_pipeline_name
@@ -62,8 +61,8 @@ def list_pipelines():
         if not templates:
             print_warning("No pipeline templates found")
             console.print("Create pipeline templates with:")
-            console.print(f"  • [primary]writeit template create <name>[/primary] (workspace scope)")
-            console.print(f"  • [primary]writeit template create <name> --global[/primary] (global scope)")
+            console.print("  • [primary]writeit template create <name>[/primary] (workspace scope)")
+            console.print("  • [primary]writeit template create <name> --global[/primary] (global scope)")
             return
         
         # Create table data with scope labels
@@ -77,7 +76,7 @@ def list_pipelines():
         console.print(table)
         
         # Show usage hint
-        console.print(f"\n[secondary]Use [primary]'writeit run <pipeline-name>'[/primary] to execute a pipeline.[/secondary]")
+        console.print("\n[secondary]Use [primary]'writeit run <pipeline-name>'[/primary] to execute a pipeline.[/secondary]")
         
     except Exception as e:
         print_error(f"Error listing pipelines: {e}")
@@ -151,7 +150,7 @@ def run(
         if location is None or not location.exists:
             print_error(f"Pipeline not found: {pipeline}")
             
-            console.print(f"\nUse [primary]'writeit list-pipelines'[/primary] to see available pipelines")
+            console.print("\nUse [primary]'writeit list-pipelines'[/primary] to see available pipelines")
             raise typer.Exit(1)
         
         pipeline_path = location.path

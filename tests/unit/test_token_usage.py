@@ -1,11 +1,9 @@
 # ABOUTME: Unit tests for token usage tracking functionality
 
-import pytest
 from datetime import datetime
 from unittest.mock import Mock
 from writeit.llm.token_usage import (
     TokenUsage, 
-    StepTokenUsage, 
     PipelineRunTokens, 
     TokenUsageTracker
 )

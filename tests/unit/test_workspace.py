@@ -4,9 +4,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import Mock, patch
-import yaml
-import datetime
+from unittest.mock import patch
 
 from writeit.workspace.workspace import Workspace, WorkspaceConfig, GlobalConfig
 

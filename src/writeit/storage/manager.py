@@ -2,7 +2,7 @@
 # ABOUTME: Handles persistent storage of pipelines, artifacts, and state data
 import lmdb
 from pathlib import Path
-from typing import Optional, Dict, Any, Union, List
+from typing import Optional, Dict, Any, List
 from contextlib import contextmanager
 import json
 import pickle

@@ -2,7 +2,6 @@
 # ABOUTME: Provides console instance, formatters, and reusable Rich components
 
 from typing import List, Optional, Dict, Any
-from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
@@ -166,7 +165,7 @@ def format_validation_results(results: List[ValidationResult], detailed: bool = 
         # Multiple files - show summary
         summary = ValidationSummary(results)
         
-        console.print(f"\n[primary]Validation Summary[/primary]")
+        console.print("\n[primary]Validation Summary[/primary]")
         console.print(f"Files processed: {len(results)}")
         console.print(f"[success]Valid files: {summary.valid_files}[/success]")
         

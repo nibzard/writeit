@@ -2,8 +2,7 @@
 # ABOUTME: Handle creation, listing, and copying of style primers
 
 import typer
-from typing import List, Optional
-from pathlib import Path
+from typing import Optional
 
 from writeit.workspace.workspace import Workspace
 from writeit.workspace.template_manager import TemplateManager, TemplateType, TemplateScope
@@ -345,7 +344,7 @@ def list_styles(
         console.print(table)
         
         # Show usage hint
-        console.print(f"\n[secondary]Style primers are used within pipeline templates to define writing voice and style.[/secondary]")
+        console.print("\n[secondary]Style primers are used within pipeline templates to define writing voice and style.[/secondary]")
         
     except Exception as e:
         print_error(f"Error listing style primers: {e}")
@@ -417,7 +416,7 @@ def copy(
             dest_scope=dest_scope
         )
         
-        print_success(f"Style primer copied successfully!")
+        print_success("Style primer copied successfully!")
         console.print(f"[primary]Source:[/primary] {source}")
         console.print(f"[primary]Destination:[/primary] {destination}")
         console.print(f"[primary]Path:[/primary] [path]{location.path}[/path]")

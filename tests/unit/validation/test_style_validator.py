@@ -1,10 +1,9 @@
 # ABOUTME: Unit tests for StyleValidator class
 # ABOUTME: Tests YAML parsing, structure validation, and style primer consistency checks
-import pytest
 import yaml
 import tempfile
 from pathlib import Path
-from writeit.validation import StyleValidator, ValidationResult, IssueType
+from writeit.validation import StyleValidator
 
 
 class TestStyleValidator:

@@ -62,6 +62,7 @@ class ValidationResult:
     is_valid: bool
     issues: List[ValidationIssue]
     metadata: Dict[str, Any]
+    file_type: Optional[str] = None
     
     def __post_init__(self):
         """Ensure is_valid reflects the actual issues."""

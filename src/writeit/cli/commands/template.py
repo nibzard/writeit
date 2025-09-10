@@ -2,8 +2,7 @@
 # ABOUTME: Handle creation, listing, and copying of pipeline templates
 
 import typer
-from typing import List, Optional
-from pathlib import Path
+from typing import Optional
 
 from writeit.workspace.workspace import Workspace
 from writeit.workspace.template_manager import TemplateManager, TemplateType, TemplateScope
@@ -372,7 +371,7 @@ def list_templates(
         console.print(table)
         
         # Show usage hint
-        console.print(f"\n[secondary]Use [primary]'writeit run <template-name>'[/primary] to execute a template.[/secondary]")
+        console.print("\n[secondary]Use [primary]'writeit run <template-name>'[/primary] to execute a template.[/secondary]")
         
     except Exception as e:
         print_error(f"Error listing templates: {e}")
@@ -444,7 +443,7 @@ def copy(
             dest_scope=dest_scope
         )
         
-        print_success(f"Template copied successfully!")
+        print_success("Template copied successfully!")
         console.print(f"[primary]Source:[/primary] {source}")
         console.print(f"[primary]Destination:[/primary] {destination}")
         console.print(f"[primary]Path:[/primary] [path]{location.path}[/path]")

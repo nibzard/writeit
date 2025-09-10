@@ -11,10 +11,9 @@ from writeit.workspace.config import get_active_workspace
 from writeit.workspace.template_manager import TemplateManager, TemplateType, TemplateScope
 from writeit.validation import PipelineValidator, StyleValidator, ValidationSummary
 from writeit.cli.output import (
-    console, print_success, print_error, print_warning,
+    console, print_error, print_warning,
     format_validation_results, show_yaml_with_highlighting
 )
-from writeit.cli.completion import complete_template_name
 from writeit.cli.app import get_workspace_override
 
 
@@ -268,7 +267,7 @@ def validate(
         # Format and display results
         if summary_only:
             summary = ValidationSummary(results)
-            console.print(f"\n[primary]Validation Summary[/primary]")
+            console.print("\n[primary]Validation Summary[/primary]")
             console.print(f"Files processed: {len(results)}")
             console.print(f"[success]Valid files: {summary.valid_files}[/success]")
             if summary.failed_files > 0:
