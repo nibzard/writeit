@@ -1,58 +1,49 @@
-# ABOUTME: WriteIt main CLI entry point
-# ABOUTME: Handles command parsing and dispatches to appropriate modules
-import argparse
+# ABOUTME: WriteIt main CLI entry point using Typer
+# ABOUTME: Coordinates all command modules and provides the main app entry point
+
 import sys
-from writeit import __version__
+
+from writeit.cli.app import app
+from writeit.cli.commands.init import app as init_app
+from writeit.cli.commands.workspace import app as workspace_app
+from writeit.cli.commands.pipeline import app as pipeline_app
+from writeit.cli.commands.validate import app as validate_app
+from writeit.cli.commands.template import app as template_app
+from writeit.cli.commands.style import app as style_app
+
+
+# Add all command modules to the main app
+# Import init command directly since it's a single command
+from writeit.cli.commands.init import init
+
+app.command(name="init")(init)
+app.add_typer(workspace_app, name="workspace")
+app.add_typer(pipeline_app, name="pipeline")
+app.add_typer(validate_app, name="validate")
+app.add_typer(template_app, name="template")
+app.add_typer(style_app, name="style")
+
+# Add individual commands from pipeline module to maintain backwards compatibility
+# Import specific commands for direct registration
+from writeit.cli.commands.pipeline import list_pipelines, run
+
+app.command(name="list-pipelines")(list_pipelines)
+app.command(name="run")(run)
 
 
 def main():
     """Main CLI entry point for WriteIt."""
-    parser = argparse.ArgumentParser(
-        prog="writeit",
-        description="LLM-powered writing pipeline tool with terminal UI"
-    )
-    
-    parser.add_argument(
-        "--version", 
-        action="version", 
-        version=f"writeit {__version__}"
-    )
-    
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-    
-    # init command
-    init_parser = subparsers.add_parser("init", help="Initialize workspace")
-    init_parser.add_argument("workspace", help="Workspace directory name")
-    
-    # list-pipelines command
-    subparsers.add_parser("list-pipelines", help="List available pipelines")
-    
-    # run command
-    run_parser = subparsers.add_parser("run", help="Start TUI pipeline execution")
-    run_parser.add_argument("pipeline", help="Pipeline configuration file (.yaml)")
-    
-    args = parser.parse_args()
-    
-    if not args.command:
-        parser.print_help()
-        return 0
-        
-    if args.command == "init":
-        print(f"Initializing workspace: {args.workspace}")
-        # TODO: Implement workspace initialization
-        return 0
-    elif args.command == "list-pipelines":
-        print("Available pipelines:")
-        print("  (No pipelines configured yet)")
-        # TODO: Implement pipeline listing
-        return 0
-    elif args.command == "run":
-        print(f"Running pipeline: {args.pipeline}")
-        # TODO: Implement TUI pipeline execution
-        return 0
-    
-    return 0
+    try:
+        app()
+    except KeyboardInterrupt:
+        # Handle Ctrl+C gracefully
+        sys.exit(1)
+    except Exception as e:
+        # Handle unexpected errors
+        from writeit.cli.output import print_error
+        print_error(f"Unexpected error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

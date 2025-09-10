@@ -4,26 +4,31 @@ Get WriteIt up and running on your system in under 5 minutes. WriteIt works on m
 
 ## 🚀 Quick Install
 
-### Option 1: pip (Recommended)
+### Option 1: uv (Recommended)
 ```bash
-# Install WriteIt with all providers
-pip install writeit[openai,anthropic,local]
+# Install uv first (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install WriteIt globally with all providers
+uv tool install writeit[openai,anthropic,local]
 
 # Verify installation
 writeit --version
 # Expected: WriteIt 0.1.0
 
-# Initialize workspace
-writeit init ~/articles
+# Initialize WriteIt (creates centralized ~/.writeit)
+writeit init
 ```
 
-### Option 2: pipx (Isolated)
+### Option 2: Project-local Installation
 ```bash
-# Install in isolated environment
-pipx install writeit[openai,anthropic]
+# Create new project with WriteIt
+uv init writeIt-workspace
+cd writeIt-workspace
+uv add writeit[openai,anthropic]
 
-# Verify installation
-writeit --version
+# Run WriteIt
+uv run writeit --version
 ```
 
 ### Option 3: From Source
@@ -32,11 +37,11 @@ writeit --version
 git clone https://github.com/writeIt/writeIt.git
 cd writeIt
 
-# Install in development mode
-pip install -e .[dev]
+# Install dependencies and sync environment
+uv sync
 
 # Verify installation
-writeit --version
+uv run writeit --version
 ```
 
 ## 🔧 System Requirements
@@ -66,8 +71,8 @@ WriteIt supports multiple AI providers. Configure at least one for full function
 
 ### OpenAI Setup
 ```bash
-# Install OpenAI provider
-pip install writeit[openai]
+# Install OpenAI provider (if not already included)
+uv add writeit[openai]  # or uv tool install writeit[openai] for global
 
 # Set API key
 llm keys set openai
@@ -80,8 +85,8 @@ llm models list | grep gpt
 
 ### Anthropic (Claude) Setup
 ```bash
-# Install Anthropic provider
-pip install writeit[anthropic]
+# Install Anthropic provider (if not already included)
+uv add writeit[anthropic]  # or uv tool install writeit[anthropic] for global
 
 # Set API key  
 llm keys set anthropic
@@ -108,36 +113,70 @@ llm models list | grep ollama
 
 ## 🏠 Workspace Setup
 
-### Initialize Workspace
+### Initialize WriteIt
 ```bash
-# Create new workspace
-writeit init ~/articles
+# Initialize centralized WriteIt storage
+writeit init
 
-# Workspace structure created:
-# ~/articles/
-# ├── pipelines/          # Pipeline configurations
-# ├── styles/             # Writing style guides  
-# ├── runs/               # Exported articles
-# └── .writeit/           # Internal data
+# Optional: Auto-migrate existing local workspaces
+writeit init --migrate
+
+# Centralized structure created at ~/.writeit:
+# ~/.writeit/
+# ├── config.yaml         # Global configuration
+# ├── templates/          # Global pipeline templates
+# ├── styles/             # Global style primers
+# ├── workspaces/         # Your organized projects
+# │   └── default/        # Default workspace
+# └── cache/              # LLM response cache
+```
+
+### Create and Manage Workspaces
+```bash
+# Create workspace for your project
+writeit workspace create my-blog
+
+# Switch to your workspace  
+writeit workspace use my-blog
+
+# List all workspaces
+writeit workspace list
+# Output:
+#   default
+# * my-blog
+
+# Show workspace info
+writeit workspace info
+# Output:
+# Workspace: my-blog
+# Path: ~/.writeit/workspaces/my-blog
+# Created: 2025-01-15T10:30:00Z
 ```
 
 ### Workspace Structure
 ```
-articles/                    # Your WriteIt workspace
-├── pipelines/              # Pipeline configurations
-│   ├── tech-article.yaml  # Technical article pipeline
-│   ├── blog-post.yaml     # Blog post pipeline
-│   └── research-summary.yaml # Research summary pipeline
-├── styles/                 # Writing style guides
-│   ├── tech-journalist.txt # Technical writing style
-│   ├── conversational.txt  # Casual blog style
-│   └── academic.txt        # Academic paper style
-├── runs/                   # Exported completed articles
-│   └── 2025-01-15_webassembly-performance_final.yaml
-└── .writeit/              # Internal data (don't modify)
-    ├── artifacts.lmdb      # Pipeline artifact storage
-    ├── config.json         # User preferences
-    └── logs/               # Application logs
+~/.writeit/                         # Centralized WriteIt home
+├── config.yaml                    # Global settings & active workspace
+├── templates/                      # Global pipeline templates
+│   ├── tech-article.yaml         # Technical article pipeline
+│   ├── blog-post.yaml            # Blog post pipeline
+│   └── research-summary.yaml     # Research summary pipeline
+├── styles/                         # Global style primers
+│   ├── tech-journalist.yaml      # Technical writing style
+│   ├── conversational.yaml       # Casual blog style
+│   └── academic.yaml             # Academic paper style
+├── workspaces/                     # Your organized projects
+│   ├── default/                   # Default workspace
+│   │   ├── pipelines/            # Workspace-specific pipelines
+│   │   ├── articles/             # Generated articles
+│   │   ├── workspace.yaml        # Workspace configuration
+│   │   └── *.lmdb               # Pipeline artifacts & history
+│   └── my-blog/                   # Your blog workspace
+│       ├── pipelines/            # Blog-specific pipelines
+│       ├── articles/             # Blog articles
+│       ├── workspace.yaml        # Blog workspace config
+│       └── *.lmdb               # Blog pipeline history
+└── cache/                          # Shared LLM response cache
 ```
 
 ## ⚙️ Configuration
@@ -156,9 +195,10 @@ writeit config show
 ### Environment Variables
 ```bash
 # Optional: Set in ~/.bashrc or ~/.zshrc
-export WRITEIT_WORKSPACE=~/articles
-export WRITEIT_DEFAULT_MODEL=gpt-4o
-export WRITEIT_LOG_LEVEL=INFO
+export WRITEIT_HOME=~/.writeit           # Override default home directory
+export WRITEIT_WORKSPACE=my-project      # Override active workspace
+export WRITEIT_DEFAULT_MODEL=gpt-4o      # Default LLM model
+export WRITEIT_LOG_LEVEL=INFO            # Logging level
 ```
 
 ### Provider Configuration
@@ -185,16 +225,20 @@ providers:
 writeit --version
 writeit --help
 
-# Test 2: List available pipelines
+# Test 2: Create and list workspaces
+writeit workspace create test-workspace
+writeit workspace list
+
+# Test 3: List available pipelines (works from any directory!)
 writeit list-pipelines
 # Expected: tech-article.yaml, blog-post.yaml, research-summary.yaml
 
-# Test 3: Test AI provider connection
+# Test 4: Test AI provider connection
 llm models list
 # Expected: List of available models from configured providers
 
-# Test 4: Start test pipeline (will prompt for input)
-writeit run pipelines/tech-article.yaml
+# Test 5: Start test pipeline (will prompt for input)
+writeit run tech-article.yaml
 # Press Ctrl+Q to quit after TUI loads
 ```
 
@@ -220,15 +264,15 @@ writeit verify
 
 #### "writeit: command not found"
 ```bash
-# Solution 1: Check PATH
+# Solution 1: Ensure uv tools are in PATH
 echo $PATH
-# Add pip install location to PATH if missing
+# uv automatically adds ~/.local/bin to PATH
 
-# Solution 2: Use python -m
-python -m writeit --version
+# Solution 2: Use uv run (for project-local installs)
+uv run writeit --version
 
-# Solution 3: Reinstall with --user
-pip install --user writeit
+# Solution 3: Reinstall globally with uv tool
+uv tool install writeit
 ```
 
 #### "No module named 'lmdb'"
@@ -240,7 +284,8 @@ sudo apt-get install python3-dev liblmdb-dev
 brew install lmdb
 
 # Reinstall WriteIt
-pip install --force-reinstall writeit
+uv tool install --force writeit
+# or for project-local: uv sync --reinstall
 ```
 
 #### "Permission denied: ~/.writeit/"
@@ -287,20 +332,22 @@ writeit --no-color run pipelines/tech-article.yaml
 # Install Xcode command line tools
 xcode-select --install
 
-# Use Homebrew Python if system Python has issues
-brew install python@3.12
-pip3.12 install writeit
+# uv can manage Python versions automatically
+uv python install 3.12
+uv tool install writeit
 ```
 
 #### Linux Issues
 ```bash
 # Ubuntu/Debian: Install build essentials
 sudo apt-get update
-sudo apt-get install build-essential python3-dev python3-venv
+sudo apt-get install build-essential python3-dev
 
 # CentOS/RHEL: Install development tools  
 sudo yum groupinstall "Development Tools"
 sudo yum install python3-devel
+
+# uv handles virtual environments automatically
 ```
 
 #### Windows Issues
@@ -346,7 +393,8 @@ writeit status --memory
 ### Upgrade WriteIt
 ```bash
 # Upgrade to latest version
-pip install --upgrade writeit
+uv tool upgrade writeit  # for global installs
+# or: uv add writeit@latest  # for project installs
 
 # Verify upgrade
 writeit --version

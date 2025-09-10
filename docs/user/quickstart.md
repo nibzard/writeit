@@ -15,6 +15,12 @@ By the end of this tutorial, you'll have:
 
 Ensure WriteIt is installed and configured:
 ```bash
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install WriteIt globally
+uv tool install writeit[openai,anthropic]
+
 # Check installation
 writeit --version
 # Should show: WriteIt 0.1.0
@@ -35,13 +41,37 @@ For this tutorial, we'll write about WebAssembly performance. Feel free to subst
 **Audience**: Technical professionals
 **Goal**: 800-word article about WebAssembly performance improvements
 
-### Step 2: Start the Pipeline
-```bash
-# Navigate to your workspace
-cd ~/articles  # or your WriteIt workspace
+### Step 2: Set Up Your Workspace & Enable Completion
 
-# Start the tech article pipeline
-writeit run pipelines/tech-article.yaml
+**🎨 First, set up shell completion for a better experience:**
+```bash
+# Enable tab-completion for commands, workspaces, and pipelines
+writeit completion --install
+
+# Or add to your shell config manually
+eval "$(writeit completion --show)"
+```
+
+**🏠 Set up your workspace:**
+```bash
+# Initialize WriteIt (creates ~/.writeit with beautiful progress display)
+writeit init
+
+# View workspaces in a beautiful table
+writeit workspace list
+
+# Create and switch to your workspace
+writeit workspace create my-articles
+writeit workspace use my-articles
+
+# View available pipelines
+writeit list-pipelines
+```
+
+**⚡ Now start the pipeline (works from ANY directory!):**
+```bash
+# No need for .yaml extension - tab completion works!
+writeit run tech-article
 ```
 
 You should see the WriteIt TUI interface:
@@ -313,11 +343,14 @@ You've successfully created your first article with WriteIt! The saved file incl
 
 ### Try Different Pipelines
 ```bash
-# Blog post pipeline (more casual tone)
-writeit run pipelines/blog-post.yaml
+# Blog post pipeline (more casual tone, no .yaml needed)
+writeit run blog-post
 
 # Research summary pipeline (academic style)
-writeit run pipelines/research-summary.yaml
+writeit run research-summary
+
+# List all available pipelines in a beautiful table
+writeit list-pipelines
 ```
 
 ### Explore Advanced Features
@@ -327,11 +360,14 @@ writeit run pipelines/research-summary.yaml
 
 ### View Your Article
 ```bash
-# Open your saved article
-cat ~/articles/runs/webassembly-performance-promise.yaml
+# Open your saved article (saved in active workspace)
+cat ~/.writeit/workspaces/my-articles/articles/webassembly-performance-promise.yaml
 
-# Or view just the final content
+# Or use WriteIt's show command (works from anywhere!)
 writeit show webassembly-performance-promise.yaml --content-only
+
+# List all articles in active workspace
+writeit list articles
 ```
 
 ## 💡 Pro Tips
@@ -357,7 +393,7 @@ writeit list runs --recent 10
 writeit cleanup --older-than 30d
 
 # Backup important articles
-writeit export ~/articles/runs/important-article.yaml ~/backup/
+writeit export important-article.yaml ~/backup/
 ```
 
 ## 🆘 Troubleshooting
@@ -381,7 +417,7 @@ echo $TERM
 tput colors
 
 # Try with basic colors
-writeit --no-color run pipelines/tech-article.yaml
+writeit --no-color run tech-article.yaml
 ```
 
 **Article seems low quality**
@@ -395,15 +431,49 @@ writeit --no-color run pipelines/tech-article.yaml
 - Run the same command again
 - Your previous work is automatically saved
 
+## 🔧 Template Development & Validation
+
+If you're creating custom pipeline templates or style primers, WriteIt includes a comprehensive validation system:
+
+### Validate Templates
+```bash
+# Validate pipeline templates (workspace-aware, no .yaml needed)
+writeit validate my-pipeline --detailed
+writeit validate tech-article --type pipeline
+
+# Validate style primers
+writeit validate technical-expert --type style --detailed
+
+# Validate multiple files
+writeit validate tech-article quick-article technical-expert --summary-only
+```
+
+### Development Mode (using uv)
+When developing or contributing to WriteIt, use `uv run` prefix:
+
+```bash
+# Development validation examples
+uv run writeit validate --detailed my-template
+uv run writeit validate --type style --detailed my-primer
+uv run writeit validate --global tech-article --summary-only
+
+# Development workflow
+uv run writeit init                    # Initialize for development
+uv run writeit workspace create dev    # Create dev workspace  
+uv run writeit run tech-article        # Test pipelines (no .yaml needed)
+uv run pytest tests/                  # Run test suite
+```
+
 ## 📚 Additional Resources
 
 ### Learn More
 - **[Installation Guide](installation.md)** - Detailed setup instructions
 - **[Pipeline Configuration](pipeline-config.md)** - Create custom workflows
+- **[Developer Guide](../developer/getting-started.md)** - Development setup with `uv run` examples
 - **[API Documentation](../api/rest-api.md)** - Programmatic access
 
 ### Get Help
-- **Built-in help**: `writeit --help`
+- **Built-in help**: `writeit --help` or `uv run writeit --help`
 - **Community**: [Discord](https://discord.gg/writeIt)
 - **Issues**: [GitHub](https://github.com/writeIt/writeIt/issues)
 

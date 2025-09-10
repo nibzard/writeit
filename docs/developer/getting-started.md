@@ -16,47 +16,54 @@ This guide will get you up and running with WriteIt development in under 15 minu
 git clone https://github.com/writeIt/writeIt.git
 cd writeIt
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -e .[dev,test]
+# Initialize uv project and sync dependencies
+uv sync
 
 # Verify installation
-writeit --version
+uv run writeit --version
 ```
 
 ### 2. Configure Development Environment
 ```bash
 # Set up pre-commit hooks
-pre-commit install
+uv run pre-commit install
 
 # Configure LLM providers (for testing)
 llm keys set openai
 llm keys set anthropic
 
-# Initialize workspace
-writeit init ~/dev-writeIt-workspace
+# Initialize workspace for development
+uv run writeit init
+
+# Create a development workspace
+uv run writeit workspace create dev-testing
 
 # Run development tests
-pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ### 3. Verify Setup
 ```bash
 # Run linting
-ruff check src/ tests/
-ruff format --check src/ tests/
+uv run ruff check src/ tests/
+uv run ruff format --check src/ tests/
 
 # Run type checking
-mypy src/
+uv run mypy src/
 
 # Run full test suite
-pytest tests/ --cov=src --cov-report=html
+uv run pytest tests/ --cov=src --cov-report=html
 
-# Start development TUI
-writeit run pipelines/tech-article.yaml
+# Test new Typer CLI interface
+uv run writeit --help                    # Rich-formatted help
+uv run writeit completion --install      # Set up shell completion
+uv run writeit workspace list           # Beautiful table output
+
+# Test validation system with Rich output
+uv run writeit validate tech-article --detailed --show-content
+
+# Start development TUI  
+uv run writeit run tech-article          # No .yaml extension needed
 ```
 
 Expected output:
@@ -76,19 +83,25 @@ writeIt/
 ├── src/                    # Library-first architecture
 │   ├── models/             # Data models (Pydantic)
 │   ├── storage/            # LMDB storage layer
+│   ├── workspace/          # Workspace management
+│   ├── validation/         # Template & style validation
 │   ├── llm/               # LLM integration
 │   ├── pipeline/          # Pipeline engine
 │   ├── server/            # FastAPI server
 │   ├── tui/               # Textual interface
-│   └── cli/               # Command-line entry
+│   └── cli/               # Typer + Rich CLI
+│       ├── app.py         # Main Typer app
+│       ├── output.py      # Rich formatting utilities
+│       ├── completion.py  # Shell completion
+│       └── commands/      # Modular command groups
 ├── tests/                  # TDD test suite
-│   ├── contract/          # API contract tests
+│   ├── contract/          # API contract tests (now uses Typer CliRunner)
 │   ├── integration/       # End-to-end tests
 │   └── unit/              # Library unit tests
 ├── docs/                   # Documentation
-├── pipelines/             # Example configurations
-├── styles/                # Writing style guides
-├── pyproject.toml         # Project configuration
+├── templates/             # Global pipeline templates
+├── styles/                # Global writing style guides
+├── pyproject.toml         # Project configuration (includes Typer + Rich)
 └── CLAUDE.md              # Development context
 ```
 
@@ -132,7 +145,7 @@ class TestPipelineStart:
 EOF
 
 # 2. Run test - it should FAIL
-pytest tests/contract/test_pipeline_start.py -v
+uv run pytest tests/contract/test_pipeline_start.py -v
 # Expected: ImportError or 404 - endpoint doesn't exist yet
 
 # 3. Implement minimal code to make test pass
@@ -151,10 +164,68 @@ async def start_pipeline(request: dict):
 EOF
 
 # 4. Run test - it should PASS now
-pytest tests/contract/test_pipeline_start.py -v
+uv run pytest tests/contract/test_pipeline_start.py -v
 
 # 5. Refactor with proper implementation
 # ... implement real logic while keeping tests green
+```
+
+## 🔍 Template & Style Validation Development
+
+WriteIt includes a comprehensive validation system with **Rich-formatted output**, syntax highlighting, and detailed error reporting.
+
+### Testing Validation During Development
+```bash
+# Validate with beautiful Rich output and syntax highlighting
+uv run writeit validate my-pipeline --detailed --show-content
+uv run writeit validate --type pipeline tech-article quick-article
+
+# Validate style primers with Rich formatting
+uv run writeit validate --type style technical-expert --detailed
+uv run writeit validate my-style --type style --summary-only
+
+# Test workspace-aware resolution with Rich tables
+uv run writeit validate my-template             # Search workspace → global → local
+uv run writeit validate --global tech-article   # Only global templates
+uv run writeit validate --local ./my-template   # Only current directory
+
+# Validate multiple files with Rich summary tables (no extensions needed)
+uv run writeit validate tech-article quick-article technical-expert --summary-only
+```
+
+### Validation Development Workflow
+```bash
+# 1. Write validation tests first (TDD)
+uv run pytest tests/unit/validation/ -v
+
+# 2. Test against real templates
+uv run writeit validate tech-article --detailed
+uv run writeit validate technical-expert --type style
+
+# 3. Run integration tests
+uv run pytest tests/integration/test_validation_integration.py -v
+
+# 4. Test CLI edge cases
+uv run writeit validate nonexistent.yaml       # Should show helpful error
+uv run writeit validate --help                 # Verify help text
+```
+
+### Common Validation Development Tasks
+```bash
+# Create test templates for validation
+mkdir -p test-templates
+echo "metadata: {name: 'Test'}" > test-templates/minimal.yaml
+
+# Test validation error handling
+uv run writeit validate --local test-templates/minimal --detailed
+
+# Run validation tests during development
+uv run pytest tests/unit/validation/test_pipeline_validator.py -v
+uv run pytest tests/unit/validation/test_style_validator.py -v
+
+# Test with actual WriteIt templates
+uv run writeit validate tech-article --global
+uv run writeit validate technical-expert --type style --global
 ```
 
 ## 📚 Library-First Architecture
@@ -220,19 +291,20 @@ class TestLMDBStore:
 ### Code Quality Tools
 ```bash
 # Linting with Ruff
-ruff check src/ tests/            # Check for issues
-ruff check --fix src/ tests/      # Auto-fix issues
-ruff format src/ tests/           # Format code
+uv run ruff check src/ tests/            # Check for issues
+uv run ruff check --fix src/ tests/      # Auto-fix issues
+uv run ruff format src/ tests/           # Format code
 
 # Type checking with MyPy
-mypy src/                         # Check types
-mypy --strict src/                # Strict checking
+uv run mypy src/                         # Check types
+uv run mypy --strict src/                # Strict checking
 
-# Testing with Pytest
-pytest tests/                     # Run all tests
-pytest tests/unit/                # Run unit tests only
-pytest -k "test_pipeline"         # Run specific tests
-pytest --cov=src --cov-report=html  # Coverage report
+# Testing with Pytest (including Typer CLI tests)
+uv run pytest tests/                     # Run all tests
+uv run pytest tests/unit/                # Run unit tests only
+uv run pytest tests/contract/            # Run CLI contract tests (now using Typer CliRunner)
+uv run pytest -k "test_pipeline"         # Run specific tests
+uv run pytest --cov=src --cov-report=html  # Coverage report
 ```
 
 ### Pre-commit Hooks
@@ -270,21 +342,21 @@ set -e
 
 echo "🚀 Setting up WriteIt development environment..."
 
-# Install dependencies
-pip install -e .[dev,test]
+# Sync dependencies
+uv sync
 
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 
 # Initialize test workspace
 mkdir -p ~/dev-writeIt-workspace
-writeit init ~/dev-writeIt-workspace
+uv run writeit init ~/dev-writeIt-workspace
 
 # Run verification
 echo "✅ Running verification tests..."
-pytest tests/contract/ -v
-ruff check src/ tests/
-mypy src/
+uv run pytest tests/contract/ -v
+uv run ruff check src/ tests/
+uv run mypy src/
 
 echo "🎉 Development environment ready!"
 ```
@@ -302,7 +374,7 @@ async def test_new_endpoint():
 EOF
 
 # 2. Run test to confirm failure
-pytest tests/contract/test_new_endpoint.py
+uv run pytest tests/contract/test_new_endpoint.py
 
 # 3. Implement endpoint in src/server/
 # 4. Run test to confirm success
@@ -370,7 +442,7 @@ TEXTUAL_LOG=debug writeit run pipelines/tech-article.yaml
 uvicorn src.server.app:app --reload --log-level debug
 
 # Debug specific test with pdb
-pytest tests/integration/test_pipeline.py -s --pdb
+uv run pytest tests/integration/test_pipeline.py -s --pdb
 
 # Debug LMDB database
 python -c "
@@ -387,19 +459,19 @@ with env.begin() as txn:
 ### Memory Profiling
 ```bash
 # Install profiling tools
-pip install memory-profiler line-profiler
+uv add --dev memory-profiler line-profiler
 
 # Profile memory usage
-python -m memory_profiler scripts/profile_memory.py
+uv run python -m memory_profiler scripts/profile_memory.py
 
 # Profile line by line
-kernprof -l -v scripts/profile_performance.py
+uv run kernprof -l -v scripts/profile_performance.py
 ```
 
 ### TUI Performance
 ```bash
 # Profile TUI performance
-TEXTUAL_LOG=debug TEXTUAL_PROFILE=profile.html writeit run pipelines/tech-article.yaml
+TEXTUAL_LOG=debug TEXTUAL_PROFILE=profile.html uv run writeit run pipelines/tech-article.yaml
 
 # View profiling results
 open profile.html
@@ -424,10 +496,10 @@ git push origin feature/your-feature-name
 ### 2. Code Review Process
 ```bash
 # Before submitting PR:
-pytest tests/ --cov=src             # All tests pass
-ruff check src/ tests/              # Linting clean
-mypy src/                          # Type checking passes
-pre-commit run --all-files         # Pre-commit hooks pass
+uv run pytest tests/ --cov=src             # All tests pass
+uv run ruff check src/ tests/              # Linting clean
+uv run mypy src/                          # Type checking passes
+uv run pre-commit run --all-files         # Pre-commit hooks pass
 
 # Create pull request
 gh pr create --title "Feature: Your feature description" --body "Detailed description"

@@ -1,0 +1,394 @@
+# WriteIt Global Pipeline Template: Technical Article
+# 
+# This is the canonical example of a WriteIt pipeline template.
+# It demonstrates all major features and serves as a reference for creating
+# custom pipelines.
+#
+# Template Location: ~/.writeit/templates/tech-article.yaml
+# Usage: writeit run tech-article.yaml (from anywhere!)
+
+metadata:
+  name: "Technical Article Pipeline"
+  description: "Generate technical articles with expert-level depth and clarity"
+  version: "1.0.0"
+  author: "WriteIt Team"
+  created: "2025-09-09"
+  tags: ["technical", "article", "programming", "deep-dive"]
+  estimated_time: "8-12 minutes"
+  word_count_target: "1200-2000 words"
+
+# Default configuration values
+defaults:
+  models:
+    primary: "gpt-4.1-2025-04-14"
+    secondary: "claude-4-sonnet"
+    polish: "gpt-5-mini-2025-08-07"
+  word_count: "1200-2000 words"
+
+# Input fields that users will fill before starting
+inputs:
+  source_material:
+    type: "text"
+    label: "Source Material"
+    placeholder: "Paste your research, links, notes, or raw content here..."
+    required: true
+    max_length: 8000
+    help: "Technical documentation, research papers, code examples, or any source material you want to transform into an article."
+  
+  target_audience:
+    type: "choice"
+    label: "Target Audience"
+    default: "technical_professionals"
+    options:
+      - value: "technical_professionals"
+        label: "Technical Professionals"
+        description: "Software engineers, architects, CTOs"
+      - value: "tech_leads"
+        label: "Tech Leads & Managers"
+        description: "Engineering managers, team leads, decision makers"
+      - value: "developers"
+        label: "Developers (All Levels)"
+        description: "Frontend, backend, full-stack developers"
+      - value: "devops_sre"
+        label: "DevOps & SRE"
+        description: "Infrastructure, operations, reliability engineers"
+      - value: "data_professionals"
+        label: "Data Professionals"
+        description: "Data scientists, ML engineers, analysts"
+    required: true
+    help: "This determines the technical depth, terminology, and assumptions made in the article."
+  
+  article_style:
+    type: "choice"
+    label: "Article Style"
+    default: "comprehensive_guide"
+    options:
+      - value: "comprehensive_guide"
+        label: "Comprehensive Guide"
+        description: "Deep-dive tutorial with examples and best practices"
+      - value: "quick_reference"
+        label: "Quick Reference"
+        description: "Concise, practical information for busy professionals"
+      - value: "case_study"
+        label: "Case Study"
+        description: "Real-world implementation story with lessons learned"
+      - value: "comparison_analysis"
+        label: "Comparison Analysis"
+        description: "Compare technologies, approaches, or solutions"
+      - value: "trend_analysis"
+        label: "Trend Analysis"
+        description: "Industry trends, future predictions, market analysis"
+    help: "The overall structure and approach of your article."
+  
+  technical_depth:
+    type: "choice"
+    label: "Technical Depth"
+    default: "intermediate"
+    options:
+      - value: "beginner"
+        label: "Beginner-Friendly"
+        description: "Assumes basic programming knowledge only"
+      - value: "intermediate"
+        label: "Intermediate"
+        description: "Assumes 2-5 years experience in the domain"
+      - value: "advanced"
+        label: "Advanced"
+        description: "Expert-level content for seasoned professionals"
+      - value: "mixed"
+        label: "Mixed (Beginner to Advanced)"
+        description: "Starts basic, builds to advanced concepts"
+    help: "How deep into technical details should the article go?"
+
+# The 4-step pipeline execution
+steps:
+  # Step 1: Generate multiple article angles
+  angles:
+    type: "llm_generation"
+    name: "Article Angles"
+    description: "Generate 3-4 different approaches to your topic"
+    model_preference: ["{{ defaults.models.primary }}", "{{ defaults.models.secondary }}"]
+    
+    prompt_template: |
+      You are an expert technical writer specializing in {{ inputs.target_audience }} content.
+      
+      SOURCE MATERIAL:
+      {{ inputs.source_material }}
+      
+      REQUIREMENTS:
+      - Target Audience: {{ inputs.target_audience }}
+      - Article Style: {{ inputs.article_style }}
+      - Technical Depth: {{ inputs.technical_depth }}
+      - Target Length: {{ defaults.word_count }}
+      
+      Generate 3-4 distinct article angles that would transform this source material into compelling content for {{ inputs.target_audience }}.
+      
+      For each angle, provide:
+      1. **Compelling Title** (8-12 words)
+      2. **Hook/Opening** (2-3 sentences that grab attention)
+      3. **Key Value Proposition** (what readers will learn/gain)
+      4. **Unique Angle** (what makes this approach different)
+      5. **Content Structure** (3-4 main sections)
+      
+      Make each angle distinct - different focus, different benefits, different reader journey.
+      Consider angles like:
+      - Practical implementation guide
+      - Comparative analysis 
+      - Problem-solution narrative
+      - Future trends and implications
+      - Performance/efficiency focus
+      - Security and best practices
+      
+      Format as clear, scannable sections. Be specific and actionable.
+    
+    selection_prompt: |
+      Review the article angles above. Consider:
+      - Which angle best serves your target audience?
+      - Which provides the most value given your source material?
+      - Which aligns with your expertise and goals?
+      
+      Choose the angle that will create the most compelling and useful article.
+    
+    # Validation rules for this step
+    validation:
+      min_response_length: 500
+      max_response_length: 2000
+      required_elements: ["title", "hook", "value"]
+    
+    # UI configuration for this step
+    ui:
+      show_word_count: true
+      allow_regenerate: true
+      allow_merge: true
+      timeout_warning: 90
+
+  # Step 2: Create detailed outline
+  outline:
+    type: "llm_generation"
+    name: "Detailed Outline"
+    description: "Structure your article with clear sections and key points"
+    model_preference: "{{ defaults.models.primary }}"
+    
+    prompt_template: |
+      You are creating a detailed outline for this technical article:
+      
+      SELECTED ANGLE:
+      {{ steps.angles.selected_response }}
+      
+      ORIGINAL SOURCE MATERIAL:
+      {{ inputs.source_material }}
+      
+      ARTICLE REQUIREMENTS:
+      - Target Audience: {{ inputs.target_audience }}
+      - Article Style: {{ inputs.article_style }}
+      - Technical Depth: {{ inputs.technical_depth }}
+      - Target Length: {{ defaults.word_count }}
+      
+      USER FEEDBACK FROM PREVIOUS STEP:
+      {{ steps.angles.user_input }}
+      
+      Create a comprehensive outline that transforms the selected angle into a structured article. Include:
+      
+      ## ARTICLE STRUCTURE:
+      
+      ### Hook/Opening (150-200 words)
+      - Compelling opening statement or scenario
+      - Why this topic matters now
+      - What readers will gain
+      
+      ### Main Content Sections (3-5 sections, ~300-400 words each)
+      For each section:
+      - **Section Title** (clear, descriptive)
+      - **Key Points** (3-4 bullet points of what to cover)
+      - **Technical Details** (specific examples, code snippets, metrics)
+      - **Practical Applications** (how readers can apply this)
+      
+      ### Conclusion/Next Steps (100-150 words)  
+      - Key takeaways summary
+      - Actionable next steps
+      - Further reading/resources
+      
+      ## SPECIAL ELEMENTS TO INCLUDE:
+      - Code examples (if applicable)
+      - Diagrams or visual concepts to suggest
+      - Performance metrics or benchmarks
+      - Real-world use cases
+      - Common pitfalls to avoid
+      - Best practices checklist
+      
+      Make the outline detailed enough that writing the full article becomes straightforward.
+      Ensure technical accuracy and appropriate depth for {{ inputs.technical_depth }} level.
+    
+    selection_prompt: |
+      Review this outline carefully:
+      - Does it cover all key aspects from your source material?
+      - Is the structure logical and easy to follow?
+      - Are the technical details appropriate for your audience?
+      - Will this create a 1200-2000 word article?
+      
+      Provide any feedback to improve the outline before moving to the draft phase.
+    
+    validation:
+      min_response_length: 800
+      max_response_length: 2500
+      required_elements: ["hook", "sections", "conclusion"]
+    
+    ui:
+      show_section_count: true
+      show_estimated_word_count: true
+      allow_detailed_feedback: true
+
+  # Step 3: Write the full draft
+  draft:
+    type: "llm_generation"
+    name: "Article Draft"
+    description: "Write the complete article following your approved outline"
+    model_preference: ["{{ defaults.models.primary }}", "{{ defaults.models.secondary }}"]
+    
+    prompt_template: |
+      You are writing a complete technical article based on this approved outline:
+      
+      OUTLINE:
+      {{ steps.outline.selected_response }}
+      
+      ORIGINAL SOURCE MATERIAL:
+      {{ inputs.source_material }}
+      
+      USER FEEDBACK ON OUTLINE:
+      {{ steps.outline.user_input }}
+      
+      ARTICLE SPECIFICATIONS:
+      - Target Audience: {{ inputs.target_audience }}
+      - Article Style: {{ inputs.article_style }}  
+      - Technical Depth: {{ inputs.technical_depth }}
+      - Target Length: {{ defaults.word_count }}
+      - Format: Technical article for publication
+      
+      Write the complete article following these guidelines:
+      
+      ## WRITING STYLE:
+      - Professional but accessible tone
+      - Clear, concise explanations
+      - Active voice preferred
+      - Smooth transitions between sections
+      - Technical accuracy is paramount
+      
+      ## STRUCTURE:
+      - Follow the approved outline closely
+      - Use clear headings and subheadings
+      - Include specific examples and code snippets where relevant
+      - Add practical applications and use cases
+      - Incorporate metrics, benchmarks, or data when available
+      
+      ## TECHNICAL CONTENT:
+      - Explain complex concepts clearly
+      - Provide context for technical decisions
+      - Include error handling and edge cases
+      - Mention performance implications
+      - Address security considerations where relevant
+      
+      ## AUDIENCE CONSIDERATIONS:
+      - Match the technical depth to {{ inputs.technical_depth }} level
+      - Use terminology appropriate for {{ inputs.target_audience }}
+      - Provide enough context without being patronizing
+      - Include practical takeaways and actionable insights
+      
+      ## FORMATTING:
+      - Use Markdown formatting
+      - Include code blocks with appropriate language tags
+      - Use bullet points and numbered lists for clarity
+      - Bold important concepts and key terms
+      - Use blockquotes for important callouts
+      
+      Write the complete article now. Aim for {{ defaults.word_count }}.
+    
+    selection_prompt: |
+      Evaluate this draft article:
+      - Does it match your vision and requirements?
+      - Is the technical content accurate and well-explained?
+      - Does it provide value to {{ inputs.target_audience }}?
+      - Are examples and code snippets helpful and correct?
+      - Is the writing clear and engaging?
+      
+      Choose the draft that best balances technical depth, readability, and practical value.
+    
+    validation:
+      min_response_length: 2000
+      max_response_length: 8000
+      required_elements: ["introduction", "technical_content", "examples", "conclusion"]
+      check_code_formatting: true
+    
+    ui:
+      show_word_count: true
+      show_reading_time: true
+      highlight_code_blocks: true
+      allow_section_feedback: true
+
+  # Step 4: Polish and finalize
+  polish:
+    type: "llm_generation"
+    name: "Final Polish"
+    description: "Refine the article for clarity, flow, and publication readiness"
+    model_preference: "{{ defaults.models.polish }}"
+    
+    prompt_template: |
+      Polish this technical article to publication quality:
+      
+      DRAFT ARTICLE:
+      {{ steps.draft.selected_response }}
+      
+      USER FEEDBACK ON DRAFT:
+      {{ steps.draft.user_input }}
+      
+      POLISHING REQUIREMENTS:
+      - Target Audience: {{ inputs.target_audience }}
+      - Technical Depth: {{ inputs.technical_depth }}
+      - Publication Ready: Yes
+      
+      Focus on these areas:
+      
+      ## CLARITY & FLOW:
+      - Improve sentence structure and readability
+      - Enhance transitions between paragraphs and sections
+      - Ensure logical progression of ideas
+      - Clarify any confusing explanations
+      
+      ## TECHNICAL ACCURACY:
+      - Verify technical statements are precise
+      - Ensure code examples are correct and complete
+      - Check that explanations match the technical depth requirement
+      - Validate any performance claims or metrics
+      
+      ## ENGAGEMENT & VALUE:
+      - Strengthen the opening hook
+      - Ensure each section delivers clear value
+      - Improve practical examples and use cases
+      - Make the conclusion more actionable
+      
+      ## EDITORIAL POLISH:
+      - Perfect grammar, spelling, and punctuation
+      - Consistent terminology and formatting
+      - Appropriate heading hierarchy
+      - Clean code formatting and syntax highlighting
+      - Professional tone throughout
+      
+      ## PUBLICATION CHECKLIST:
+      - SEO-friendly title and headings
+      - Clear meta description potential
+      - Proper attribution for any referenced material  
+      - Consistent style and voice
+      - Ready for technical review
+      
+      Return the polished, publication-ready article. Maintain all technical accuracy while significantly improving readability and professional presentation.
+    
+    validation:
+      min_response_length: 2000
+      max_response_length: 8000
+      check_grammar: true
+      check_code_formatting: true
+      check_markdown_syntax: true
+    
+    ui:
+      show_final_metrics: true
+      show_readability_score: true
+      enable_quick_export: true
+

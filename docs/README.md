@@ -62,6 +62,24 @@ Welcome to the WriteIt LLM Article Pipeline documentation. WriteIt transforms ra
 2. Set up [Monitoring](deployment/monitoring.md)
 3. Review [Configuration Management](deployment/configuration.md)
 
+## 📚 Viewing This Documentation
+
+### Local Development
+To view this documentation locally with MkDocs:
+
+```bash
+# Install dependencies (if not already installed)
+uv add --group docs mkdocs mkdocs-material
+
+# Serve documentation locally
+uv run mkdocs serve
+
+# View at http://127.0.0.1:8000
+# Stop server: Ctrl+C (or pkill -f mkdocs if running in background)
+```
+
+The documentation will auto-reload when you make changes to any markdown files.
+
 ## 🤝 Community & Support
 
 - **Issues & Bugs**: Report on [GitHub Issues](https://github.com/writeIt/writeIt/issues)

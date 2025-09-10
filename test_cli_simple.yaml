@@ -1,0 +1,31 @@
+metadata:
+  name: "CLI Test Pipeline"
+  description: "Simple test for CLI mode"
+  version: "1.0.0"
+  author: "Test"
+
+inputs:
+  topic:
+    type: "text"
+    label: "Topic"
+    required: true
+    help: "Enter your topic"
+  
+  audience:
+    type: "choice"
+    label: "Audience"
+    default: "general"
+    options:
+      - value: "general"
+        label: "General audience"
+      - value: "tech"
+        label: "Technical audience"
+    required: true
+
+steps:
+  plan:
+    name: "Create Plan"
+    description: "Plan the article"
+    type: "llm_generation"
+    prompt_template: "Create a plan for: {{topic}} targeting {{audience}}"
+    model_preference: ["gpt-4"]

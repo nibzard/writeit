@@ -1,0 +1,137 @@
+# WriteIt Simple Pipeline Template: Quick Article
+# 
+# A streamlined, beginner-friendly pipeline for creating articles quickly.
+# Perfect for getting started with WriteIt or when you need content fast.
+#
+# Template Location: ~/.writeit/templates/quick-article.yaml
+# Usage: writeit run quick-article.yaml
+
+metadata:
+  name: "Quick Article"
+  description: "Simple, fast article creation for any topic"
+  version: "1.0.0"
+  author: "WriteIt Team"
+  created: "2025-09-09"
+  tags: ["simple", "beginner", "fast", "general"]
+  estimated_time: "3-5 minutes"
+  word_count_target: "600-1000 words"
+
+# Default configuration values
+defaults:
+  models:
+    primary: "gpt-4.1-2025-04-14"
+    secondary: "claude-4-sonnet"
+    polish: "gpt-5-mini-2025-08-07"
+  word_count: "600-1000 words"
+
+# Simple inputs - just the essentials
+inputs:
+  topic:
+    type: "text"
+    label: "Article Topic"
+    placeholder: "What do you want to write about?"
+    required: true
+    help: "Enter your main topic or idea - be as specific or general as you like"
+  
+  audience:
+    type: "choice"
+    label: "Who's reading this?"
+    default: "general"
+    options:
+      - value: "general"
+        label: "General audience"
+        description: "Anyone interested in the topic"
+      - value: "professionals"
+        label: "Professionals"
+        description: "People working in this field"
+      - value: "beginners"
+        label: "Beginners"
+        description: "New to this topic"
+    required: true
+
+# Streamlined 3-step process
+steps:
+  # Step 1: Get the angle and outline together
+  plan:
+    type: "llm_generation"
+    name: "Plan Article"
+    description: "Create the structure and approach for your article"
+    model_preference: "{{ defaults.models.primary }}"
+    
+    prompt_template: |
+      Create an article plan for: {{ inputs.topic }}
+      
+      Target audience: {{ inputs.audience }}
+      Target length: {{ defaults.word_count }}
+      
+      Provide:
+      
+      1. **Compelling Title** (clear and engaging)
+      
+      2. **Article Angle** (your unique approach to this topic)
+      
+      3. **Simple Outline**:
+         - Hook/Opening (grab attention)
+         - 3-4 Main Points (core content)
+         - Conclusion (key takeaway)
+      
+      Keep it straightforward and focused. Make sure each section adds value for {{ inputs.audience }}.
+    
+    validation:
+      min_response_length: 200
+      max_response_length: 800
+
+  # Step 2: Write the article
+  write:
+    type: "llm_generation"
+    name: "Write Article"
+    description: "Create the full article from your plan"
+    model_preference: ["{{ defaults.models.primary }}", "{{ defaults.models.secondary }}"]
+    
+    prompt_template: |
+      Write a complete article based on this plan:
+      
+      {{ steps.plan.selected_response }}
+      
+      REQUIREMENTS:
+      - Target audience: {{ inputs.audience }}
+      - Length: {{ defaults.word_count }}
+      - Tone: Friendly and informative
+      - Format: Use clear headings and paragraphs
+      
+      Make it engaging and valuable for {{ inputs.audience }}. Include:
+      - An attention-grabbing opening
+      - Clear, well-organized main content
+      - Practical examples or insights where relevant
+      - A strong conclusion with key takeaways
+      
+      Write the complete article now.
+    
+    validation:
+      min_response_length: 800
+      max_response_length: 2000
+
+  # Step 3: Polish it up
+  polish:
+    type: "llm_generation"
+    name: "Polish & Perfect"
+    description: "Make your article shine"
+    model_preference: "{{ defaults.models.polish }}"
+    
+    prompt_template: |
+      Polish this article for publication:
+      
+      {{ steps.write.selected_response }}
+      
+      Focus on:
+      - Clear, engaging writing
+      - Smooth flow between paragraphs
+      - Perfect grammar and spelling
+      - Strong opening and closing
+      - Appropriate tone for {{ inputs.audience }}
+      
+      Keep the same structure and content, just make it better.
+    
+    validation:
+      min_response_length: 800
+      max_response_length: 2000

@@ -16,8 +16,11 @@ This quickstart guide demonstrates WriteIt's complete article generation pipelin
 
 ### AI Provider Setup
 ```bash
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # Install WriteIt with LLM providers
-pip install writeit[openai,anthropic]
+uv tool install writeit[openai,anthropic]
 
 # Configure API keys
 llm keys set openai
@@ -29,14 +32,20 @@ llm models list
 
 ### Initial Configuration
 ```bash
-# Initialize WriteIt workspace
-writeit init ~/articles
+# Initialize WriteIt (creates ~/.writeit centralized storage)
+writeit init
 
 # Verify installation
 writeit --version
 # Expected: WriteIt 0.1.0
 
-# Check available pipelines
+# Create a workspace for your articles
+writeit workspace create my-articles
+
+# Switch to your new workspace
+writeit workspace use my-articles
+
+# Check available pipelines (works from any directory now!)
 writeit list-pipelines
 # Expected: tech-article.yaml, blog-post.yaml, research-summary.yaml
 ```
@@ -46,8 +55,14 @@ writeit list-pipelines
 ### Step 1: Start New Article Pipeline
 
 ```bash
-# Launch WriteIt TUI
+# Launch WriteIt TUI (runs from any directory - uses active workspace)
 writeit run tech-article.yaml
+
+# Alternative: Use specific workspace
+writeit --workspace my-articles run tech-article.yaml
+
+# Alternative: Use global template
+writeit run --global tech-article.yaml
 ```
 
 **Expected TUI State**:

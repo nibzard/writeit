@@ -17,15 +17,21 @@ WriteIt supports multiple deployment patterns based on your needs:
 
 ### Standard Installation
 ```bash
-# Install WriteIt for single user
-pip install writeit[openai,anthropic]
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Initialize workspace
-writeit init ~/articles
+# Install WriteIt globally
+uv tool install writeit[openai,anthropic]
+
+# Initialize centralized WriteIt storage
+writeit init
 
 # Configure AI providers
 llm keys set openai
 llm keys set anthropic
+
+# Create workspace for your content
+writeit workspace create my-content
 
 # Verify installation
 writeit verify
@@ -93,7 +99,7 @@ launchctl load ~/Library/LaunchAgents/ai.writeit.daemon.plist
 
 ### Prerequisites
 - **Linux server** (Ubuntu 20.04+ recommended)
-- **Python 3.11+** with pip
+- **Python 3.11+** (uv will manage Python versions)
 - **2GB+ RAM** (4GB+ recommended)
 - **10GB+ storage** (for user data)
 - **SSL certificate** (for HTTPS)
@@ -103,8 +109,8 @@ launchctl load ~/Library/LaunchAgents/ai.writeit.daemon.plist
 # Update system
 sudo apt update && sudo apt upgrade -y
 
-# Install Python and dependencies
-sudo apt install python3.11 python3.11-pip python3.11-venv nginx
+# Install dependencies
+sudo apt install curl nginx build-essential
 
 # Create WriteIt user
 sudo adduser --system --group --shell /bin/bash writeit
@@ -117,13 +123,13 @@ sudo chown writeit:writeit /opt/writeit
 # Switch to WriteIt user
 sudo su - writeit
 
-# Create virtual environment
+# Install uv for writeit user
 cd /opt/writeit
-python3.11 -m venv venv
-source venv/bin/activate
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc  # Reload PATH
 
 # Install WriteIt with all providers
-pip install writeit[openai,anthropic,server]
+uv tool install writeit[openai,anthropic,server]
 
 # Create configuration
 mkdir -p config data logs
@@ -234,7 +240,7 @@ sudo apt install supervisor
 # Create Supervisor configuration
 sudo cat > /etc/supervisor/conf.d/writeit.conf << 'EOF'
 [program:writeit]
-command=/opt/writeit/venv/bin/writeit server --config /opt/writeit/config/writeit-server.yaml
+command=/home/writeit/.local/bin/writeit server --config /opt/writeit/config/writeit-server.yaml
 directory=/opt/writeit
 user=writeit
 group=writeit
@@ -244,7 +250,7 @@ redirect_stderr=true
 stdout_logfile=/opt/writeit/logs/supervisor.log
 stdout_logfile_maxbytes=50MB
 stdout_logfile_backups=10
-environment=PATH="/opt/writeit/venv/bin"
+environment=PATH="/home/writeit/.local/bin:/usr/local/bin:/usr/bin:/bin"
 EOF
 
 # Start WriteIt
@@ -272,9 +278,16 @@ RUN useradd --create-home --shell /bin/bash writeit
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv and copy project files
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
+# Copy project files
+COPY pyproject.toml uv.lock ./
+COPY . .
+
+# Install dependencies
+RUN uv sync --frozen
 
 # Copy application
 COPY . .
@@ -291,7 +304,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
 # Start application
-CMD ["writeit", "server", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "writeit", "server", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 ```yaml
@@ -631,10 +644,7 @@ fi
 ./backup-writeit.sh
 
 # Update WriteIt
-sudo su - writeit -c "
-    source /opt/writeit/venv/bin/activate
-    pip install --upgrade writeit
-"
+sudo su - writeit -c "uv tool upgrade writeit"
 
 # Restart services
 sudo supervisorctl restart writeit

@@ -1,0 +1,323 @@
+# WriteIt Style Primer: Business Executive
+# 
+# Strategic, results-focused writing for business leaders, executives, and 
+# decision-makers. Emphasizes ROI, impact, and actionable insights with 
+# executive-level brevity and authority.
+#
+# Best for: Business reports, strategic documents, executive summaries,
+#           board presentations, investor communications, leadership content
+# 
+# Target Audience: C-suite executives, VPs, directors, business stakeholders
+
+metadata:
+  name: "Business Executive"
+  description: "Strategic, results-focused writing for business decision-makers"
+  version: "1.0.0"
+  author: "WriteIt Team"
+  category: "business"
+  difficulty: "advanced"
+  use_cases: 
+    - "Executive summaries and reports"
+    - "Strategic planning documents"
+    - "Board presentation narratives"
+    - "Investor communications"
+    - "Business case documents"
+    - "Leadership thought pieces"
+
+# Core voice and personality
+voice:
+  personality: "Authoritative, strategic, results-oriented, decisive"
+  tone: "Professional, confident, direct, action-focused"
+  perspective: "Senior leader communicating with peers and stakeholders"
+  
+  characteristics:
+    - "Focuses on business outcomes and strategic impact"
+    - "Uses data and metrics to support decisions"
+    - "Demonstrates understanding of market dynamics"
+    - "Addresses risk and opportunity clearly"
+    - "Provides actionable recommendations"
+    - "Respects time constraints of busy executives"
+    - "Balances optimism with realism"
+
+# Language and word choices
+language:
+  formality: "Professional and polished, appropriate for C-suite"
+  
+  business_vocabulary:
+    strategic_terms:
+      - "strategic imperative" instead of "important thing"
+      - "competitive advantage" instead of "benefit"
+      - "market opportunity" instead of "chance"
+      - "operational excellence" instead of "doing things well"
+      - "value creation" instead of "making money"
+      - "stakeholder alignment" instead of "getting agreement"
+      - "resource optimization" instead of "saving money"
+    
+    results_language:
+      - "delivered 23% revenue growth"
+      - "reduced operational costs by $2.3M"
+      - "accelerated time-to-market by 6 months"
+      - "improved customer satisfaction by 18 points"
+      - "achieved 99.9% system uptime"
+      - "expanded market share from 12% to 19%"
+  
+  action_oriented:
+    - "recommend" instead of "suggest"
+    - "implement" instead of "try"
+    - "execute" instead of "do"
+    - "optimize" instead of "improve"
+    - "prioritize" instead of "focus on"
+    - "accelerate" instead of "speed up"
+    - "transform" instead of "change"
+  
+  avoid:
+    - Technical jargon without business context
+    - Uncertain language ("might", "could", "maybe")
+    - Overly casual expressions
+    - Lengthy explanations without clear purpose
+    - Academic or theoretical language without practical application
+
+# Content structure patterns
+structure:
+  executive_summary:
+    pattern: "Situation → Impact → Action → Outcome"
+    length: "One paragraph, 3-4 sentences maximum"
+    elements:
+      - "Current business situation or opportunity"
+      - "Strategic impact and implications"
+      - "Recommended actions"
+      - "Expected outcomes and timeline"
+    
+    example: |
+      "Our current cloud infrastructure costs have increased 340% over 18 months while
+      delivering inconsistent performance that impacts customer experience and revenue.
+      Migrating to a hybrid cloud architecture will reduce operational costs by $4.2M
+      annually while improving system reliability to 99.95% uptime. Implementation
+      requires a $1.8M investment and 6-month timeline, delivering positive ROI within
+      14 months and positioning us for scalable growth through 2026."
+  
+  business_case_structure:
+    sections:
+      - "Executive Summary (key points only)"
+      - "Business Context and Drivers"
+      - "Strategic Options Analysis"
+      - "Recommended Solution"
+      - "Implementation Plan and Timeline"
+      - "Financial Impact and ROI"
+      - "Risk Assessment and Mitigation"
+      - "Success Metrics and Governance"
+  
+  recommendations:
+    format: "Priority level → Action → Owner → Timeline → Success metric"
+    example: |
+      "**Priority 1 (Immediate):** Implement automated monitoring system.
+      Owner: CTO. Timeline: 30 days. Success: Reduce incident response time by 75%."
+
+# Data and evidence presentation
+data_presentation:
+  financial_metrics:
+    - "Always include currency and time periods"
+    - "Use business-relevant percentages (growth rates, margins)"
+    - "Provide context with industry benchmarks"
+    - "Show before/after comparisons"
+    - "Include sensitivity analysis for major investments"
+  
+  performance_indicators:
+    categories:
+      financial: "Revenue, profit, costs, ROI, cash flow"
+      operational: "Efficiency, productivity, quality, speed"
+      customer: "Satisfaction, retention, acquisition, lifetime value"
+      strategic: "Market share, competitive position, innovation pipeline"
+  
+  risk_assessment:
+    framework: "Probability × Impact = Priority"
+    presentation:
+      - "High/Medium/Low risk categories"
+      - "Specific mitigation strategies"
+      - "Contingency plans for critical risks"
+      - "Early warning indicators"
+
+# Strategic communication patterns
+strategic_communication:
+  opportunity_framing:
+    pattern: "Market Context → Our Position → Action Required → Competitive Advantage"
+    example: |
+      "The enterprise AI market is projected to reach $50B by 2026, growing at 42% CAGR.
+      Our current position in data infrastructure gives us unique advantages to capture
+      this opportunity. Investing $12M in AI capabilities now will establish market
+      leadership and generate an estimated $85M in new revenue streams over three years."
+  
+  problem_solving:
+    framework: "Issue → Root Cause → Options → Recommendation → Next Steps"
+    focus:
+      - "Address symptoms and underlying causes"
+      - "Present multiple solutions with trade-offs"
+      - "Make clear recommendations with rationale"
+      - "Define success criteria and measurement"
+  
+  change_management:
+    approach: "Why Change → What Changes → How to Change → Support Required"
+    elements:
+      - "Business case for change"
+      - "Impact on stakeholders"
+      - "Implementation roadmap"
+      - "Resource requirements"
+      - "Communication strategy"
+
+# Executive-level formatting
+formatting:
+  document_structure:
+    - "Executive summary first (can be read standalone)"
+    - "Key findings and recommendations prominently featured"
+    - "Supporting details in appendices"
+    - "Clear action items and owners"
+  
+  visual_elements:
+    charts_graphs: "Focus on trends, comparisons, and key metrics"
+    tables: "Financial summaries, timeline comparisons, option analysis"
+    infographics: "Process flows, organizational changes, strategic frameworks"
+    
+  readability:
+    - "Use bullet points for key information"
+    - "Bold headings for easy scanning"  
+    - "White space for visual breathing room"
+    - "Consistent formatting throughout"
+    - "Page numbers and dates on multi-page documents"
+
+# Stakeholder considerations
+stakeholder_communication:
+  board_level:
+    focus: "Strategic direction, major investments, risk management"
+    format: "High-level summaries with supporting data available"
+    language: "Governance, fiduciary responsibility, shareholder value"
+  
+  c_suite_peers:
+    focus: "Cross-functional impact, resource requirements, operational changes"
+    format: "Detailed recommendations with implementation specifics"
+    language: "Collaborative, strategic, results-oriented"
+  
+  investors:
+    focus: "Financial performance, growth strategy, market position"
+    format: "Metrics-heavy with clear value proposition"
+    language: "ROI, market opportunity, competitive advantage"
+  
+  direct_reports:
+    focus: "Execution details, resource allocation, performance expectations"
+    format: "Action-oriented with clear deliverables"
+    language: "Accountable, measurable, deadline-driven"
+
+# Industry and market awareness
+business_context:
+  market_dynamics:
+    - "Reference relevant industry trends and disruptions"
+    - "Position recommendations within competitive landscape"
+    - "Address regulatory and compliance considerations"
+    - "Consider economic and market cycle impacts"
+  
+  competitive_intelligence:
+    - "Benchmark against industry leaders"
+    - "Identify competitive threats and opportunities"
+    - "Reference best practices from other industries"
+    - "Assess first-mover vs. fast-follower strategies"
+
+# Examples of effective executive communication
+examples:
+  strong_executive_summary: |
+    "Digital transformation initiatives across our three business units delivered
+    $18.7M in cost savings and 31% improvement in customer satisfaction scores
+    in Q3. However, fragmented technology implementations are creating integration
+    challenges that threaten scalability. Consolidating to a unified platform
+    architecture requires $8.2M investment but will unlock an additional $25M
+    in operational efficiencies over 24 months while positioning us for next-phase
+    growth initiatives."
+
+  effective_recommendation: |
+    "**Recommendation:** Acquire CloudTech Solutions within 90 days.
+    
+    **Strategic Rationale:** Expands our cloud capabilities by 3x, adds 250 enterprise
+    customers, and accelerates our digital transformation timeline by 18 months.
+    
+    **Financial Impact:** $47M acquisition cost generates $23M annual revenue,
+    achieving break-even in 26 months and 18% IRR over 5 years.
+    
+    **Key Risks:** Integration complexity, talent retention, customer churn.
+    Mitigation includes dedicated integration team, retention bonuses, and
+    customer success program expansion.
+    
+    **Next Steps:** Board approval required by March 15. Due diligence team
+    assembled. Integration planning begins immediately upon approval."
+
+  clear_problem_statement: |
+    "Customer acquisition costs have increased 67% over 12 months while conversion
+    rates declined 23%, resulting in $4.3M negative impact on quarterly revenue.
+    Root cause analysis identifies three primary factors: increased competition
+    in core segments, outdated marketing technology stack, and misaligned sales
+    and marketing processes. Without intervention, we project an additional
+    $12M revenue impact over the next four quarters."
+
+# Quality standards for executive communication
+quality_standards:
+  clarity:
+    - "Every paragraph has a clear purpose"
+    - "Recommendations are specific and actionable"
+    - "Financial impacts are quantified"
+    - "Timeline expectations are realistic"
+  
+  credibility:
+    - "Data sources are credible and current"
+    - "Assumptions are clearly stated"
+    - "Risks are honestly assessed"
+    - "Alternative options are considered"
+  
+  completeness:
+    - "All stakeholder impacts are addressed"
+    - "Implementation requirements are detailed"
+    - "Success metrics are defined"
+    - "Governance and oversight are specified"
+
+# Anti-patterns to avoid
+anti_patterns:
+  content:
+    - "Burying key insights in detailed explanations"
+    - "Making recommendations without clear business justification"
+    - "Ignoring implementation challenges and resource requirements"
+    - "Presenting options without clear recommendation"
+  
+  language:
+    - "Using technical jargon without business translation"
+    - "Hedging with uncertain language ('might', 'could', 'possibly')"
+    - "Corporate buzzwords without substance"
+    - "Academic tone inappropriate for business context"
+  
+  structure:
+    - "No executive summary or key takeaways"
+    - "Important information buried in appendices"
+    - "Unclear action items and ownership"
+    - "Missing financial analysis or ROI calculation"
+
+# Integration with WriteIt
+integration:
+  pipeline_usage:
+    - "Ideal for business-report or executive-summary pipelines"
+    - "Perfect for strategic planning and decision-making content"
+    - "Best suited for business_professionals audience setting"
+    - "Requires high-level source material with business context"
+  
+  prompt_modifications:
+    - "Emphasize strategic impact and business outcomes"
+    - "Request specific metrics and financial analysis"
+    - "Include competitive and market context"
+    - "Focus on actionable recommendations with clear ownership"
+  
+  output_optimization:
+    - "Generate executive summary automatically"
+    - "Include financial impact calculations"
+    - "Provide implementation timeline templates"
+    - "Add risk assessment frameworks"
+  
+  quality_indicators:
+    - "Clear value proposition and business case"
+    - "Specific, quantified outcomes and metrics"
+    - "Actionable recommendations with owners and timelines"
+    - "Professional tone appropriate for executive audience"
+    - "Strategic context and competitive awareness"

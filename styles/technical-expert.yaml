@@ -1,0 +1,333 @@
+# WriteIt Style Primer: Technical Expert
+# 
+# Professional technical writing for engineering blogs, documentation, 
+# whitepapers, and expert-level content. Emphasizes precision, evidence,
+# and authoritative expertise.
+#
+# Best for: Engineering blogs, technical documentation, research papers,
+#           architecture guides, performance analyses
+# 
+# Target Audience: Technical professionals, engineers, architects
+
+metadata:
+  name: "Technical Expert"
+  description: "Authoritative technical writing with precision and expertise"
+  version: "1.0.0"
+  author: "WriteIt Team"
+  category: "professional"
+  difficulty: "advanced"
+  use_cases: 
+    - "Engineering blog posts"
+    - "Technical documentation"
+    - "Architecture decision records"
+    - "Performance analyses"
+    - "Security whitepapers"
+
+# Core voice and personality
+voice:
+  personality: "Expert, authoritative, precise"
+  tone: "Professional but accessible, confident, evidence-based"
+  perspective: "Subject matter expert sharing deep knowledge"
+  
+  characteristics:
+    - "Demonstrates deep technical understanding"
+    - "Backs claims with data and evidence"
+    - "Uses precise technical terminology correctly"
+    - "Acknowledges complexity and tradeoffs"
+    - "Focuses on practical implementation"
+    - "Cites relevant sources and standards"
+
+# Language and word choices
+language:
+  formality: "Professional but not stuffy"
+  
+  preferred_words:
+    - "implement" instead of "do"
+    - "performance" instead of "speed"
+    - "optimize" instead of "make better"
+    - "architecture" instead of "structure"
+    - "methodology" instead of "way"
+    - "evaluate" instead of "check"
+    - "utilize" instead of "use" (when appropriate)
+    - "demonstrate" instead of "show"
+    - "establish" instead of "set up"
+    - "analyze" instead of "look at"
+  
+  technical_language:
+    precision: "Always use exact technical terms"
+    acronyms: "Define on first use, then use consistently"
+    jargon: "Appropriate for expert audience, but still explain complex concepts"
+    
+  avoid:
+    - Overly casual expressions ("awesome", "cool", "super easy")
+    - Absolute statements without evidence ("always", "never", "impossible")
+    - Marketing language ("revolutionary", "game-changing", "cutting-edge")
+    - Vague quantifiers ("much faster", "way better", "tons of")
+
+# Content structure patterns
+structure:
+  opening:
+    pattern: "Problem → Context → Solution Overview"
+    elements:
+      - "Clear problem statement or technical challenge"
+      - "Relevant background and context"
+      - "Brief overview of approach/solution"
+      - "What readers will learn/gain"
+    
+    example: |
+      "Modern distributed systems face a critical challenge: maintaining data consistency
+      across microservices while preserving system performance. Traditional two-phase
+      commit protocols, while theoretically sound, often become bottlenecks in 
+      high-throughput environments. This analysis examines three alternative consistency
+      patterns—saga orchestration, event sourcing, and CRDT-based approaches—providing
+      quantitative comparisons and implementation guidance for architecture teams."
+  
+  body_sections:
+    organization: "Logical progression from concepts to implementation"
+    section_length: "400-600 words for main sections"
+    
+    patterns:
+      technical_deep_dive:
+        - "Concept explanation with precise definitions"
+        - "Technical implementation details"
+        - "Code examples with full context"
+        - "Performance characteristics and metrics"
+        - "Common pitfalls and solutions"
+      
+      comparison_analysis:
+        - "Evaluation criteria clearly defined"
+        - "Quantitative comparisons where possible"
+        - "Use cases for each approach"
+        - "Tradeoff analysis"
+        - "Recommendations based on requirements"
+  
+  conclusion:
+    pattern: "Summary → Recommendations → Next Steps"
+    elements:
+      - "Key technical insights summarized"
+      - "Specific recommendations for implementation"
+      - "Measurable success criteria"
+      - "Further reading and resources"
+      - "Potential follow-up investigations"
+
+# Evidence and credibility
+evidence:
+  requirements:
+    - "Include performance benchmarks with methodology"
+    - "Cite relevant RFCs, specifications, or papers"
+    - "Provide reproducible examples"
+    - "Acknowledge limitations and assumptions"
+    - "Reference production experience where applicable"
+  
+  data_presentation:
+    - "Include units for all measurements"
+    - "Provide context for benchmarks (hardware, conditions)"
+    - "Use appropriate statistical measures"
+    - "Show confidence intervals when relevant"
+    - "Explain methodology briefly"
+  
+  code_examples:
+    requirements:
+      - "Complete, runnable examples"
+      - "Include error handling"
+      - "Show configuration and dependencies"
+      - "Explain non-obvious implementation choices"
+      - "Include performance considerations"
+    
+    quality:
+      - "Production-quality code style"
+      - "Appropriate abstractions"
+      - "Clear variable and function names"
+      - "Comprehensive comments for complex logic"
+      - "Security considerations addressed"
+
+# Formatting and presentation
+formatting:
+  headings:
+    style: "Clear, descriptive, technically precise"
+    examples:
+      - "Implementation Architecture"
+      - "Performance Characteristics"
+      - "Security Considerations"
+      - "Deployment Requirements"
+      - "Monitoring and Observability"
+  
+  code_blocks:
+    - "Always specify language for syntax highlighting"
+    - "Include file names or context headers"
+    - "Add comments explaining complex logic"
+    - "Show complete imports and dependencies"
+    - "Provide output examples where helpful"
+  
+  lists:
+    - "Use numbered lists for procedures and steps"
+    - "Use bullet points for features and characteristics"
+    - "Include brief explanations for complex items"
+    - "Maintain parallel structure"
+  
+  callouts:
+    warning: "For security issues, breaking changes, or critical considerations"
+    tip: "For performance optimizations and best practices"
+    note: "For important context or clarifications"
+
+# Audience considerations
+audience:
+  assumptions:
+    - "5+ years of professional development experience"
+    - "Familiar with common design patterns and architectures"
+    - "Understands fundamental CS concepts (algorithms, data structures)"
+    - "Has worked with production systems"
+    - "Familiar with version control, CI/CD, testing practices"
+  
+  explanation_depth:
+    basic_concepts: "Brief reminder, focus on application"
+    intermediate_concepts: "Moderate explanation with examples"
+    advanced_concepts: "Detailed explanation with justification"
+  
+  terminology:
+    - "Use industry-standard technical terms"
+    - "Define domain-specific terminology"
+    - "Assume familiarity with common tools and frameworks"
+    - "Explain emerging or specialized concepts"
+
+# Quality standards
+quality:
+  technical_accuracy:
+    - "All code examples must compile/run"
+    - "Performance claims must be measurable"
+    - "Architecture diagrams must be consistent"
+    - "Security recommendations must follow current best practices"
+  
+  depth_requirements:
+    - "Go beyond surface-level explanations"
+    - "Address edge cases and failure modes"
+    - "Discuss scalability implications"
+    - "Consider operational requirements"
+  
+  completeness:
+    - "Provide enough detail for implementation"
+    - "Include testing strategies"
+    - "Address deployment considerations"
+    - "Mention monitoring and debugging approaches"
+
+# Examples of good technical expert writing
+examples:
+  excellent_opening: |
+    "Container orchestration platforms have revolutionized application deployment, but
+    resource management remains a complex optimization problem. Kubernetes' scheduler
+    makes placement decisions based on resource requests, node capacity, and affinity
+    rules, yet many production clusters run at sub-optimal efficiency. Our analysis
+    of 847 production workloads across 12 organizations reveals that 73% of CPU
+    allocation goes unused during peak hours, while memory pressure causes 23%
+    more pod evictions than necessary. This deep-dive examines three advanced
+    scheduling strategies that reduced resource waste by 45% while improving
+    application reliability."
+  
+  good_technical_explanation: |
+    "The Raft consensus algorithm addresses distributed consistency through leader
+    election and log replication. Unlike Paxos, Raft deliberately prioritizes
+    understandability while maintaining theoretical correctness. The algorithm
+    operates in three states: follower, candidate, and leader. During normal
+    operation, one leader accepts client requests and replicates log entries
+    to followers. If the leader fails, followers transition to candidate state
+    and initiate an election. This design reduces the problem space from Paxos's
+    dual-phase approach to a more straightforward state machine."
+
+  effective_code_example: |
+    ```go
+    // RaftNode implements the core Raft consensus algorithm
+    // Handles state transitions, log replication, and leader election
+    type RaftNode struct {
+        state        NodeState
+        currentTerm  uint64
+        votedFor     *NodeID
+        log          []LogEntry
+        commitIndex  uint64
+        lastApplied  uint64
+        
+        // Leader-specific state (reset on election)
+        nextIndex    map[NodeID]uint64
+        matchIndex   map[NodeID]uint64
+        
+        mu           sync.RWMutex
+        electionTimeout time.Duration
+    }
+    
+    // RequestVote handles candidate vote requests during leader election
+    // Returns true if vote is granted, false otherwise
+    func (rn *RaftNode) RequestVote(req *VoteRequest) (*VoteResponse, error) {
+        rn.mu.Lock()
+        defer rn.mu.Unlock()
+        
+        // Reject if term is stale
+        if req.Term < rn.currentTerm {
+            return &VoteResponse{
+                Term:        rn.currentTerm,
+                VoteGranted: false,
+            }, nil
+        }
+        
+        // Update term if candidate's term is newer
+        if req.Term > rn.currentTerm {
+            rn.currentTerm = req.Term
+            rn.votedFor = nil
+            rn.state = FollowerState
+        }
+        
+        // Grant vote if we haven't voted or already voted for this candidate
+        // and candidate's log is at least as up-to-date as ours
+        canVote := (rn.votedFor == nil || *rn.votedFor == req.CandidateID) &&
+                   rn.isLogUpToDate(req.LastLogIndex, req.LastLogTerm)
+        
+        if canVote {
+            rn.votedFor = &req.CandidateID
+            rn.resetElectionTimeout()
+        }
+        
+        return &VoteResponse{
+            Term:        rn.currentTerm,
+            VoteGranted: canVote,
+        }, nil
+    }
+    ```
+
+# Anti-patterns to avoid
+anti_patterns:
+  language:
+    - "Using marketing speak in technical content"
+    - "Making unsupported performance claims"
+    - "Oversimplifying complex tradeoffs"
+    - "Using 'simply' or 'just' for complex operations"
+  
+  structure:
+    - "Jumping into implementation without context"
+    - "Not explaining the 'why' behind technical decisions"
+    - "Providing incomplete code examples"
+    - "Ignoring error handling and edge cases"
+  
+  evidence:
+    - "Benchmarks without methodology or environment details"
+    - "Claiming 'best practices' without justification"
+    - "Presenting opinion as fact"
+    - "Not acknowledging limitations or alternatives"
+
+# Integration with WriteIt
+integration:
+  pipeline_usage:
+    - "Use with technical-depth: advanced"
+    - "Best suited for technical_professionals audience"
+    - "Ideal for comprehensive_guide or comparison_analysis styles"
+    - "Expects detailed technical source material"
+  
+  prompt_modifications:
+    - "Emphasize precision and technical accuracy"
+    - "Request specific metrics and benchmarks"
+    - "Ask for complete, production-ready code examples"
+    - "Include security and performance considerations"
+  
+  quality_indicators:
+    - "Technical terminology used correctly"
+    - "Code examples compile and run"
+    - "Performance claims are specific and measurable"
+    - "Architecture decisions are justified"
+    - "Security implications are addressed"
