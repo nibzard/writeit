@@ -10,10 +10,30 @@ import tempfile
 import os
 
 from .models import DocumentationSet, DocumentationMetrics
+from .templates import DocumentationTemplateSystem, TemplateConfig
+from .html_generator import HTMLDocumentationGenerator
+from .pdf_generator import PDFDocumentationGenerator
 
 
 class DocumentationDeployment:
     """Deploy documentation to multiple formats and platforms"""
+    
+    def __init__(self, templates_dir: Optional[Path] = None):
+        """Initialize deployment with optional custom templates"""
+        self.templates_dir = templates_dir or Path("docs/templates")
+        self.template_system = None
+        self._initialize_template_system()
+    
+    def _initialize_template_system(self):
+        """Initialize template system"""
+        if self.templates_dir.exists():
+            config = TemplateConfig(templates_dir=self.templates_dir)
+            self.template_system = DocumentationTemplateSystem(config)
+        else:
+            # Create default templates
+            config = TemplateConfig(templates_dir=self.templates_dir)
+            self.template_system = DocumentationTemplateSystem(config)
+            self.template_system.create_default_templates()
     
     def deploy(self, docs: DocumentationSet, output_path: Path, formats: List[str]):
         """Deploy documentation to specified formats"""
@@ -21,18 +41,109 @@ class DocumentationDeployment:
         
         for format_type in formats:
             if format_type == "markdown":
-                self._deploy_markdown(docs, output_path / "markdown")
+                self._deploy_markdown_with_templates(docs, output_path / "markdown")
             elif format_type == "html":
-                self._deploy_html(docs, output_path / "site")
+                self._deploy_html_enhanced(docs, output_path / "site")
             elif format_type == "pdf":
-                self._deploy_pdf(docs, output_path / "writeit-documentation.pdf")
+                self._deploy_pdf_enhanced(docs, output_path / "writeit-documentation.pdf", output_path)
             else:
                 print(f"Unknown format: {format_type}")
     
-    def _deploy_markdown(self, docs: DocumentationSet, output_path: Path):
-        """Deploy documentation as Markdown files"""
+    def _deploy_markdown_with_templates(self, docs: DocumentationSet, output_path: Path):
+        """Deploy documentation as Markdown files using templates"""
         output_path.mkdir(parents=True, exist_ok=True)
         
+        if self.template_system:
+            # Use template system for enhanced output
+            self._deploy_with_template_system(docs, output_path)
+        else:
+            # Fallback to original deployment
+            self._deploy_markdown_fallback(docs, output_path)
+        
+        print(f"✅ Markdown documentation deployed to {output_path}")
+    
+    def _deploy_with_template_system(self, docs: DocumentationSet, output_path: Path):
+        """Deploy using Jinja2 template system"""
+        # Main documentation file
+        try:
+            main_content = self.template_system.render_documentation(docs)
+            with open(output_path / "README.md", 'w') as f:
+                f.write(main_content)
+        except Exception as e:
+            print(f"Warning: Could not render main template: {e}")
+            self._write_index_markdown(docs, output_path)
+        
+        # API documentation
+        if docs.api_docs:
+            try:
+                api_content = self.template_system.render_api_documentation(docs.api_docs)
+                api_dir = output_path / "api"
+                api_dir.mkdir(exist_ok=True)
+                with open(api_dir / "README.md", 'w') as f:
+                    f.write(api_content)
+                
+                # Individual endpoint files
+                self._write_api_markdown(docs.api_docs, output_path)
+            except Exception as e:
+                print(f"Warning: Could not render API template: {e}")
+                self._write_api_markdown(docs.api_docs, output_path)
+        
+        # Module documentation
+        if docs.module_docs:
+            try:
+                modules_content = self.template_system.render_module_documentation(docs.module_docs)
+                modules_dir = output_path / "modules"
+                modules_dir.mkdir(exist_ok=True)
+                with open(modules_dir / "README.md", 'w') as f:
+                    f.write(modules_content)
+                
+                # Individual module files
+                self._write_module_markdown(docs.module_docs, output_path)
+            except Exception as e:
+                print(f"Warning: Could not render modules template: {e}")
+                self._write_module_markdown(docs.module_docs, output_path)
+        
+        # CLI documentation
+        if docs.cli_docs:
+            try:
+                cli_content = self.template_system.render_cli_documentation(docs.cli_docs)
+                cli_dir = output_path / "cli"
+                cli_dir.mkdir(exist_ok=True)
+                with open(cli_dir / "README.md", 'w') as f:
+                    f.write(cli_content)
+            except Exception as e:
+                print(f"Warning: Could not render CLI template: {e}")
+                self._write_cli_markdown(docs.cli_docs, output_path)
+        
+        # Template documentation
+        if docs.template_docs:
+            self._write_template_markdown(docs.template_docs, output_path)
+        
+        # User guides
+        if docs.user_guides:
+            guides_dir = output_path / "guides"
+            guides_dir.mkdir(exist_ok=True)
+            
+            # Index file
+            guides_index = "# User Guides\n\n"
+            for guide in docs.user_guides:
+                guides_index += f"- [{guide.title}]({guide.title.replace(' ', '-').lower()}.md)\n"
+            
+            with open(guides_dir / "README.md", 'w') as f:
+                f.write(guides_index)
+            
+            # Individual guide files
+            for guide in docs.user_guides:
+                try:
+                    guide_content = self.template_system.render_user_guide(guide)
+                    filename = guide.title.replace(' ', '-').lower() + ".md"
+                    with open(guides_dir / filename, 'w') as f:
+                        f.write(guide_content)
+                except Exception as e:
+                    print(f"Warning: Could not render guide template: {e}")
+    
+    def _deploy_markdown_fallback(self, docs: DocumentationSet, output_path: Path):
+        """Fallback markdown deployment without templates"""
         # API documentation
         if docs.api_docs:
             self._write_api_markdown(docs.api_docs, output_path)
@@ -55,8 +166,6 @@ class DocumentationDeployment:
         
         # Index file
         self._write_index_markdown(docs, output_path)
-        
-        print(f"✅ Markdown documentation deployed to {output_path}")
     
     def _write_api_markdown(self, api_docs, output_path: Path):
         """Write API documentation as Markdown"""
@@ -79,7 +188,8 @@ class DocumentationDeployment:
 """
         
         for endpoint in api_docs.endpoints:
-            overview_content += f"- [{endpoint.method} {endpoint.path}](endpoints/{endpoint.method.lower()}_{endpoint.path.replace('/', '_')}.md)\n"
+            filename = f"{endpoint.method.lower()}{endpoint.path.replace('/', '_').replace('{', '_').replace('}', '_')}.md"
+            overview_content += f"- [{endpoint.method} {endpoint.path}](endpoints/{filename})\n"
         
         with open(api_dir / "README.md", 'w') as f:
             f.write(overview_content)
@@ -89,7 +199,7 @@ class DocumentationDeployment:
         endpoints_dir.mkdir(exist_ok=True)
         
         for endpoint in api_docs.endpoints:
-            filename = f"{endpoint.method.lower()}_{endpoint.path.replace('/', '_')}.md"
+            filename = f"{endpoint.method.lower()}{endpoint.path.replace('/', '_').replace('{', '_').replace('}', '_')}.md"
             content = self._generate_endpoint_markdown(endpoint)
             
             with open(endpoints_dir / filename, 'w') as f:
@@ -141,7 +251,7 @@ class DocumentationDeployment:
         
         # Individual module files
         for module in module_docs:
-            module_path = modules_dir / module.name.replace('.', '/') + ".md"
+            module_path = modules_dir / (module.name.replace('.', '/') + ".md")
             module_path.parent.mkdir(parents=True, exist_ok=True)
             
             content = self._generate_module_markdown(module)
@@ -337,8 +447,24 @@ If you need help with WriteIt:
         with open(output_path / "README.md", 'w') as f:
             f.write(content)
     
-    def _deploy_html(self, docs: DocumentationSet, output_path: Path):
-        """Deploy documentation as HTML using MkDocs"""
+    def _deploy_html_enhanced(self, docs: DocumentationSet, output_path: Path):
+        """Deploy documentation as enhanced HTML using new generator"""
+        try:
+            # First deploy markdown with templates
+            markdown_path = output_path.parent / "markdown"
+            self._deploy_markdown_with_templates(docs, markdown_path)
+            
+            # Use enhanced HTML generator
+            html_generator = HTMLDocumentationGenerator(self.templates_dir)
+            html_generator.deploy_html(docs, output_path, markdown_path)
+            
+        except Exception as e:
+            print(f"❌ Error deploying enhanced HTML documentation: {e}")
+            # Fallback to original method
+            self._deploy_html_fallback(docs, output_path)
+    
+    def _deploy_html_fallback(self, docs: DocumentationSet, output_path: Path):
+        """Fallback HTML deployment using MkDocs"""
         try:
             # First deploy markdown
             markdown_path = output_path.parent / "markdown"
@@ -371,40 +497,104 @@ If you need help with WriteIt:
             
             # Write MkDocs config
             import yaml
-            with open(output_path / "mkdocs.yml", 'w') as f:
+            mkdocs_file = output_path / "mkdocs.yml"
+            with open(mkdocs_file, 'w') as f:
                 yaml.dump(mkdocs_config, f, default_flow_style=False)
             
-            # Copy markdown files
+            # Copy markdown files to docs directory
+            docs_dir = output_path / "docs"
             if markdown_path.exists():
-                if output_path.exists():
-                    shutil.rmtree(output_path)
-                shutil.copytree(markdown_path, output_path)
+                if docs_dir.exists():
+                    shutil.rmtree(docs_dir)
+                shutil.copytree(markdown_path, docs_dir)
+            
+            # Update MkDocs navigation based on actual content
+            if docs.api_docs:
+                mkdocs_config["nav"].append({"API Reference": "api/README.md"})
+            if docs.module_docs:
+                mkdocs_config["nav"].append({"Modules": "modules/README.md"})
+            if docs.cli_docs:
+                mkdocs_config["nav"].append({"CLI": "cli/README.md"})
+            if docs.template_docs:
+                mkdocs_config["nav"].append({"Templates": "templates/README.md"})
+            if docs.user_guides:
+                mkdocs_config["nav"].append({"Guides": "guides/README.md"})
             
             # Create index.md from README.md
-            index_file = output_path / "index.md"
-            readme_file = output_path / "README.md"
+            index_file = docs_dir / "index.md" if 'docs_dir' in locals() else output_path / "index.md"
+            readme_file = docs_dir / "README.md" if 'docs_dir' in locals() else output_path / "README.md"
             if readme_file.exists() and not index_file.exists():
                 shutil.copy2(readme_file, index_file)
             
             # Try to build with MkDocs if available
             try:
-                subprocess.run(["mkdocs", "build"], cwd=output_path, check=True, capture_output=True)
+                result = subprocess.run(
+                    ["mkdocs", "build", "--site-dir", "site"], 
+                    cwd=output_path, 
+                    check=True, 
+                    capture_output=True,
+                    text=True
+                )
                 print(f"✅ HTML documentation built with MkDocs at {output_path}/site")
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                print(f"⚠️  MkDocs not available, markdown files deployed to {output_path}")
+            except subprocess.CalledProcessError as e:
+                print(f"⚠️  MkDocs build failed: {e.stderr}")
+                print(f"   Markdown files available at {docs_dir}")
+            except FileNotFoundError:
+                print(f"⚠️  MkDocs not available, markdown files deployed to {docs_dir}")
                 print("   Install with: pip install mkdocs mkdocs-material")
         
         except Exception as e:
             print(f"❌ Error deploying HTML documentation: {e}")
     
-    def _deploy_pdf(self, docs: DocumentationSet, output_path: Path):
-        """Deploy documentation as PDF"""
+    def _deploy_pdf_enhanced(self, docs: DocumentationSet, output_path: Path, base_output_path: Path):
+        """Deploy documentation as PDF using enhanced generator"""
         try:
-            # This would require additional dependencies like pandoc
-            print("⚠️  PDF deployment not yet implemented")
-            print("   Would require pandoc and a LaTeX distribution")
+            pdf_generator = PDFDocumentationGenerator()
+            
+            # Try to use existing HTML if available
+            html_path = base_output_path / "site"
+            if not html_path.exists():
+                html_path = base_output_path / "html" / "site"
+            
+            success = pdf_generator.generate_pdf(docs, output_path, html_path if html_path.exists() else None)
+            
+            if success:
+                print(f"✅ PDF documentation generated: {output_path}")
+            else:
+                print("⚠️  PDF generation failed, trying fallback methods...")
+                self._deploy_pdf_fallback(docs, output_path)
+            
         except Exception as e:
             print(f"❌ Error deploying PDF documentation: {e}")
+            self._deploy_pdf_fallback(docs, output_path)
+    
+    def _deploy_pdf_fallback(self, docs: DocumentationSet, output_path: Path):
+        """Fallback PDF deployment"""
+        try:
+            # Create simple text-based PDF
+            content = f"""WriteIt Documentation
+
+Generated: {docs.generated_at.strftime('%Y-%m-%d %H:%M:%S')}
+Version: {docs.version}
+
+API Endpoints: {len(docs.api_docs.endpoints) if docs.api_docs else 0}
+Modules: {len(docs.module_docs)}
+CLI Commands: {len(docs.cli_docs.commands) if docs.cli_docs else 0}
+User Guides: {len(docs.user_guides)}
+
+This is a simplified PDF version. For full documentation, please use the HTML version.
+"""
+            
+            # Write as text file if PDF generation completely fails
+            text_output = output_path.with_suffix('.txt')
+            with open(text_output, 'w') as f:
+                f.write(content)
+            
+            print(f"⚠️  Created simplified text documentation: {text_output}")
+            print("   For PDF support, install: pip install weasyprint reportlab")
+            
+        except Exception as e:
+            print(f"❌ Complete PDF deployment failure: {e}")
     
     def deploy_to_github_pages(self, site_path: Path):
         """Deploy documentation to GitHub Pages"""
@@ -449,6 +639,10 @@ If you need help with WriteIt:
             print("\n🛑 Preview server stopped")
         except Exception as e:
             print(f"❌ Error starting preview server: {e}")
+    
+    def _deploy_pdf(self, docs: DocumentationSet, output_path: Path):
+        """Legacy PDF deployment method"""
+        return self._deploy_pdf_fallback(docs, output_path)
     
     def generate_sitemap(self, docs: DocumentationSet, base_url: str) -> str:
         """Generate sitemap for documentation"""

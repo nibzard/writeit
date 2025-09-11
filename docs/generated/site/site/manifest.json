@@ -1,0 +1,10 @@
+{
+  "name": "WriteIt Documentation",
+  "short_name": "WriteIt Docs",
+  "description": "Auto-generated documentation for WriteIt",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196f3",
+  "icons": []
+}

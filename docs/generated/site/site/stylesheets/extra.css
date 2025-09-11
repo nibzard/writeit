@@ -1,0 +1,79 @@
+/* Custom WriteIt Documentation Styles */
+
+/* Code blocks */
+.highlight {
+    border-radius: 4px;
+    margin: 1em 0;
+}
+
+.highlight pre {
+    padding: 1em;
+    overflow-x: auto;
+}
+
+/* API endpoints */
+.api-endpoint {
+    border: 1px solid var(--md-default-fg-color--lighter);
+    border-radius: 4px;
+    margin: 1em 0;
+    padding: 1em;
+}
+
+.api-method {
+    display: inline-block;
+    padding: 0.2em 0.5em;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 0.8em;
+    margin-right: 0.5em;
+}
+
+.api-method.get { background-color: #61affe; color: white; }
+.api-method.post { background-color: #49cc90; color: white; }
+.api-method.put { background-color: #fca130; color: white; }
+.api-method.delete { background-color: #f93e3e; color: white; }
+.api-method.patch { background-color: #50e3c2; color: white; }
+
+/* Documentation badges */
+.doc-badge {
+    display: inline-block;
+    padding: 0.2em 0.6em;
+    font-size: 0.75em;
+    font-weight: bold;
+    border-radius: 10px;
+    margin: 0.2em;
+}
+
+.doc-badge.required { background-color: #f93e3e; color: white; }
+.doc-badge.optional { background-color: #61affe; color: white; }
+.doc-badge.deprecated { background-color: #fca130; color: white; }
+
+/* Function signatures */
+.function-signature {
+    background-color: var(--md-code-bg-color);
+    padding: 0.5em;
+    border-radius: 4px;
+    font-family: var(--md-code-font);
+    overflow-x: auto;
+}
+
+/* Generated timestamp */
+.generated-info {
+    font-size: 0.8em;
+    color: var(--md-default-fg-color--light);
+    text-align: center;
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 768px) {
+    .function-signature {
+        font-size: 0.8em;
+    }
+    
+    .api-endpoint {
+        padding: 0.5em;
+    }
+}

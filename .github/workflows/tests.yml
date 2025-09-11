@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, feature/docs-automation]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run linting
+        run: |
+          uv run ruff check src/ tests/
+          uv run ruff format --check src/ tests/
+
+      - name: Run type checking
+        run: uv run mypy src/
+
+      - name: Run tests
+        run: |
+          uv run pytest tests/ -v \
+            --cov=src/writeit \
+            --cov-report=xml \
+            --cov-report=term
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml

@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: Build package
+        run: uv build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  generate-release-docs:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Generate comprehensive documentation
+        run: |
+          uv run writeit docs generate \
+            --output docs/release \
+            --format markdown \
+            --format html \
+            --format pdf \
+            --validate \
+            --verbose
+
+      - name: Upload release documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-docs
+          path: docs/release/
+          retention-days: 365
+
+      - name: Deploy release documentation to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/release/site/
+
+  deploy-release-docs:
+    runs-on: ubuntu-latest
+    needs: generate-release-docs
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  attach-docs-to-release:
+    runs-on: ubuntu-latest
+    needs: [build, generate-release-docs]
+    
+    steps:
+      - name: Download release documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: release-docs
+          path: release-docs/
+
+      - name: Create documentation archive
+        run: |
+          cd release-docs
+          tar -czf ../writeit-docs-${{ github.ref_name }}.tar.gz .
+          cd ..
+          
+      - name: Attach documentation to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            writeit-docs-${{ github.ref_name }}.tar.gz
+            release-docs/writeit-documentation.pdf
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

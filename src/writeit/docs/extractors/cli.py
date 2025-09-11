@@ -65,21 +65,35 @@ class CLIExtractor:
             if not callback:
                 return None
             
+            # Handle case where name might be None
+            if not cmd_info.name:
+                # Try to get name from callback function
+                if hasattr(callback, '__name__'):
+                    cmd_info.name = callback.__name__
+                else:
+                    cmd_info.name = "unknown_command"
+            
             # Get command signature
             sig = inspect.signature(callback)
             
             command_doc = CommandDocumentation(
-                name=cmd_info.name,
+                name=cmd_info.name or "unknown",
                 description=cmd_info.help or "",
                 usage=self._generate_usage(cmd_info, sig),
                 arguments=[],
+                options=[],  # Initialize options as empty list
                 examples=self._extract_command_examples(cmd_info),
                 source_file=self._get_source_file(callback)
             )
             
             # Extract parameters (arguments and options)
             parameters = self._extract_command_parameters(sig, cmd_info)
-            command_doc.arguments.extend(parameters)
+            # Separate arguments from options based on default values
+            for param in parameters:
+                if param.required:
+                    command_doc.arguments.append(param)
+                else:
+                    command_doc.options.append(param)
             
             # Extract command tags from decorators or metadata
             command_doc.tags = self._extract_command_tags(cmd_info)
@@ -154,7 +168,8 @@ class CLIExtractor:
     
     def _generate_usage(self, cmd_info: CommandInfo, sig) -> str:
         """Generate usage string for command"""
-        usage_parts = [cmd_info.name]
+        cmd_name = cmd_info.name or "command"
+        usage_parts = [f"writeit {cmd_name}"]
         
         for param_name, param in sig.parameters.items():
             if param_name in ['ctx', 'typer_context']:
@@ -172,7 +187,8 @@ class CLIExtractor:
         examples = []
         
         # Generate basic usage example
-        basic_example = f"writeit {cmd_info.name}"
+        cmd_name = cmd_info.name or "command"
+        basic_example = f"writeit {cmd_name}"
         examples.append(basic_example)
         
         # Generate examples with parameters
@@ -184,7 +200,8 @@ class CLIExtractor:
             ]
             
             if optional_params:
-                example = f"writeit {cmd_info.name} --{optional_params[0]} value"
+                cmd_name = cmd_info.name or "command"
+                example = f"writeit {cmd_name} --{optional_params[0]} value"
                 examples.append(example)
         
         return examples

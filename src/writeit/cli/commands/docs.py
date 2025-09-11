@@ -89,9 +89,10 @@ def validate_docs(
         
         # Load existing documentation or generate it
         if docs_path.exists():
-            # TODO: Load existing documentation
             console.print("Loading existing documentation...")
-            docs = None  # Placeholder
+            # For now, regenerate documentation to validate current state
+            generator = DocumentationGenerator(config_path=config)
+            docs = generator.generate_all()
         else:
             console.print("No existing documentation found, generating...")
             generator = DocumentationGenerator(config_path=config)

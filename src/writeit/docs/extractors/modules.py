@@ -165,8 +165,17 @@ class ModuleExtractor:
         
         # Extract class variables
         for item in node.body:
-            if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
-                class_doc.class_variables[item.target.id] = self._get_type_annotation(item.annotation)
+            try:
+                if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                    class_doc.class_variables[item.target.id] = self._get_type_annotation(item.annotation)
+                elif isinstance(item, ast.Assign):
+                    # Handle regular assignments without type annotations
+                    for target in item.targets:
+                        if isinstance(target, ast.Name):
+                            class_doc.class_variables[target.id] = "Any"
+            except (AttributeError, TypeError):
+                # Skip problematic variable extractions
+                continue
         
         return class_doc
     
@@ -243,14 +252,23 @@ class ModuleExtractor:
     def _extract_parameters(self, node: ast.FunctionDef) -> List[ParameterDocumentation]:
         """Extract function parameters"""
         parameters = []
+        docstring = ast.get_docstring(node) or ""
+        
+        # Get defaults mapping
+        defaults_start = len(node.args.args) - len(node.args.defaults)
+        defaults_dict = {}
+        for i, default in enumerate(node.args.defaults):
+            arg_index = defaults_start + i
+            if arg_index < len(node.args.args):
+                defaults_dict[node.args.args[arg_index].arg] = default
         
         for arg in node.args.args:
             param_doc = ParameterDocumentation(
                 name=arg.arg,
                 type_annotation=self._get_type_annotation(arg.annotation),
-                description=self._extract_parameter_description(arg.arg, ast.get_docstring(node)),
+                description=self._extract_parameter_description(arg.arg, docstring),
                 default_value=self._get_default_value(arg.arg, node),
-                required=arg.arg not in [a.arg for a in node.args.defaults]
+                required=arg.arg not in defaults_dict
             )
             parameters.append(param_doc)
         
@@ -261,16 +279,45 @@ class ModuleExtractor:
         if annotation is None:
             return "Any"
         
-        if isinstance(annotation, ast.Name):
-            return annotation.id
-        elif isinstance(annotation, ast.Attribute):
-            return self._get_attribute_name(annotation)
-        elif isinstance(annotation, ast.Subscript):
-            value = self._get_type_annotation(annotation.value)
-            slice_val = self._get_type_annotation(annotation.slice)
-            return f"{value}[{slice_val}]"
-        elif isinstance(annotation, ast.Constant):
-            return str(annotation.value)
+        try:
+            if isinstance(annotation, ast.Name):
+                return annotation.id
+            elif isinstance(annotation, ast.Attribute):
+                return self._get_attribute_name(annotation)
+            elif isinstance(annotation, ast.Subscript):
+                value = self._get_type_annotation(annotation.value)
+                # Handle different slice types
+                if hasattr(annotation.slice, 'elts'):  # Tuple of types
+                    slice_parts = [self._get_type_annotation(elt) for elt in annotation.slice.elts]
+                    slice_val = ', '.join(slice_parts)
+                elif hasattr(annotation, 'slice'):
+                    slice_val = self._get_type_annotation(annotation.slice)
+                else:
+                    slice_val = "Any"
+                return f"{value}[{slice_val}]"
+            elif isinstance(annotation, ast.Constant):
+                return str(annotation.value)
+            elif isinstance(annotation, ast.Tuple):
+                # Handle tuple types like Tuple[int, str]
+                elts = [self._get_type_annotation(elt) for elt in annotation.elts]
+                return ', '.join(elts)
+            elif isinstance(annotation, ast.List):
+                # Handle list types
+                if annotation.elts:
+                    elts = [self._get_type_annotation(elt) for elt in annotation.elts]
+                    return '[' + ', '.join(elts) + ']'
+                return "List"
+            elif isinstance(annotation, ast.Dict):
+                return "Dict"
+            else:
+                # Fallback to ast.unparse for complex annotations
+                try:
+                    return ast.unparse(annotation)
+                except AttributeError:
+                    return "Any"
+        except (AttributeError, TypeError) as e:
+            # Handle any AST parsing errors gracefully
+            return "Any"
         
         return "Any"
     
@@ -305,8 +352,12 @@ class ModuleExtractor:
                     return "[]"
                 elif isinstance(default_node, ast.Dict):
                     return "{}"
-                
-                return ast.unparse(default_node)
+                else:
+                    # Fallback for complex default values
+                    try:
+                        return ast.unparse(default_node)
+                    except AttributeError:
+                        return "<default>"
         except (IndexError, AttributeError):
             pass
         

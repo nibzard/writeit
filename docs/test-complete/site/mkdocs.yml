@@ -1,0 +1,71 @@
+site_name: WriteIt Documentation
+site_description: Auto-generated documentation for WriteIt
+site_author: WriteIt Team
+repo_url: https://github.com/nibzard/writeit
+edit_uri: edit/main/docs/
+copyright: "Copyright \xA9 2025 WriteIt Team"
+nav:
+- Home: index.md
+theme:
+  name: material
+  palette:
+  - scheme: default
+    primary: blue
+    accent: light-blue
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+  - scheme: slate
+    primary: blue
+    accent: light-blue
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
+  features:
+  - navigation.tabs
+  - navigation.sections
+  - navigation.expand
+  - navigation.path
+  - navigation.top
+  - search.suggest
+  - search.highlight
+  - search.share
+  - content.code.copy
+  - content.code.select
+  - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+markdown_extensions:
+- abbr
+- admonition
+- attr_list
+- def_list
+- footnotes
+- md_in_html
+- toc
+- tables
+- pymdownx.arithmatex
+- pymdownx.betterem
+- pymdownx.caret
+- pymdownx.details
+- pymdownx.emoji
+- pymdownx.highlight
+- pymdownx.inlinehilite
+- pymdownx.keys
+- pymdownx.mark
+- pymdownx.smartsymbols
+- pymdownx.superfences
+- pymdownx.tabbed
+- pymdownx.tasklist
+- pymdownx.tilde
+plugins:
+- search
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/nibzard/writeit
+  generator: false
+extra_css:
+- stylesheets/extra.css
+watch:
+- docs/

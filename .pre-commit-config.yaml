@@ -1,0 +1,91 @@
+repos:
+  # General code formatting and linting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: check-docstring-first
+
+  # Python formatting with Ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.8
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests, types-PyYAML]
+        args: [--ignore-missing-imports]
+
+  # Documentation validation hooks
+  - repo: local
+    hooks:
+      - id: docs-generate
+        name: Generate documentation
+        entry: uv run writeit docs generate --validate
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^(src/writeit/|docs/|templates/).*$
+        stages: [commit]
+        
+      - id: docs-validate
+        name: Validate documentation
+        entry: uv run writeit docs validate
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^docs/.*\.md$
+        stages: [commit]
+        
+      - id: docs-templates-validate
+        name: Validate documentation templates
+        entry: uv run writeit validate --type template
+        language: system
+        pass_filenames: false
+        files: ^(templates/.*\.yaml|docs/templates/.*\.j2)$
+        stages: [commit]
+
+  # Test runner
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run tests
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^(src/|tests/).*\.py$
+        stages: [push]
+
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: '1.7.5'
+    hooks:
+      - id: bandit
+        args: [-r, src/, -f, json]
+        exclude: ^tests/
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: [-d, relaxed]
+
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [commit]
+
+ci:
+  autofix_prs: true
+  autoupdate_schedule: monthly
