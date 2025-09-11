@@ -3,13 +3,18 @@
 
 from .pipeline_validator import PipelineValidator
 from .style_validator import StyleValidator
-from .validation_result import ValidationResult, ValidationIssue, IssueType, ValidationSummary
+from .validation_result import (
+    ValidationResult,
+    ValidationIssue,
+    IssueType,
+    ValidationSummary,
+)
 
 __all__ = [
-    'PipelineValidator',
-    'StyleValidator', 
-    'ValidationResult',
-    'ValidationIssue',
-    'ValidationSummary',
-    'IssueType'
+    "PipelineValidator",
+    "StyleValidator",
+    "ValidationResult",
+    "ValidationIssue",
+    "ValidationSummary",
+    "IssueType",
 ]

@@ -11,6 +11,7 @@ from datetime import datetime
 @dataclass
 class CodeExample:
     """Represents a code example with metadata"""
+
     code: str
     description: str
     language: str = "python"
@@ -23,6 +24,7 @@ class CodeExample:
 @dataclass
 class ParameterDocumentation:
     """Documentation for a function/method parameter"""
+
     name: str
     type_annotation: str
     description: str
@@ -33,6 +35,7 @@ class ParameterDocumentation:
 @dataclass
 class FunctionDocumentation:
     """Documentation for a function or method"""
+
     name: str
     signature: str
     description: str
@@ -48,6 +51,7 @@ class FunctionDocumentation:
 @dataclass
 class ClassDocumentation:
     """Documentation for a class"""
+
     name: str
     description: str
     purpose: str
@@ -63,6 +67,7 @@ class ClassDocumentation:
 @dataclass
 class ModuleDocumentation:
     """Documentation for a Python module"""
+
     name: str
     description: str
     purpose: str
@@ -77,6 +82,7 @@ class ModuleDocumentation:
 @dataclass
 class APIEndpointDocumentation:
     """Documentation for an API endpoint"""
+
     path: str
     method: str
     summary: str
@@ -92,6 +98,7 @@ class APIEndpointDocumentation:
 @dataclass
 class APIModelDocumentation:
     """Documentation for an API model (Pydantic model)"""
+
     name: str
     description: str
     fields: Dict[str, str] = field(default_factory=dict)
@@ -102,6 +109,7 @@ class APIModelDocumentation:
 @dataclass
 class APIDocumentation:
     """Complete API documentation"""
+
     title: str
     description: str
     version: str
@@ -115,6 +123,7 @@ class APIDocumentation:
 @dataclass
 class CommandDocumentation:
     """Documentation for a CLI command"""
+
     name: str
     description: str
     usage: str
@@ -128,6 +137,7 @@ class CommandDocumentation:
 @dataclass
 class CLIDocumentation:
     """Complete CLI documentation"""
+
     app_name: str
     description: str
     commands: List[CommandDocumentation]
@@ -138,6 +148,7 @@ class CLIDocumentation:
 @dataclass
 class TemplateFieldDocumentation:
     """Documentation for a template field"""
+
     name: str
     type: str
     description: str
@@ -150,6 +161,7 @@ class TemplateFieldDocumentation:
 @dataclass
 class TemplateStepDocumentation:
     """Documentation for a template step"""
+
     key: str
     name: str
     description: str
@@ -162,6 +174,7 @@ class TemplateStepDocumentation:
 @dataclass
 class TemplateDocumentation:
     """Documentation for a pipeline template"""
+
     name: str
     description: str
     version: str
@@ -176,6 +189,7 @@ class TemplateDocumentation:
 @dataclass
 class TemplateDocumentationSet:
     """Collection of template documentation"""
+
     templates: List[TemplateDocumentation]
     style_primers: List[TemplateDocumentation] = field(default_factory=list)
 
@@ -183,6 +197,7 @@ class TemplateDocumentationSet:
 @dataclass
 class UserGuide:
     """User guide documentation"""
+
     title: str
     description: str
     content: str
@@ -197,6 +212,7 @@ class UserGuide:
 @dataclass
 class DocumentationSet:
     """Complete documentation set"""
+
     api_docs: Optional[APIDocumentation] = None
     module_docs: List[ModuleDocumentation] = field(default_factory=list)
     cli_docs: Optional[CLIDocumentation] = None
@@ -209,6 +225,7 @@ class DocumentationSet:
 @dataclass
 class ValidationError:
     """Represents a documentation validation error"""
+
     type: str
     message: str
     severity: str  # error, warning, info
@@ -220,6 +237,7 @@ class ValidationError:
 @dataclass
 class ValidationResult:
     """Result of documentation validation"""
+
     is_valid: bool
     errors: List[ValidationError] = field(default_factory=list)
     warnings: List[ValidationError] = field(default_factory=list)
@@ -230,30 +248,25 @@ class ValidationResult:
 
     def add_error(self, error_type: str, message: str, **kwargs):
         """Add an error to the validation result"""
-        self.errors.append(ValidationError(
-            type=error_type,
-            message=message,
-            severity="error",
-            **kwargs
-        ))
+        self.errors.append(
+            ValidationError(
+                type=error_type, message=message, severity="error", **kwargs
+            )
+        )
 
     def add_warning(self, warning_type: str, message: str, **kwargs):
         """Add a warning to the validation result"""
-        self.warnings.append(ValidationError(
-            type=warning_type,
-            message=message,
-            severity="warning",
-            **kwargs
-        ))
+        self.warnings.append(
+            ValidationError(
+                type=warning_type, message=message, severity="warning", **kwargs
+            )
+        )
 
     def add_info(self, info_type: str, message: str, **kwargs):
         """Add an info message to the validation result"""
-        self.info.append(ValidationError(
-            type=info_type,
-            message=message,
-            severity="info",
-            **kwargs
-        ))
+        self.info.append(
+            ValidationError(type=info_type, message=message, severity="info", **kwargs)
+        )
 
     @property
     def has_errors(self) -> bool:
@@ -269,29 +282,34 @@ class ValidationResult:
 @dataclass
 class DocumentationConfig:
     """Configuration for documentation generation"""
-    sources: Dict[str, Any] = field(default_factory=lambda: {
-        "modules": {
-            "path": "src/writeit",
-            "patterns": ["**/*.py"],
-            "exclude": ["**/__pycache__/**", "**/tests/**"]
+
+    sources: Dict[str, Any] = field(
+        default_factory=lambda: {
+            "modules": {
+                "path": "src/writeit",
+                "patterns": ["**/*.py"],
+                "exclude": ["**/__pycache__/**", "**/tests/**"],
+            }
         }
-    })
+    )
     outputs: Dict[str, Any] = field(default_factory=dict)
     validation: Dict[str, Any] = field(default_factory=dict)
     deployment: Dict[str, Any] = field(default_factory=dict)
-    
+
     @classmethod
     def from_file(cls, config_path: Path) -> "DocumentationConfig":
         """Load configuration from YAML file"""
         import yaml
-        with open(config_path, 'r') as f:
+
+        with open(config_path, "r") as f:
             data = yaml.safe_load(f)
-        return cls(**data.get('documentation', {}))
+        return cls(**data.get("documentation", {}))
 
 
 @dataclass
 class DocumentationMetrics:
     """Documentation quality and coverage metrics"""
+
     total_modules: int = 0
     documented_modules: int = 0
     total_classes: int = 0
@@ -304,35 +322,65 @@ class DocumentationMetrics:
     valid_examples: int = 0
     broken_links: int = 0
     generation_time: float = 0.0
-    
+
     @property
     def module_coverage(self) -> float:
         """Calculate module documentation coverage"""
-        return self.documented_modules / self.total_modules * 100 if self.total_modules > 0 else 0
-    
+        return (
+            self.documented_modules / self.total_modules * 100
+            if self.total_modules > 0
+            else 0
+        )
+
     @property
     def class_coverage(self) -> float:
         """Calculate class documentation coverage"""
-        return self.documented_classes / self.total_classes * 100 if self.total_classes > 0 else 0
-    
+        return (
+            self.documented_classes / self.total_classes * 100
+            if self.total_classes > 0
+            else 0
+        )
+
     @property
     def function_coverage(self) -> float:
         """Calculate function documentation coverage"""
-        return self.documented_functions / self.total_functions * 100 if self.total_functions > 0 else 0
-    
+        return (
+            self.documented_functions / self.total_functions * 100
+            if self.total_functions > 0
+            else 0
+        )
+
     @property
     def api_coverage(self) -> float:
         """Calculate API documentation coverage"""
-        return self.documented_api_endpoints / self.total_api_endpoints * 100 if self.total_api_endpoints > 0 else 0
-    
+        return (
+            self.documented_api_endpoints / self.total_api_endpoints * 100
+            if self.total_api_endpoints > 0
+            else 0
+        )
+
     @property
     def example_validity(self) -> float:
         """Calculate example validity rate"""
-        return self.valid_examples / self.total_examples * 100 if self.total_examples > 0 else 0
-    
+        return (
+            self.valid_examples / self.total_examples * 100
+            if self.total_examples > 0
+            else 0
+        )
+
     @property
     def overall_coverage(self) -> float:
         """Calculate overall documentation coverage"""
-        total_items = self.total_modules + self.total_classes + self.total_functions + self.total_api_endpoints
-        documented_items = self.documented_modules + self.documented_classes + self.documented_functions + self.documented_api_endpoints
+        total_items = (
+            self.total_modules
+            + self.total_classes
+            + self.total_functions
+            + self.total_api_endpoints
+        )
+        documented_items = (
+            self.documented_modules
+            + self.documented_classes
+            + self.documented_functions
+            + self.documented_api_endpoints
+        )
         return documented_items / total_items * 100 if total_items > 0 else 0

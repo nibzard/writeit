@@ -42,16 +42,16 @@ language:
   formality: "Professional but not stuffy"
   
   preferred_words:
-    - "implement" instead of "do"
-    - "performance" instead of "speed"
-    - "optimize" instead of "make better"
-    - "architecture" instead of "structure"
-    - "methodology" instead of "way"
-    - "evaluate" instead of "check"
-    - "utilize" instead of "use" (when appropriate)
-    - "demonstrate" instead of "show"
-    - "establish" instead of "set up"
-    - "analyze" instead of "look at"
+    - 'implement (instead of "do")'
+    - 'performance (instead of "speed")'
+    - 'optimize (instead of "make better")'
+    - 'architecture (instead of "structure")'
+    - 'methodology (instead of "way")'
+    - 'evaluate (instead of "check")'
+    - 'utilize (instead of "use", when appropriate)'
+    - 'demonstrate (instead of "show")'
+    - 'establish (instead of "set up")'
+    - 'analyze (instead of "look at")'
   
   technical_language:
     precision: "Always use exact technical terms"

@@ -9,37 +9,37 @@ from .models import UserGuide
 
 class UserGuideGenerator:
     """Generate user guides for documentation"""
-    
+
     def generate_guides(self) -> List[UserGuide]:
         """Generate all user guides"""
         guides = []
-        
+
         # Getting Started Guide
         getting_started = self._generate_getting_started_guide()
         guides.append(getting_started)
-        
+
         # Configuration Guide
         configuration = self._generate_configuration_guide()
         guides.append(configuration)
-        
+
         # Pipeline Development Guide
         pipeline_dev = self._generate_pipeline_development_guide()
         guides.append(pipeline_dev)
-        
+
         # CLI Reference Guide
         cli_reference = self._generate_cli_reference_guide()
         guides.append(cli_reference)
-        
+
         # API Usage Guide
         api_usage = self._generate_api_usage_guide()
         guides.append(api_usage)
-        
+
         # Troubleshooting Guide
         troubleshooting = self._generate_troubleshooting_guide()
         guides.append(troubleshooting)
-        
+
         return guides
-    
+
     def _generate_getting_started_guide(self) -> UserGuide:
         """Generate getting started guide"""
         content = """# Getting Started with WriteIt
@@ -239,7 +239,7 @@ If you run into issues:
 - Review existing templates for examples
 - Monitor token usage with cache statistics
 """
-        
+
         return UserGuide(
             title="Getting Started with WriteIt",
             description="A comprehensive guide to installing, setting up, and running your first WriteIt pipeline",
@@ -248,9 +248,9 @@ If you run into issues:
             difficulty="beginner",
             estimated_time="15 minutes",
             prerequisites=["Python 3.12+", "uv package manager", "LLM API keys"],
-            related_guides=["Configuration Guide", "Pipeline Development Guide"]
+            related_guides=["Configuration Guide", "Pipeline Development Guide"],
         )
-    
+
     def _generate_configuration_guide(self) -> UserGuide:
         """Generate configuration guide"""
         return UserGuide(
@@ -261,9 +261,9 @@ If you run into issues:
             difficulty="intermediate",
             estimated_time="20 minutes",
             prerequisites=["Basic WriteIt setup"],
-            related_guides=["Getting Started", "Pipeline Development"]
+            related_guides=["Getting Started", "Pipeline Development"],
         )
-    
+
     def _generate_pipeline_development_guide(self) -> UserGuide:
         """Generate pipeline development guide"""
         return UserGuide(
@@ -274,9 +274,9 @@ If you run into issues:
             difficulty="intermediate",
             estimated_time="30 minutes",
             prerequisites=["Basic WriteIt usage", "YAML knowledge"],
-            related_guides=["Getting Started", "Configuration Guide"]
+            related_guides=["Getting Started", "Configuration Guide"],
         )
-    
+
     def _generate_cli_reference_guide(self) -> UserGuide:
         """Generate CLI reference guide"""
         return UserGuide(
@@ -287,9 +287,9 @@ If you run into issues:
             difficulty="beginner",
             estimated_time="10 minutes",
             prerequisites=["WriteIt installation"],
-            related_guides=["Getting Started"]
+            related_guides=["Getting Started"],
         )
-    
+
     def _generate_api_usage_guide(self) -> UserGuide:
         """Generate API usage guide"""
         return UserGuide(
@@ -300,9 +300,9 @@ If you run into issues:
             difficulty="advanced",
             estimated_time="25 minutes",
             prerequisites=["Basic WriteIt setup", "HTTP API knowledge"],
-            related_guides=["Pipeline Development", "Configuration Guide"]
+            related_guides=["Pipeline Development", "Configuration Guide"],
         )
-    
+
     def _generate_troubleshooting_guide(self) -> UserGuide:
         """Generate troubleshooting guide"""
         return UserGuide(
@@ -313,5 +313,5 @@ If you run into issues:
             difficulty="intermediate",
             estimated_time="15 minutes",
             prerequisites=["Basic WriteIt usage"],
-            related_guides=["Getting Started", "Configuration Guide"]
+            related_guides=["Getting Started", "Configuration Guide"],
         )

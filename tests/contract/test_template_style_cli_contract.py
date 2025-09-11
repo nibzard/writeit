@@ -27,11 +27,11 @@ def cli_runner(temp_home: Path, monkeypatch) -> CliRunner:
     """Create CLI runner with temporary home directory."""
     # Set up environment to use temp directory
     monkeypatch.setenv("HOME", str(temp_home))
-    
+
     # Initialize WriteIt in temp directory
     workspace = Workspace(temp_home / ".writeit")
     workspace.initialize()
-    
+
     return CliRunner()
 
 
@@ -66,14 +66,14 @@ class TestTemplateCLIContract:
         """Test that template create has expected command-line options."""
         result = cli_runner.invoke(app, ["template", "create", "--help"])
         assert result.exit_code == 0
-        
+
         expected_options = [
             "--workspace           --global",
             "--workspace-name",
             "--from",
-            "--interactive         --non-interactive"
+            "--interactive         --non-interactive",
         ]
-        
+
         for option in expected_options:
             assert option in result.stdout
 
@@ -81,12 +81,9 @@ class TestTemplateCLIContract:
         """Test that template list has expected command-line options."""
         result = cli_runner.invoke(app, ["template", "list", "--help"])
         assert result.exit_code == 0
-        
-        expected_options = [
-            "--scope",
-            "--workspace"
-        ]
-        
+
+        expected_options = ["--scope", "--workspace"]
+
         for option in expected_options:
             assert option in result.stdout
 
@@ -94,13 +91,13 @@ class TestTemplateCLIContract:
         """Test that template copy has expected command-line options."""
         result = cli_runner.invoke(app, ["template", "copy", "--help"])
         assert result.exit_code == 0
-        
+
         expected_options = [
             "--to-workspace        --to-global",
             "--workspace",
-            "--from-workspace"
+            "--from-workspace",
         ]
-        
+
         for option in expected_options:
             assert option in result.stdout
 
@@ -114,7 +111,7 @@ class TestTemplateCLIContract:
         """Test that template copy requires source and destination arguments."""
         result = cli_runner.invoke(app, ["template", "copy"])
         assert result.exit_code == 2  # Missing required arguments
-        
+
         result = cli_runner.invoke(app, ["template", "copy", "source"])
         assert result.exit_code == 2  # Missing destination argument
 
@@ -126,17 +123,24 @@ class TestTemplateCLIContract:
 
     def test_template_create_workspace_scope_default(self, cli_runner: CliRunner):
         """Test that template create defaults to workspace scope."""
-        result = cli_runner.invoke(app, [
-            "template", "create", "default-scope-test", "--non-interactive"
-        ])
+        result = cli_runner.invoke(
+            app, ["template", "create", "default-scope-test", "--non-interactive"]
+        )
         assert result.exit_code == 0
         assert "Scope: workspace" in result.stdout
 
     def test_template_create_global_scope_explicit(self, cli_runner: CliRunner):
         """Test that template create uses global scope when specified."""
-        result = cli_runner.invoke(app, [
-            "template", "create", "global-scope-test", "--global", "--non-interactive"
-        ])
+        result = cli_runner.invoke(
+            app,
+            [
+                "template",
+                "create",
+                "global-scope-test",
+                "--global",
+                "--non-interactive",
+            ],
+        )
         assert result.exit_code == 0
         assert "Scope: global" in result.stdout
 
@@ -172,14 +176,14 @@ class TestStyleCLIContract:
         """Test that style create has expected command-line options."""
         result = cli_runner.invoke(app, ["style", "create", "--help"])
         assert result.exit_code == 0
-        
+
         expected_options = [
             "--workspace           --global",
             "--workspace-name",
             "--from",
-            "--interactive         --non-interactive"
+            "--interactive         --non-interactive",
         ]
-        
+
         for option in expected_options:
             assert option in result.stdout
 
@@ -190,9 +194,9 @@ class TestStyleCLIContract:
 
     def test_style_create_workspace_scope_default(self, cli_runner: CliRunner):
         """Test that style create defaults to workspace scope."""
-        result = cli_runner.invoke(app, [
-            "style", "create", "default-scope-test", "--non-interactive"
-        ])
+        result = cli_runner.invoke(
+            app, ["style", "create", "default-scope-test", "--non-interactive"]
+        )
         assert result.exit_code == 0
         assert "Scope: workspace" in result.stdout
 
@@ -210,13 +214,14 @@ class TestMainCLIContract:
     def test_list_pipelines_shows_scope_labels(self, cli_runner: CliRunner):
         """Test that list-pipelines shows scope labels."""
         # Create templates in different scopes
-        cli_runner.invoke(app, [
-            "template", "create", "workspace-template", "--non-interactive"
-        ])
-        cli_runner.invoke(app, [
-            "template", "create", "global-template", "--global", "--non-interactive"
-        ])
-        
+        cli_runner.invoke(
+            app, ["template", "create", "workspace-template", "--non-interactive"]
+        )
+        cli_runner.invoke(
+            app,
+            ["template", "create", "global-template", "--global", "--non-interactive"],
+        )
+
         result = cli_runner.invoke(app, ["list-pipelines"])
         assert result.exit_code == 0
         assert "Workspace (default)" in result.stdout
@@ -225,42 +230,64 @@ class TestMainCLIContract:
     def test_run_command_shows_scope_information(self, cli_runner: CliRunner):
         """Test that run command shows scope information."""
         # Create template
-        cli_runner.invoke(app, [
-            "template", "create", "run-scope-test", "--non-interactive"
-        ])
-        
+        cli_runner.invoke(
+            app, ["template", "create", "run-scope-test", "--non-interactive"]
+        )
+
         # Use --cli flag to avoid launching TUI during test
         result = cli_runner.invoke(app, ["run", "run-scope-test", "--cli"])
         # Check that pipeline info is shown (not the actual scope text which appears in TUI)
-        assert "Pipeline: run-scope-test" in result.stdout or "run-scope-test" in result.stdout
+        assert (
+            "Pipeline: run-scope-test" in result.stdout
+            or "run-scope-test" in result.stdout
+        )
 
-    def test_validate_command_works_with_workspace_templates(self, cli_runner: CliRunner):
+    def test_validate_command_works_with_workspace_templates(
+        self, cli_runner: CliRunner
+    ):
         """Test that validate command works with workspace templates."""
         # Create workspace template
-        cli_runner.invoke(app, [
-            "template", "create", "validate-workspace-test", "--non-interactive"
-        ])
-        
-        result = cli_runner.invoke(app, ["validate", "validate-workspace-test"])
+        cli_runner.invoke(
+            app, ["template", "create", "validate-workspace-test", "--non-interactive"]
+        )
+
+        result = cli_runner.invoke(
+            app, ["validate", "validate", "validate-workspace-test"]
+        )
         assert result.exit_code == 0
 
     def test_global_workspace_option_consistency(self, cli_runner: CliRunner):
         """Test that --workspace option works consistently across commands."""
         # Create workspace
         cli_runner.invoke(app, ["workspace", "create", "test-workspace"])
-        
+
         # Create template in specific workspace
-        result = cli_runner.invoke(app, [
-            "template", "create", "workspace-option-test", 
-            "--workspace-name", "test-workspace", "--non-interactive"
-        ])
+        result = cli_runner.invoke(
+            app,
+            [
+                "template",
+                "create",
+                "workspace-option-test",
+                "--workspace-name",
+                "test-workspace",
+                "--non-interactive",
+            ],
+        )
         assert result.exit_code == 0
         assert "Workspace: test-workspace" in result.stdout
-        
+
         # List templates in specific workspace
-        result = cli_runner.invoke(app, [
-            "template", "list", "--workspace", "test-workspace", "--scope", "workspace"
-        ])
+        result = cli_runner.invoke(
+            app,
+            [
+                "template",
+                "list",
+                "--workspace",
+                "test-workspace",
+                "--scope",
+                "workspace",
+            ],
+        )
         assert result.exit_code == 0
         assert "workspace-option-test" in result.stdout
 
@@ -270,26 +297,36 @@ class TestCLIErrorHandling:
 
     def test_template_create_nonexistent_workspace_fails(self, cli_runner: CliRunner):
         """Test that creating template in nonexistent workspace fails gracefully."""
-        result = cli_runner.invoke(app, [
-            "template", "create", "test", "--workspace-name", "nonexistent", "--non-interactive"
-        ])
+        result = cli_runner.invoke(
+            app,
+            [
+                "template",
+                "create",
+                "test",
+                "--workspace-name",
+                "nonexistent",
+                "--non-interactive",
+            ],
+        )
         assert result.exit_code == 1
 
     def test_template_copy_nonexistent_source_fails(self, cli_runner: CliRunner):
         """Test that copying nonexistent template fails gracefully."""
-        result = cli_runner.invoke(app, [
-            "template", "copy", "nonexistent", "destination"
-        ])
+        result = cli_runner.invoke(
+            app, ["template", "copy", "nonexistent", "destination"]
+        )
         assert result.exit_code == 1
         assert "not found" in result.stdout
 
-    def test_commands_require_writeIt_initialization(self, temp_home: Path, monkeypatch):
+    def test_commands_require_writeIt_initialization(
+        self, temp_home: Path, monkeypatch
+    ):
         """Test that commands fail gracefully when WriteIt is not initialized."""
         # Set up environment without initializing WriteIt
         monkeypatch.setenv("HOME", str(temp_home))
-        
+
         cli_runner = CliRunner()
-        
+
         result = cli_runner.invoke(app, ["template", "list"])
         assert result.exit_code == 1
         assert "WriteIt not initialized" in result.stdout
@@ -297,12 +334,16 @@ class TestCLIErrorHandling:
     def test_invalid_template_name_characters_handled(self, cli_runner: CliRunner):
         """Test that invalid template name characters are handled."""
         # Test with various potentially problematic characters
-        invalid_names = ["template/with/slash", "template with spaces", "template@symbol"]
-        
+        invalid_names = [
+            "template/with/slash",
+            "template with spaces",
+            "template@symbol",
+        ]
+
         for name in invalid_names:
-            result = cli_runner.invoke(app, [
-                "template", "create", name, "--non-interactive"
-            ])
+            result = cli_runner.invoke(
+                app, ["template", "create", name, "--non-interactive"]
+            )
             # Should either succeed (if name is valid) or fail gracefully
             assert result.exit_code in [0, 1]
 
@@ -313,13 +354,13 @@ class TestCLIOutputFormat:
     def test_template_list_output_format(self, cli_runner: CliRunner):
         """Test that template list output follows expected format."""
         # Create templates
-        cli_runner.invoke(app, [
-            "template", "create", "test-template", "--non-interactive"
-        ])
-        
+        cli_runner.invoke(
+            app, ["template", "create", "test-template", "--non-interactive"]
+        )
+
         result = cli_runner.invoke(app, ["template", "list"])
         assert result.exit_code == 0
-        
+
         # Should contain table headers and template information
         assert "Available Pipeline Templates" in result.stdout
         assert "test-template" in result.stdout
@@ -327,11 +368,11 @@ class TestCLIOutputFormat:
 
     def test_template_create_success_output_format(self, cli_runner: CliRunner):
         """Test that template create success output follows expected format."""
-        result = cli_runner.invoke(app, [
-            "template", "create", "success-test", "--non-interactive"
-        ])
+        result = cli_runner.invoke(
+            app, ["template", "create", "success-test", "--non-interactive"]
+        )
         assert result.exit_code == 0
-        
+
         # Should contain success message and key information
         assert "Template 'success-test' created successfully!" in result.stdout
         assert "Path:" in result.stdout
@@ -340,13 +381,11 @@ class TestCLIOutputFormat:
     def test_style_list_output_format(self, cli_runner: CliRunner):
         """Test that style list output follows expected format."""
         # Create style
-        cli_runner.invoke(app, [
-            "style", "create", "test-style", "--non-interactive"
-        ])
-        
+        cli_runner.invoke(app, ["style", "create", "test-style", "--non-interactive"])
+
         result = cli_runner.invoke(app, ["style", "list"])
         assert result.exit_code == 0
-        
+
         # Should contain table headers and style information
         assert "Available Style Primers" in result.stdout
         assert "test-style" in result.stdout
@@ -354,19 +393,19 @@ class TestCLIOutputFormat:
     def test_error_messages_are_clear(self, cli_runner: CliRunner):
         """Test that error messages are clear and helpful."""
         # Test duplicate creation error
-        cli_runner.invoke(app, [
-            "template", "create", "duplicate-test", "--non-interactive"
-        ])
-        
-        result = cli_runner.invoke(app, [
-            "template", "create", "duplicate-test", "--non-interactive"
-        ])
+        cli_runner.invoke(
+            app, ["template", "create", "duplicate-test", "--non-interactive"]
+        )
+
+        result = cli_runner.invoke(
+            app, ["template", "create", "duplicate-test", "--non-interactive"]
+        )
         assert result.exit_code == 1
         assert "already exists" in result.stdout
-        
+
         # Test nonexistent template copy error
-        result = cli_runner.invoke(app, [
-            "template", "copy", "nonexistent", "destination"
-        ])
+        result = cli_runner.invoke(
+            app, ["template", "copy", "nonexistent", "destination"]
+        )
         assert result.exit_code == 1
         assert "not found" in result.stdout

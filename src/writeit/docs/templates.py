@@ -13,13 +13,14 @@ from .models import (
     APIDocumentation,
     ModuleDocumentation,
     CLIDocumentation,
-    UserGuide
+    UserGuide,
 )
 
 
 @dataclass
 class TemplateConfig:
     """Configuration for template system"""
+
     templates_dir: Path
     output_format: str = "markdown"
     custom_filters: Dict[str, Any] = None
@@ -28,97 +29,102 @@ class TemplateConfig:
 
 class DocumentationTemplateSystem:
     """Template system for generating documentation"""
-    
+
     def __init__(self, config: TemplateConfig):
         self.config = config
         self._setup_jinja_environment()
-    
+
     def _setup_jinja_environment(self):
         """Setup Jinja2 environment with templates"""
         # Create templates directory if it doesn't exist
         self.config.templates_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize Jinja environment
         self.env = Environment(
             loader=FileSystemLoader(str(self.config.templates_dir)),
             trim_blocks=True,
-            lstrip_blocks=True
+            lstrip_blocks=True,
         )
-        
+
         # Add custom filters
         self._register_custom_filters()
-        
+
         # Add global variables
         if self.config.variables:
             self.env.globals.update(self.config.variables)
-    
+
     def _register_custom_filters(self):
         """Register custom Jinja2 filters"""
         default_filters = {
-            'code_block': self._code_block_filter,
-            'sanitize_filename': self._sanitize_filename_filter,
-            'format_signature': self._format_signature_filter,
-            'extract_first_sentence': self._extract_first_sentence_filter,
-            'titlecase': self._titlecase_filter,
-            'slugify': self._slugify_filter,
-            'word_wrap': self._word_wrap_filter,
-            'indent_code': self._indent_code_filter
+            "code_block": self._code_block_filter,
+            "sanitize_filename": self._sanitize_filename_filter,
+            "format_signature": self._format_signature_filter,
+            "extract_first_sentence": self._extract_first_sentence_filter,
+            "titlecase": self._titlecase_filter,
+            "slugify": self._slugify_filter,
+            "word_wrap": self._word_wrap_filter,
+            "indent_code": self._indent_code_filter,
         }
-        
+
         # Add custom filters from config
         if self.config.custom_filters:
             default_filters.update(self.config.custom_filters)
-        
+
         for name, filter_func in default_filters.items():
             self.env.filters[name] = filter_func
-    
+
     def _code_block_filter(self, code: str, language: str = "python") -> str:
         """Generate code block with syntax highlighting"""
         return f"```{language}\n{code}\n```"
-    
+
     def _sanitize_filename_filter(self, filename: str) -> str:
         """Sanitize string for use as filename"""
         import re
+
         # Replace special characters with underscores
-        return re.sub(r'[^\w\-_.]', '_', filename)
-    
+        return re.sub(r"[^\w\-_.]", "_", filename)
+
     def _format_signature_filter(self, signature: str) -> str:
         """Format function signature for display"""
         # Add line breaks for long signatures
         if len(signature) > 80:
             # Simple line breaking at commas
-            return signature.replace(', ', ',\n    ')
+            return signature.replace(", ", ",\n    ")
         return signature
-    
+
     def _extract_first_sentence_filter(self, text: str) -> str:
         """Extract first sentence from text"""
         if not text:
             return ""
-        sentences = text.split('.')
+        sentences = text.split(".")
         if sentences:
-            return sentences[0].strip() + '.'
+            return sentences[0].strip() + "."
         return text
-    
+
     def _titlecase_filter(self, text: str) -> str:
         """Convert text to title case"""
         return text.title()
-    
+
     def _slugify_filter(self, text: str) -> str:
         """Convert text to URL-friendly slug"""
         import re
-        return re.sub(r'[^\w\s-]', '', text.lower()).strip().replace(' ', '-')
-    
+
+        return re.sub(r"[^\w\s-]", "", text.lower()).strip().replace(" ", "-")
+
     def _word_wrap_filter(self, text: str, width: int = 80) -> str:
         """Word wrap text to specified width"""
         import textwrap
-        return '\n'.join(textwrap.wrap(text, width=width))
-    
+
+        return "\n".join(textwrap.wrap(text, width=width))
+
     def _indent_code_filter(self, code: str, spaces: int = 4) -> str:
         """Indent code block"""
-        indent = ' ' * spaces
-        return '\n'.join(indent + line for line in code.split('\n'))
-    
-    def render_documentation(self, docs: DocumentationSet, template_name: str = "main.md.j2") -> str:
+        indent = " " * spaces
+        return "\n".join(indent + line for line in code.split("\n"))
+
+    def render_documentation(
+        self, docs: DocumentationSet, template_name: str = "main.md.j2"
+    ) -> str:
         """Render complete documentation using template"""
         try:
             template = self.env.get_template(template_name)
@@ -130,44 +136,54 @@ class DocumentationTemplateSystem:
                 template_docs=docs.template_docs,
                 user_guides=docs.user_guides,
                 generated_at=docs.generated_at,
-                version=docs.version
+                version=docs.version,
             )
         except jinja2.TemplateNotFound:
             # Fallback to default template
             return self._render_default_template(docs)
-    
-    def render_api_documentation(self, api_docs: APIDocumentation, template_name: str = "api.md.j2") -> str:
+
+    def render_api_documentation(
+        self, api_docs: APIDocumentation, template_name: str = "api.md.j2"
+    ) -> str:
         """Render API documentation using template"""
         try:
             template = self.env.get_template(template_name)
             return template.render(api_docs=api_docs)
         except jinja2.TemplateNotFound:
             return self._render_default_api_template(api_docs)
-    
-    def render_module_documentation(self, module_docs: List[ModuleDocumentation], template_name: str = "modules.md.j2") -> str:
+
+    def render_module_documentation(
+        self,
+        module_docs: List[ModuleDocumentation],
+        template_name: str = "modules.md.j2",
+    ) -> str:
         """Render module documentation using template"""
         try:
             template = self.env.get_template(template_name)
             return template.render(modules=module_docs)
         except jinja2.TemplateNotFound:
             return self._render_default_modules_template(module_docs)
-    
-    def render_cli_documentation(self, cli_docs: CLIDocumentation, template_name: str = "cli.md.j2") -> str:
+
+    def render_cli_documentation(
+        self, cli_docs: CLIDocumentation, template_name: str = "cli.md.j2"
+    ) -> str:
         """Render CLI documentation using template"""
         try:
             template = self.env.get_template(template_name)
             return template.render(cli_docs=cli_docs)
         except jinja2.TemplateNotFound:
             return self._render_default_cli_template(cli_docs)
-    
-    def render_user_guide(self, guide: UserGuide, template_name: str = "guide.md.j2") -> str:
+
+    def render_user_guide(
+        self, guide: UserGuide, template_name: str = "guide.md.j2"
+    ) -> str:
         """Render user guide using template"""
         try:
             template = self.env.get_template(template_name)
             return template.render(guide=guide)
         except jinja2.TemplateNotFound:
             return self._render_default_guide_template(guide)
-    
+
     def create_default_templates(self):
         """Create default template files if they don't exist"""
         templates = {
@@ -179,15 +195,15 @@ class DocumentationTemplateSystem:
             "module.md.j2": self._get_module_template(),
             "endpoint.md.j2": self._get_endpoint_template(),
             "class.md.j2": self._get_class_template(),
-            "function.md.j2": self._get_function_template()
+            "function.md.j2": self._get_function_template(),
         }
-        
+
         for filename, template_content in templates.items():
             template_file = self.config.templates_dir / filename
             if not template_file.exists():
-                with open(template_file, 'w') as f:
+                with open(template_file, "w") as f:
                     f.write(template_content)
-    
+
     def _render_default_template(self, docs: DocumentationSet) -> str:
         """Fallback default template rendering"""
         template_content = self._get_main_template()
@@ -200,36 +216,38 @@ class DocumentationTemplateSystem:
             template_docs=docs.template_docs,
             user_guides=docs.user_guides,
             generated_at=docs.generated_at,
-            version=docs.version
+            version=docs.version,
         )
-    
+
     def _render_default_api_template(self, api_docs: APIDocumentation) -> str:
         """Fallback API template rendering"""
         template_content = self._get_api_template()
         template = self.env.from_string(template_content)
         return template.render(api_docs=api_docs)
-    
-    def _render_default_modules_template(self, module_docs: List[ModuleDocumentation]) -> str:
+
+    def _render_default_modules_template(
+        self, module_docs: List[ModuleDocumentation]
+    ) -> str:
         """Fallback modules template rendering"""
         template_content = self._get_modules_template()
         template = self.env.from_string(template_content)
         return template.render(modules=module_docs)
-    
+
     def _render_default_cli_template(self, cli_docs: CLIDocumentation) -> str:
         """Fallback CLI template rendering"""
         template_content = self._get_cli_template()
         template = self.env.from_string(template_content)
         return template.render(cli_docs=cli_docs)
-    
+
     def _render_default_guide_template(self, guide: UserGuide) -> str:
         """Fallback guide template rendering"""
         template_content = self._get_guide_template()
         template = self.env.from_string(template_content)
         return template.render(guide=guide)
-    
+
     def _get_main_template(self) -> str:
         """Get main documentation template"""
-        return '''# {{ docs.api_docs.title if docs.api_docs else "WriteIt" }} Documentation
+        return """# {{ docs.api_docs.title if docs.api_docs else "WriteIt" }} Documentation
 
 Welcome to auto-generated documentation. This documentation is generated directly from source code.
 
@@ -428,11 +446,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 ---
 
 *This documentation is automatically generated. Please report any issues or inconsistencies.*
-'''
-    
+"""
+
     def _get_api_template(self) -> str:
         """Get API documentation template"""
-        return '''# API Documentation
+        return """# API Documentation
 
 {{ api_docs.description }}
 
@@ -501,11 +519,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 ---
 {% endfor %}
 {% endif %}
-'''
-    
+"""
+
     def _get_modules_template(self) -> str:
         """Get modules documentation template"""
-        return '''# Module Documentation
+        return """# Module Documentation
 
 {% for module in modules %}
 ## {{ module.name }}
@@ -586,11 +604,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 
 ---
 {% endfor %}
-'''
-    
+"""
+
     def _get_cli_template(self) -> str:
         """Get CLI documentation template"""
-        return '''# CLI Documentation
+        return """# CLI Documentation
 
 {{ cli_docs.description }}
 
@@ -629,11 +647,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 
 ---
 {% endfor %}
-'''
-    
+"""
+
     def _get_guide_template(self) -> str:
         """Get user guide template"""
-        return '''# {{ guide.title }}
+        return """# {{ guide.title }}
 
 {{ guide.description }}
 
@@ -670,11 +688,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 - {{ related }}
 {% endfor %}
 {% endif %}
-'''
-    
+"""
+
     def _get_module_template(self) -> str:
         """Get individual module template"""
-        return '''# {{ module.name }}
+        return """# {{ module.name }}
 
 {{ module.description }}
 
@@ -697,11 +715,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 {{ func.description }}
 {% endfor %}
 {% endif %}
-'''
-    
+"""
+
     def _get_endpoint_template(self) -> str:
         """Get API endpoint template"""
-        return '''# {{ endpoint.method }} {{ endpoint.path }}
+        return """# {{ endpoint.method }} {{ endpoint.path }}
 
 {{ endpoint.description }}
 
@@ -728,11 +746,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 - **{{ code }}**: {{ description }}
 {% endfor %}
 {% endif %}
-'''
-    
+"""
+
     def _get_class_template(self) -> str:
         """Get class documentation template"""
-        return '''# {{ class_doc.name }}
+        return """# {{ class_doc.name }}
 
 {{ class_doc.description }}
 
@@ -749,11 +767,11 @@ Welcome to auto-generated documentation. This documentation is generated directl
 {{ method.description }}
 {% endfor %}
 {% endif %}
-'''
-    
+"""
+
     def _get_function_template(self) -> str:
         """Get function documentation template"""
-        return '''# {{ func.name }}
+        return """# {{ func.name }}
 
 {{ func.signature | code_block }}
 
@@ -768,38 +786,38 @@ Welcome to auto-generated documentation. This documentation is generated directl
 {% endif %}
 
 **Returns**: {{ func.return_type }} - {{ func.return_description }}
-'''
+"""
 
 
 class TemplateManager:
     """Manage documentation templates"""
-    
+
     def __init__(self, templates_dir: Path):
         self.templates_dir = templates_dir
         self.templates_dir.mkdir(parents=True, exist_ok=True)
-    
+
     def create_template_structure(self):
         """Create complete template directory structure"""
         # Create subdirectories
         subdirs = ["api", "modules", "cli", "templates", "guides"]
         for subdir in subdirs:
             (self.templates_dir / subdir).mkdir(exist_ok=True)
-        
+
         # Create template system
         config = TemplateConfig(templates_dir=self.templates_dir)
         template_system = DocumentationTemplateSystem(config)
         template_system.create_default_templates()
-    
+
     def list_templates(self) -> List[Path]:
         """List all available templates"""
         return list(self.templates_dir.rglob("*.j2"))
-    
+
     def validate_template(self, template_path: Path) -> bool:
         """Validate template syntax"""
         try:
-            with open(template_path, 'r') as f:
+            with open(template_path, "r") as f:
                 template_content = f.read()
-            
+
             env = Environment()
             env.parse(template_content)
             return True

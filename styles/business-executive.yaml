@@ -45,13 +45,13 @@ language:
   
   business_vocabulary:
     strategic_terms:
-      - "strategic imperative" instead of "important thing"
-      - "competitive advantage" instead of "benefit"
-      - "market opportunity" instead of "chance"
-      - "operational excellence" instead of "doing things well"
-      - "value creation" instead of "making money"
-      - "stakeholder alignment" instead of "getting agreement"
-      - "resource optimization" instead of "saving money"
+      - 'strategic imperative (instead of "important thing")'
+      - 'competitive advantage (instead of "benefit")'
+      - 'market opportunity (instead of "chance")'
+      - 'operational excellence (instead of "doing things well")'
+      - 'value creation (instead of "making money")'
+      - 'stakeholder alignment (instead of "getting agreement")'
+      - 'resource optimization (instead of "saving money")'
     
     results_language:
       - "delivered 23% revenue growth"
@@ -62,13 +62,13 @@ language:
       - "expanded market share from 12% to 19%"
   
   action_oriented:
-    - "recommend" instead of "suggest"
-    - "implement" instead of "try"
-    - "execute" instead of "do"
-    - "optimize" instead of "improve"
-    - "prioritize" instead of "focus on"
-    - "accelerate" instead of "speed up"
-    - "transform" instead of "change"
+    - 'recommend (instead of "suggest")'
+    - 'implement (instead of "try")'
+    - 'execute (instead of "do")'
+    - 'optimize (instead of "improve")'
+    - 'prioritize (instead of "focus on")'
+    - 'accelerate (instead of "speed up")'
+    - 'transform (instead of "change")'
   
   avoid:
     - Technical jargon without business context

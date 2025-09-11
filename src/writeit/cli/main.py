@@ -7,7 +7,10 @@ import logging
 from writeit.cli.app import app
 from writeit.cli.commands.workspace import app as workspace_app
 from writeit.cli.commands.pipeline import app as pipeline_app
-from writeit.cli.commands.pipeline import list_pipelines, run  # Move here to fix import order
+from writeit.cli.commands.pipeline import (
+    list_pipelines,
+    run,
+)  # Move here to fix import order
 from writeit.cli.commands.validate import app as validate_app
 from writeit.cli.commands.template import app as template_app
 from writeit.cli.commands.style import app as style_app
@@ -35,11 +38,12 @@ def main():
     try:
         # Setup basic logging
         from writeit.logging import configure_default_logging
+
         logger = configure_default_logging()
         logger.debug("Starting WriteIt CLI application")
-        
+
         app()
-        
+
         logger.debug("WriteIt CLI application completed successfully")
     except KeyboardInterrupt:
         # Handle Ctrl+C gracefully
@@ -50,8 +54,9 @@ def main():
         # Handle unexpected errors
         logger = logging.getLogger("writeit")
         logger.error(f"Unexpected error: {e}", exc_info=True)
-        
+
         from writeit.cli.output import print_error
+
         print_error(f"Unexpected error: {e}")
         sys.exit(1)
 

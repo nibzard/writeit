@@ -2,8 +2,6 @@
 Tests for documentation validator
 """
 
-import pytest
-from pathlib import Path
 from writeit.docs import DocumentationValidator
 from writeit.docs.models import (
     DocumentationSet,
@@ -13,29 +11,29 @@ from writeit.docs.models import (
     APIEndpointDocumentation,
     CommandDocumentation,
     ParameterDocumentation,
-    ValidationResult
+    ValidationResult,
 )
 
 
 class TestDocumentationValidator:
     """Test documentation validation functionality"""
-    
+
     def test_validator_initialization(self):
         """Test validator initializes correctly"""
         validator = DocumentationValidator()
         assert validator is not None
-    
+
     def test_validate_empty_documentation(self):
         """Test validating empty documentation set"""
         validator = DocumentationValidator()
         empty_docs = DocumentationSet()
-        
+
         result = validator.validate_all(empty_docs)
-        
+
         assert isinstance(result, ValidationResult)
         assert result.is_valid is True  # Empty docs are technically valid
         assert result.coverage_percentage == 0.0
-    
+
     def test_validate_api_documentation(self):
         """Test validating API documentation"""
         # Create sample API documentation
@@ -51,21 +49,21 @@ class TestDocumentationValidator:
                     summary="Test endpoint",
                     description="Test endpoint description",
                     parameters=[],
-                    status_codes={200: "Success"}
+                    status_codes={200: "Success"},
                 )
             ],
-            models=[]
+            models=[],
         )
-        
+
         docs = DocumentationSet(api_docs=api_docs)
-        
+
         validator = DocumentationValidator()
         result = validator.validate_all(docs)
-        
+
         assert isinstance(result, ValidationResult)
         # Should validate successfully with proper API docs
         assert len(result.errors) == 0
-    
+
     def test_validate_invalid_api_endpoint(self):
         """Test validating invalid API endpoint"""
         # Create invalid endpoint (missing path)
@@ -75,35 +73,38 @@ class TestDocumentationValidator:
             summary="",
             description="",
             parameters=[],
-            status_codes={}
+            status_codes={},
         )
-        
+
         api_docs = APIDocumentation(
             title="Test API",
             description="",
             version="1.0.0",
             base_url="",
             endpoints=[invalid_endpoint],
-            models=[]
+            models=[],
         )
-        
+
         docs = DocumentationSet(api_docs=api_docs)
-        
+
         validator = DocumentationValidator()
         result = validator.validate_all(docs)
-        
+
         assert isinstance(result, ValidationResult)
         assert len(result.errors) > 0  # Should have validation errors
-        
+
         # Check for specific error types
         error_types = [error.type for error in result.errors]
-        assert "endpoint_missing_path" in error_types or "endpoint_invalid_path" in error_types
+        assert (
+            "endpoint_missing_path" in error_types
+            or "endpoint_invalid_path" in error_types
+        )
         assert "endpoint_invalid_method" in error_types
-    
+
     def test_validate_module_documentation(self):
         """Test validating module documentation"""
         from writeit.docs.models import ClassDocumentation, FunctionDocumentation
-        
+
         # Create sample module documentation
         module_docs = [
             ModuleDocumentation(
@@ -122,9 +123,9 @@ class TestDocumentationValidator:
                                 description="Test method description",
                                 parameters=[],
                                 return_type="None",
-                                return_description=""
+                                return_description="",
                             )
-                        ]
+                        ],
                     )
                 ],
                 functions=[
@@ -134,21 +135,21 @@ class TestDocumentationValidator:
                         description="Test function description",
                         parameters=[],
                         return_type="str",
-                        return_description="Returns test string"
+                        return_description="Returns test string",
                     )
-                ]
+                ],
             )
         ]
-        
+
         docs = DocumentationSet(module_docs=module_docs)
-        
+
         validator = DocumentationValidator()
         result = validator.validate_all(docs)
-        
+
         assert isinstance(result, ValidationResult)
         # Well-formed module docs should validate
         assert len(result.errors) == 0
-    
+
     def test_validate_cli_documentation(self):
         """Test validating CLI documentation"""
         # Create sample CLI documentation
@@ -165,7 +166,7 @@ class TestDocumentationValidator:
                             name="arg1",
                             type_annotation="str",
                             description="Test argument",
-                            required=True
+                            required=True,
                         )
                     ],
                     options=[
@@ -174,23 +175,23 @@ class TestDocumentationValidator:
                             type_annotation="bool",
                             description="Test option",
                             required=False,
-                            default_value="False"
+                            default_value="False",
                         )
                     ],
-                    examples=["test-cli test-command value"]
+                    examples=["test-cli test-command value"],
                 )
-            ]
+            ],
         )
-        
+
         docs = DocumentationSet(cli_docs=cli_docs)
-        
+
         validator = DocumentationValidator()
         result = validator.validate_all(docs)
-        
+
         assert isinstance(result, ValidationResult)
         # Well-formed CLI docs should validate
         assert len(result.errors) == 0
-    
+
     def test_validation_with_warnings(self):
         """Test validation that produces warnings"""
         # Create API documentation with missing descriptions (should warn)
@@ -206,47 +207,47 @@ class TestDocumentationValidator:
                     summary="Test endpoint",
                     description="",  # Empty description should warn
                     parameters=[],
-                    status_codes={200: "Success"}
+                    status_codes={200: "Success"},
                 )
             ],
-            models=[]
+            models=[],
         )
-        
+
         docs = DocumentationSet(api_docs=api_docs)
-        
+
         validator = DocumentationValidator()
         result = validator.validate_all(docs)
-        
+
         assert isinstance(result, ValidationResult)
         # Should be valid but have warnings
         assert result.is_valid is True
         assert len(result.warnings) > 0
         assert result.has_warnings is True
-    
+
     def test_validation_result_properties(self):
         """Test ValidationResult properties"""
         result = ValidationResult(is_valid=True)
-        
+
         # Test error/warning detection
         assert result.has_errors is False
         assert result.has_warnings is False
-        
+
         result.add_error("test_error", "Test error message")
         assert result.has_errors is True
         assert len(result.errors) == 1
-        
+
         result.add_warning("test_warning", "Test warning message")
         assert result.has_warnings is True
         assert len(result.warnings) == 1
-        
+
         result.add_info("test_info", "Test info message")
         assert len(result.info) == 1
-    
+
     def test_coverage_calculation(self):
         """Test documentation coverage calculation"""
         # Create documentation with mixed coverage
         from writeit.docs.models import ClassDocumentation, FunctionDocumentation
-        
+
         module_docs = [
             ModuleDocumentation(
                 name="good.module",
@@ -257,7 +258,7 @@ class TestDocumentationValidator:
                         name="GoodClass",
                         description="Good class description",
                         purpose="Good class purpose",
-                        methods=[]
+                        methods=[],
                     )
                 ],
                 functions=[
@@ -267,24 +268,24 @@ class TestDocumentationValidator:
                         description="Good function description",
                         parameters=[],
                         return_type="str",
-                        return_description="Returns string"
+                        return_description="Returns string",
                     )
-                ]
+                ],
             ),
             ModuleDocumentation(
                 name="poor.module",
                 description="",  # Poor: no description
-                purpose="",      # Poor: no purpose
+                purpose="",  # Poor: no purpose
                 classes=[],
-                functions=[]
-            )
+                functions=[],
+            ),
         ]
-        
+
         docs = DocumentationSet(module_docs=module_docs)
-        
+
         validator = DocumentationValidator()
         result = validator.validate_all(docs)
-        
+
         assert isinstance(result, ValidationResult)
         # Coverage should be calculated
         assert result.total_items > 0

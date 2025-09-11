@@ -10,8 +10,8 @@ from .examples import ExampleExtractor
 
 __all__ = [
     "APIExtractor",
-    "ModuleExtractor", 
+    "ModuleExtractor",
     "CLIExtractor",
     "TemplateExtractor",
-    "ExampleExtractor"
+    "ExampleExtractor",
 ]

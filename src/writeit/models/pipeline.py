@@ -9,6 +9,7 @@ from enum import Enum
 
 class PipelineStatus(str, Enum):
     """Status enumeration for pipeline runs."""
+
     CREATED = "created"
     RUNNING = "running"
     PAUSED = "paused"
@@ -19,6 +20,7 @@ class PipelineStatus(str, Enum):
 
 class StepStatus(str, Enum):
     """Status enumeration for step execution."""
+
     PENDING = "pending"
     RUNNING = "running"
     WAITING_INPUT = "waiting_input"
@@ -30,6 +32,7 @@ class StepStatus(str, Enum):
 @dataclass
 class PipelineInput:
     """Configuration for a pipeline input field."""
+
     key: str
     type: str  # 'text', 'choice', 'number', 'boolean'
     label: str
@@ -45,6 +48,7 @@ class PipelineInput:
 @dataclass
 class PipelineStep:
     """Configuration for a pipeline step."""
+
     key: str
     name: str
     description: str
@@ -62,6 +66,7 @@ class PipelineStep:
 @dataclass
 class Pipeline:
     """Complete pipeline configuration."""
+
     id: str
     name: str
     description: str
@@ -79,6 +84,7 @@ class Pipeline:
 @dataclass
 class StepExecution:
     """Record of a single step execution."""
+
     step_key: str
     status: StepStatus = StepStatus.PENDING
     started_at: Optional[datetime] = None
@@ -96,6 +102,7 @@ class StepExecution:
 @dataclass
 class PipelineRun:
     """Record of a complete pipeline execution."""
+
     id: str
     pipeline_id: str
     workspace_name: str
@@ -115,6 +122,7 @@ class PipelineRun:
 @dataclass
 class PipelineTemplate:
     """Template for creating new pipelines."""
+
     name: str
     description: str
     category: str
@@ -128,6 +136,7 @@ class PipelineTemplate:
 @dataclass
 class PipelineArtifact:
     """Output artifact from pipeline execution."""
+
     id: str
     pipeline_run_id: str
     step_key: str

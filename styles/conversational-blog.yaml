@@ -51,12 +51,12 @@ language:
     - "Include casual interjections (honestly, actually, basically)"
   
   preferred_phrases:
-    - "Here's the thing..." instead of "The issue is..."
-    - "Let me show you..." instead of "This demonstrates..."
-    - "You know what I mean?" instead of "This is evident..."
-    - "I learned the hard way..." instead of "Experience shows..."
-    - "Trust me on this..." instead of "It is recommended..."
-    - "Here's what worked for me..." instead of "The solution is..."
+    - 'Here is the thing (instead of "The issue is")'
+    - 'Let me show you (instead of "This demonstrates")'
+    - 'You know what I mean (instead of "This is evident")'
+    - 'I learned the hard way (instead of "Experience shows")'
+    - 'Trust me on this (instead of "It is recommended")'
+    - 'Here is what worked for me (instead of "The solution is")'
   
   storytelling_elements:
     - "I remember when..."

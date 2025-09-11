@@ -26,6 +26,7 @@ dependencies = [
     "mkdocs-material>=9.6.19",
     "weasyprint>=66.0",
     "reportlab>=4.4.3",
+    "trio>=0.31.0",
 ]
 
 [project.optional-dependencies]

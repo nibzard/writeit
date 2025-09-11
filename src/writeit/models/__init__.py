@@ -10,17 +10,17 @@ from .pipeline import (
     PipelineTemplate,
     PipelineArtifact,
     PipelineStatus,
-    StepStatus
+    StepStatus,
 )
 
 __all__ = [
-    'Pipeline',
-    'PipelineStep', 
-    'PipelineInput',
-    'PipelineRun',
-    'StepExecution',
-    'PipelineTemplate',
-    'PipelineArtifact',
-    'PipelineStatus',
-    'StepStatus'
+    "Pipeline",
+    "PipelineStep",
+    "PipelineInput",
+    "PipelineRun",
+    "StepExecution",
+    "PipelineTemplate",
+    "PipelineArtifact",
+    "PipelineStatus",
+    "StepStatus",
 ]

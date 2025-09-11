@@ -26,62 +26,57 @@ verbose_mode: bool = False
 @app.callback()
 def main(
     version: bool = typer.Option(
-        False, 
-        "--version", 
-        "-v",
-        help="Show version and exit"
+        False, "--version", "-v", help="Show version and exit"
     ),
     workspace: Optional[str] = typer.Option(
-        None, 
-        "--workspace", 
+        None,
+        "--workspace",
         "-w",
-        help="Use specific workspace (overrides active workspace)"
+        help="Use specific workspace (overrides active workspace)",
     ),
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        help="Enable verbose output"
-    ),
+    verbose: bool = typer.Option(False, "--verbose", help="Enable verbose output"),
 ):
     """
     [bold blue]WriteIt[/bold blue] - LLM-powered writing pipeline tool with terminal UI.
-    
+
     [bold cyan]Examples:[/bold cyan]
-    
+
     Initialize WriteIt:
       [dim]$ writeit init[/dim]
-    
+
     Create and use a workspace:
       [dim]$ writeit workspace create myproject[/dim]
       [dim]$ writeit workspace use myproject[/dim]
-    
+
     List available pipelines:
       [dim]$ writeit list-pipelines[/dim]
-    
+
     Run a pipeline:
       [dim]$ writeit run article-template[/dim]
-    
+
     Validate templates:
       [dim]$ writeit validate tech-article --detailed[/dim]
-    
+
     [bold cyan]Shell Completion:[/bold cyan]
-    
+
     Install completion for your shell:
       [dim]$ writeit --install-completion[/dim]
-    
+
     Or generate completion script:
       [dim]$ writeit --show-completion[/dim]
     """
     global workspace_override, verbose_mode
-    
+
     if version:
-        console.print(f"[bold blue]WriteIt[/bold blue] version [primary]{__version__}[/primary]")
+        console.print(
+            f"[bold blue]WriteIt[/bold blue] version [primary]{__version__}[/primary]"
+        )
         raise typer.Exit()
-    
+
     # Store global options for use in commands
     workspace_override = workspace
     verbose_mode = verbose
-    
+
     if verbose:
         print_info("Verbose mode enabled")
 
@@ -100,46 +95,46 @@ def is_verbose() -> bool:
 @app.command(name="completion")
 def completion_command(
     install: bool = typer.Option(
-        False,
-        "--install",
-        help="Install shell completion for the current shell"
+        False, "--install", help="Install shell completion for the current shell"
     ),
     show: bool = typer.Option(
-        False,
-        "--show",
-        help="Show completion script for manual installation"
+        False, "--show", help="Show completion script for manual installation"
     ),
     shell: Optional[str] = typer.Option(
         None,
         "--shell",
-        help="Specify shell (bash, zsh, fish, powershell). Auto-detects if not specified."
-    )
+        help="Specify shell (bash, zsh, fish, powershell). Auto-detects if not specified.",
+    ),
 ):
     """
     Manage shell completion for WriteIt CLI.
-    
+
     [bold cyan]Examples:[/bold cyan]
-    
+
     Install completion for current shell:
       [dim]$ writeit completion --install[/dim]
-    
+
     Show completion script:
       [dim]$ writeit completion --show[/dim]
-    
+
     Install for specific shell:
       [dim]$ writeit completion --install --shell zsh[/dim]
     """
     if install and show:
-        console.print("[error]Cannot use both --install and --show options together[/error]")
+        console.print(
+            "[error]Cannot use both --install and --show options together[/error]"
+        )
         raise typer.Exit(1)
-    
+
     if not install and not show:
         console.print("[error]Must specify either --install or --show[/error]")
-        console.print("Use [primary]'writeit completion --help'[/primary] for usage examples")
+        console.print(
+            "Use [primary]'writeit completion --help'[/primary] for usage examples"
+        )
         raise typer.Exit(1)
-    
+
     from writeit.cli.completion import install_completion, show_completion
-    
+
     if install:
         install_completion(shell)
     else:

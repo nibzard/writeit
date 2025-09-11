@@ -3,4 +3,4 @@
 
 from .executor import PipelineExecutor, ExecutionContext, StepResult
 
-__all__ = ['PipelineExecutor', 'ExecutionContext', 'StepResult']
+__all__ = ["PipelineExecutor", "ExecutionContext", "StepResult"]
