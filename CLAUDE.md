@@ -1,35 +1,42 @@
 # WriteIt Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-09-09
+Auto-generated from all feature plans. Last updated: 2025-01-15
 
 ## Active Technologies
-- **Python 3.11+** + **FastAPI** + **Textual** + **LMDB** + **llm.datasette.io** (001-build-me-writeit)
+- **Python 3.12+** + **FastAPI** + **Textual** + **LMDB** + **llm.datasette.io**
+- **WebSocket** + **aiohttp** + **Event Sourcing** + **LLM Caching** (Fully Implemented)
 
 ## Project Structure
 ```
 src/
-├── models/          # Shared data models (Pipeline, Artifact, etc.)
+├── models/          # Shared data models (Pipeline, PipelineRun, StepExecution, etc.)
 ├── storage/         # LMDB storage library with workspace awareness
 ├── workspace/       # Centralized workspace management (~/.writeit)
-├── llm/            # LLM integration library
-├── pipeline/       # Pipeline execution engine
-├── server/         # FastAPI server
+├── llm/            # LLM integration library with caching and token tracking
+│   ├── cache.py     # LLM response caching with workspace isolation
+│   └── token_usage.py # Token usage tracking and analytics
+├── pipeline/       # Pipeline execution engine ✅ FULLY IMPLEMENTED
+│   ├── executor.py  # Core pipeline execution with async LLM calls
+│   └── events.py    # Event sourcing for immutable state management
+├── server/         # FastAPI server ✅ FULLY IMPLEMENTED
+│   ├── app.py      # REST API + WebSocket endpoints
+│   └── client.py   # Client library for TUI/CLI integration
 ├── tui/            # Textual UI components
 └── cli/            # Main entry points with workspace commands
 
 tests/
 ├── contract/       # API contract tests
-├── integration/    # End-to-end pipeline tests  
+├── integration/    # End-to-end pipeline tests ✅ COMPREHENSIVE
 └── unit/          # Library unit tests
 
 ~/.writeit/         # Centralized storage (created by writeit init)
 ├── config.yaml     # Global settings
 ├── templates/      # Global pipeline templates
 ├── styles/         # Global style primers
-├── workspaces/     # User workspaces
+├── workspaces/     # User workspaces with isolated LMDB databases
 │   ├── default/    # Default workspace
 │   └── project1/   # Example project workspace
-└── cache/          # LLM response cache
+└── cache/          # LLM response cache (per-workspace)
 ```
 
 ## Commands
@@ -50,6 +57,11 @@ writeit list-pipelines              # List available pipelines
 writeit run <pipeline.yaml>         # Start TUI pipeline execution in active workspace
 writeit run --global <pipeline>     # Use global pipeline template
 writeit --workspace <name> run <pipeline>  # Use specific workspace
+
+# Server Operations (NEW - Backend API)
+writeit server start               # Start FastAPI server (port 8000)
+writeit server stop                # Stop running server
+writeit server status              # Check server health
 
 # Template & Style Validation
 writeit validate <template-name>                # Validate templates/styles (workspace-aware, no .yaml needed)
@@ -161,8 +173,134 @@ uv sync  # Installs all dependencies automatically
 - **Built-in dependency locking** with uv.lock
 - **Cross-platform Python version management**
 
+## Core Architecture Components ✅ FULLY IMPLEMENTED
+
+### Pipeline Execution Engine (`src/writeit/pipeline/`)
+- **PipelineExecutor**: Async execution engine with LLM integration and caching
+- **Event Sourcing**: Immutable state management with copy-on-write branching  
+- **Step Execution**: Multi-step workflow with progress tracking and error handling
+- **Template Rendering**: Dynamic prompt generation with context variable substitution
+
+### FastAPI Server (`src/writeit/server/`)
+- **REST API**: Complete CRUD operations for pipelines, runs, and workspaces
+- **WebSocket Streaming**: Real-time execution updates and bi-directional communication
+- **Multi-tenant**: Workspace-aware execution with isolated storage
+- **Error Handling**: Comprehensive error management with helpful suggestions
+
+### LLM Response Caching (`src/writeit/llm/`)
+- **Smart Caching**: Context-aware caching with workspace isolation
+- **Two-tier Storage**: Memory + persistent LMDB caching with LRU eviction
+- **Cache Analytics**: Hit/miss tracking and performance optimization
+- **TTL Management**: Configurable cache expiration and cleanup
+
+### Event Sourcing System (`src/writeit/pipeline/events.py`)
+- **Immutable State**: Copy-on-write state transitions with event replay
+- **Event Store**: Persistent event logging with sequence numbering
+- **State Snapshots**: Performance optimization for large event streams
+- **Branch Support**: Parallel execution branches with state isolation
+
+## API Endpoints
+
+### Pipeline Management
+```
+POST /api/pipelines          # Create pipeline from YAML file
+GET  /api/pipelines/{id}     # Get pipeline configuration
+```
+
+### Pipeline Execution  
+```
+POST /api/runs               # Create new pipeline run
+POST /api/runs/{id}/execute  # Execute pipeline run
+GET  /api/runs/{id}          # Get run status and results
+GET  /api/workspaces/{name}/runs # List runs in workspace
+```
+
+### Real-time Communication
+```
+WS   /ws/{run_id}           # WebSocket for real-time execution updates
+```
+
+## Pipeline YAML Structure
+
+```yaml
+metadata:
+  name: "Article Pipeline"
+  description: "Generate structured articles"
+  version: "1.0.0"
+
+defaults:
+  model: "gpt-4o-mini"
+  
+inputs:
+  topic:
+    type: text
+    label: "Article Topic"
+    required: true
+    placeholder: "Enter topic..."
+  
+  style:
+    type: choice
+    label: "Writing Style"
+    options:
+      - {label: "Formal", value: "formal"}
+      - {label: "Casual", value: "casual"}
+    default: "formal"
+
+steps:
+  outline:
+    name: "Create Outline"
+    description: "Generate article structure"
+    type: llm_generate
+    prompt_template: |
+      Create an outline for {{ inputs.topic }} 
+      in {{ inputs.style }} style.
+    model_preference: ["{{ defaults.model }}"]
+    
+  content:
+    name: "Write Article"
+    description: "Generate full content"
+    type: llm_generate
+    prompt_template: |
+      Based on outline: {{ steps.outline }}
+      Write complete article about {{ inputs.topic }}.
+    depends_on: ["outline"]
+```
+
+## Development Commands
+
+```bash
+# Start development server
+uv run uvicorn writeit.server.app:app --reload --port 8000
+
+# Run comprehensive tests
+uv run pytest tests/ -v
+
+# Run specific test categories
+uv run pytest tests/integration/ -v    # Integration tests
+uv run pytest tests/unit/ -v           # Unit tests
+uv run pytest tests/contract/ -v       # Contract tests
+
+# Type checking and linting
+uv run mypy src/
+uv run ruff check src/ tests/
+
+# Test pipeline execution
+uv run python -c "
+from writeit.pipeline import PipelineExecutor
+from writeit.server import PipelineClient
+# Test components
+"
+```
+
 ## Recent Changes
-- 001-build-me-writeit: Added WriteIt LLM Article Pipeline TUI application with FastAPI backend, LMDB storage, multi-provider LLM support, real-time streaming, and event sourcing
+- **2025-01-15**: ✅ MAJOR RELEASE - Complete backend implementation
+  - Implemented core pipeline execution engine with async LLM integration
+  - Added FastAPI server with REST API and WebSocket streaming  
+  - Implemented event sourcing for immutable state management
+  - Added comprehensive LLM response caching with workspace isolation
+  - Created client library for TUI/server communication
+  - Added extensive integration test suite with real pipeline execution
+  - Updated dependencies and async test infrastructure
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

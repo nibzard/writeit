@@ -14,6 +14,7 @@ dependencies = [
     "lmdb>=1.4.1",
     "uvicorn>=0.24.0",
     "websockets>=11.0",
+    "aiohttp>=3.8.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
     "aiofiles>=23.0.0",

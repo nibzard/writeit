@@ -1,6 +1,8 @@
 # WriteIt Documentation
 
-Welcome to the WriteIt LLM Article Pipeline documentation. WriteIt transforms raw content into polished articles through an interactive, 4-step AI-powered pipeline with human-in-the-loop feedback.
+Welcome to the complete documentation for WriteIt - the LLM-powered writing pipeline application with real-time execution and workspace management.
+
+WriteIt transforms raw content into polished articles through multi-step AI-powered pipelines with human-in-the-loop feedback. Features a complete FastAPI backend with WebSocket streaming, intelligent LLM response caching, and event sourcing for reliable state management.
 
 ## 📖 Documentation Structure
 

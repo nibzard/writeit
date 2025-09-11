@@ -62,6 +62,11 @@ class ValidationError(WriteItError):
     pass
 
 
+class StepExecutionError(WriteItError):
+    """Errors related to pipeline step execution."""
+    pass
+
+
 class ConfigurationError(WriteItError):
     """Errors related to configuration."""
     pass

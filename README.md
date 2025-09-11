@@ -1,26 +1,42 @@
 # WriteIt
 
-> LLM-powered writing pipeline application with interactive TUI and automation-friendly CLI modes
+> LLM-powered writing pipeline application with real-time execution and workspace management
 
-WriteIt transforms raw content into polished articles through a 4-step AI-powered pipeline with human-in-the-loop feedback. Choose interactive TUI mode for rich visual feedback or CLI mode for automation and scripting. Build better content faster with streaming AI responses, branching workflows, and complete pipeline history.
+WriteIt transforms raw content into polished articles through multi-step AI-powered pipelines with human-in-the-loop feedback. Features a complete FastAPI backend with WebSocket streaming, intelligent LLM response caching, and event sourcing for reliable state management. Build better content faster with real-time AI responses, workspace isolation, and comprehensive execution tracking.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=flat&logo=websocket)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
 
 ## ✨ Features
 
-- **🎯 4-Step Pipeline**: angles → outline → draft → polish
-- **🤖 Multi-Model AI**: OpenAI, Anthropic, and local models
-- **⚡ Real-Time Streaming**: Watch content generate live
-- **🔄 Human-in-the-Loop**: Guide AI at every step with feedback
-- **🌲 Branching & Rewind**: Explore alternatives without losing work
-- **📚 Complete History**: Every decision and response saved
-- **🎨 Beautiful CLI**: Rich-formatted terminal interface with colors & tables
-- **🖥️ Dual Execution Modes**: Interactive TUI or simple CLI for automation
+### 🏗️ **Complete Backend Architecture**
+- **🚀 FastAPI Server**: REST API + WebSocket streaming for real-time execution
+- **⚡ Async Pipeline Engine**: Multi-step workflows with LLM integration
+- **💾 Event Sourcing**: Immutable state management with replay capabilities
+- **🧠 Smart Caching**: Intelligent LLM response caching with workspace isolation
+- **🔧 Client Libraries**: Python and JavaScript SDKs for easy integration
+
+### 🎯 **Pipeline Execution**
+- **📋 Multi-Step Workflows**: Define complex AI-powered content generation pipelines
+- **🤖 Multi-Model Support**: OpenAI, Anthropic, and local models via llm.datasette.io
+- **⚡ Real-Time Streaming**: Watch content generate live via WebSocket
+- **🔄 Human-in-the-Loop**: Guide AI at every step with feedback and selections
+- **📊 Progress Tracking**: Detailed execution monitoring and error handling
+
+### 🏠 **Workspace Management**
+- **🌐 Multi-Tenant**: Isolated workspaces with separate storage and caching
+- **📚 Template System**: Global and workspace-specific pipeline templates
+- **🎨 Style Primers**: Reusable style configurations for consistent output
+- **📈 Analytics**: Token usage tracking and performance metrics
+
+### 🎨 **Developer Experience**  
+- **🖥️ Interactive TUI**: Rich terminal interface with real-time updates
 - **⌨️ Shell Completion**: Tab-complete commands, workspaces, and pipelines
-- **🏠 Centralized Workspaces**: Organized project management with `~/.writeit`
-- **🌐 Run from Anywhere**: Access all your content from any directory
+- **🧪 Comprehensive Tests**: Integration, unit, and contract test coverage
+- **📖 API Documentation**: Complete OpenAPI documentation with examples
 
 ## 🚀 Quick Start
 
@@ -53,22 +69,52 @@ llm keys set anthropic # Enter your Anthropic API key
 llm models list
 ```
 
-### Create Your First Article
+### Create Your First Pipeline
 ```bash
-# Initialize WriteIt (creates ~/.writeit with beautiful progress display)
+# Initialize WriteIt (creates ~/.writeit directory structure)
 writeit init
 
 # Create a workspace for your project
 writeit workspace create my-blog
-
-# Switch to your workspace  
 writeit workspace use my-blog
 
-# View available pipelines in a nice table
-writeit list-pipelines
+# Start the WriteIt server (in background)
+writeit server start
 
-# Start writing! (runs from anywhere now)
-writeit run tech-article
+# Create and run your first pipeline
+writeit run examples/article.yaml
+```
+
+### Using the API Directly
+
+```python
+import asyncio
+from pathlib import Path
+from writeit.server import PipelineClient
+
+async def generate_article():
+    client = PipelineClient()
+    
+    # Define your inputs
+    inputs = {
+        "topic": "The Future of AI",
+        "style": "technical",
+        "length": "medium"
+    }
+    
+    # Run pipeline with real-time callbacks
+    result = await client.run_pipeline(
+        pipeline_path=Path("examples/article.yaml"),
+        inputs=inputs,
+        progress_callback=lambda event, data: print(f"Step: {data.get('step_name')}"),
+        response_callback=lambda type, content: print(f"AI: {content[:100]}...")
+    )
+    
+    print(f"✅ Article completed! Status: {result['status']}")
+    return result
+
+# Run the pipeline
+asyncio.run(generate_article())
 ```
 
 **✨ Pro Tip**: Enable shell completion for tab-completion of commands, workspaces, and pipelines:
@@ -107,11 +153,17 @@ writeit workspace info               # Show current workspace details
 writeit workspace remove old-project # Delete workspace (with confirmation)
 ```
 
+**Server Operations** 🚀
+```bash
+writeit server start            # Start FastAPI server (port 8000)
+writeit server stop             # Stop running server  
+writeit server status           # Check server health
+```
+
 **Pipeline Operations** ⚡ *(work from any directory!)*
 ```bash
 writeit list-pipelines           # Show available pipelines in a table
 writeit run tech-article         # Execute pipeline in TUI mode (.yaml optional)
-writeit run tech-article --cli   # Execute in CLI mode (simple prompts)
 writeit run --global quick-post  # Use global template
 writeit run --workspace my-blog article-template  # Use specific workspace
 ```
@@ -131,51 +183,231 @@ writeit completion --install        # Install completion for current shell
 writeit completion --show --shell bash  # Show completion script
 ```
 
-## 🖥️ Execution Modes
+## 🏗️ Pipeline Architecture
 
-WriteIt supports two execution modes to fit different workflows:
+WriteIt uses a YAML-based pipeline definition system with real-time execution:
 
-### TUI Mode (Default) 
-The full interactive experience with rich visual feedback:
-- Real-time streaming responses
-- Visual progress indicators  
-- Step-by-step navigation
-- Branching and rewind capabilities
-- Full pipeline history
+### Sample Pipeline: `article.yaml`
 
-```bash
-writeit run tech-article         # Interactive TUI mode
+```yaml
+metadata:
+  name: "Technical Article Generator"
+  description: "Creates comprehensive technical articles"
+  version: "1.0.0"
+
+defaults:
+  model: "gpt-4o-mini"
+  style: "technical"
+
+inputs:
+  topic:
+    type: text
+    label: "Article Topic"
+    required: true
+    placeholder: "Enter the main topic..."
+    help: "The core subject your article will cover"
+  
+  audience:
+    type: choice
+    label: "Target Audience" 
+    required: true
+    options:
+      - {label: "Beginners", value: "beginner"}
+      - {label: "Intermediate", value: "intermediate"}
+      - {label: "Advanced", value: "advanced"}
+    default: "intermediate"
+  
+  length:
+    type: choice
+    label: "Article Length"
+    options:
+      - {label: "Short (500-800 words)", value: "short"}
+      - {label: "Medium (800-1500 words)", value: "medium"}
+      - {label: "Long (1500+ words)", value: "long"}
+    default: "medium"
+
+steps:
+  outline:
+    name: "Create Outline"
+    description: "Generate a structured article outline"
+    type: llm_generate
+    prompt_template: |
+      Create a detailed outline for a {{ inputs.audience }}-level article about {{ inputs.topic }}.
+      
+      Target length: {{ inputs.length }}
+      Writing style: {{ defaults.style }}
+      
+      Include:
+      1. Compelling introduction hook
+      2. 3-5 main sections with subsections
+      3. Practical examples and code snippets
+      4. Conclusion with key takeaways
+      
+      Format as a nested list with brief descriptions for each section.
+    model_preference: ["{{ defaults.model }}"]
+    
+  content:
+    name: "Write Article"
+    description: "Generate the complete article content"
+    type: llm_generate
+    prompt_template: |
+      Based on this outline:
+      {{ steps.outline }}
+      
+      Write a complete {{ inputs.length }} {{ defaults.style }} article about {{ inputs.topic }} 
+      for {{ inputs.audience }} developers.
+      
+      Requirements:
+      - Use clear, engaging language appropriate for {{ inputs.audience }} level
+      - Include practical code examples where relevant
+      - Add section headers and proper formatting
+      - Ensure smooth transitions between sections
+      - End with actionable takeaways
+      
+      Write the full article now:
+    model_preference: ["{{ defaults.model }}"]
+    depends_on: ["outline"]
+    
+  review:
+    name: "Review & Polish"
+    description: "Review and improve the article"
+    type: llm_generate
+    prompt_template: |
+      Review this article and suggest specific improvements:
+      
+      {{ steps.content }}
+      
+      Focus on:
+      1. Clarity and readability for {{ inputs.audience }} audience
+      2. Technical accuracy
+      3. Flow and structure
+      4. Missing important points
+      5. Code example quality
+      
+      Provide specific, actionable feedback.
+    model_preference: ["{{ defaults.model }}"]
+    depends_on: ["content"]
 ```
 
-### CLI Mode
-Streamlined command-line interface for automation and simplicity:
-- **Simple prompts**: Text input, numbered choices, y/n confirmations
-- **Non-interactive execution**: Perfect for scripts and CI/CD pipelines
-- **Automation-friendly**: Consistent interface for programmatic use
-- **Lighter resource usage**: No TUI dependencies required
-- **Same pipeline logic**: Identical YAML configs and LLM integration
-- **Progress indicators**: Visual feedback with Rich formatting
-- **Error handling**: Graceful failures with continue/abort options
-- **Token tracking**: Complete usage monitoring and reporting
+### Real-Time Execution Flow
+
+1. **Input Collection**: Dynamic form based on pipeline inputs
+2. **Step Execution**: Sequential LLM calls with dependency resolution
+3. **Progress Streaming**: WebSocket updates for real-time feedback
+4. **Response Caching**: Intelligent caching to avoid duplicate LLM calls
+5. **State Management**: Event sourcing for reliable execution tracking
+
+## 🚀 FastAPI Server & WebSocket
+
+### Starting the Server
 
 ```bash
-writeit run tech-article --cli   # Simple CLI prompts
-writeit run quick-article --cli --workspace my-blog  # With workspace
-echo -e "Python Basics\n1\ny" | writeit run tutorial --cli  # Scriptable
+# Start development server with auto-reload
+uv run uvicorn writeit.server.app:app --reload --port 8000
+
+# Production deployment
+uv run uvicorn writeit.server.app:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-#### CLI Mode Input Types
-- **Text**: Simple text input with validation
-- **Choice/Select**: Numbered options for selection
-- **Radio**: Single selection from multiple options
-- **Textarea**: Multi-line text input (Ctrl+D to finish)
+### REST API Usage
 
-## 🤖 Automation & Scripting
-
-CLI mode makes WriteIt perfect for automated content generation:
-
-### Batch Processing
 ```bash
+# Check server health
+curl http://localhost:8000/health
+
+# Create a pipeline
+curl -X POST http://localhost:8000/api/pipelines \
+  -H "Content-Type: application/json" \
+  -d '{"pipeline_path": "article.yaml", "workspace_name": "default"}'
+
+# Create and execute a run
+curl -X POST http://localhost:8000/api/runs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pipeline_id": "pipeline_123",
+    "inputs": {"topic": "FastAPI", "audience": "intermediate"},
+    "workspace_name": "default"
+  }'
+```
+
+### WebSocket Streaming
+
+```javascript
+// Connect to real-time execution updates
+const ws = new WebSocket('ws://localhost:8000/ws/run_456');
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  
+  switch (message.type) {
+    case 'progress':
+      console.log(`Step: ${message.data.step_name}`);
+      break;
+    case 'response':
+      console.log(`AI Response: ${message.content}`);
+      break;
+    case 'completed':
+      console.log('Pipeline completed!');
+      break;
+  }
+};
+```
+
+## 🧠 Intelligent Caching
+
+WriteIt includes sophisticated LLM response caching:
+
+### Cache Features
+- **Context-Aware**: Cache keys include prompt, model, and execution context
+- **Workspace Isolation**: Separate cache namespaces per workspace
+- **Smart TTL**: Configurable cache expiration (24h default)
+- **Two-Tier Storage**: Memory + persistent LMDB caching
+- **Analytics**: Hit/miss tracking and performance metrics
+
+### Cache Management
+
+```python
+from writeit.llm.cache import LLMCache
+from writeit.storage.manager import StorageManager
+
+# Create cache instance
+cache = LLMCache(storage_manager, workspace_name="my-blog")
+
+# Get cache statistics
+stats = await cache.get_stats()
+print(f"Hit rate: {stats['hit_rate']:.2%}")
+print(f"Total requests: {stats['total_requests']}")
+
+# Manual cache management
+await cache.clear()  # Clear all cached responses
+await cache.cleanup_expired()  # Remove expired entries
+```
+
+## 🔧 Development & Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest tests/ -v
+
+# Run specific test categories
+uv run pytest tests/integration/ -v    # Integration tests
+uv run pytest tests/unit/ -v           # Unit tests
+
+# Run with coverage
+uv run pytest tests/ --cov=src/writeit --cov-report=html
+```
+
+### API Documentation
+
+When the server is running, interactive documentation is available:
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **OpenAPI Schema**: http://localhost:8000/openapi.json
+
+### Development Commands
 #!/bin/bash
 # Generate multiple articles from a list
 articles=(
