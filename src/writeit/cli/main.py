@@ -11,6 +11,7 @@ from writeit.cli.commands.pipeline import list_pipelines, run  # Move here to fi
 from writeit.cli.commands.validate import app as validate_app
 from writeit.cli.commands.template import app as template_app
 from writeit.cli.commands.style import app as style_app
+from writeit.cli.commands.docs import app as docs_app
 
 
 # Add all command modules to the main app
@@ -23,6 +24,7 @@ app.add_typer(pipeline_app, name="pipeline")
 app.add_typer(validate_app, name="validate")
 app.add_typer(template_app, name="template")
 app.add_typer(style_app, name="style")
+app.add_typer(docs_app, name="docs")
 
 app.command(name="list-pipelines")(list_pipelines)
 app.command(name="run")(run)

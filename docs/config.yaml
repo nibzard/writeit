@@ -1,0 +1,41 @@
+documentation:
+  sources:
+    modules:
+      path: src/writeit
+      patterns: ["**/*.py"]
+      exclude: ["**/__pycache__/**", "**/tests/**"]
+      
+    api:
+      spec_path: openapi.json
+      include_examples: true
+      
+    cli:
+      app_module: writeit.cli.main:app
+      
+    templates:
+      path: templates
+      formats: ["yaml"]
+      
+    tests:
+      path: tests
+      extract_examples: true
+      
+  outputs:
+    markdown:
+      output_dir: docs/generated/markdown
+      
+    html:
+      output_dir: docs/site
+      theme: material
+      
+    pdf:
+      output_file: docs/writeit-documentation.pdf
+      
+  validation:
+    check_links: true
+    validate_examples: true
+    check_completeness: true
+    
+  deployment:
+    github_pages: true
+    auto_deploy: true
