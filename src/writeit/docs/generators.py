@@ -2,10 +2,9 @@
 User guide generator for documentation
 """
 
-from pathlib import Path
-from typing import List, Dict, Any
+from typing import List
 
-from .models import UserGuide, CodeExample
+from .models import UserGuide
 
 
 class UserGuideGenerator:

@@ -2,15 +2,11 @@
 Main documentation generator orchestrator
 """
 
-import ast
 import importlib
 import inspect
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Type
+from typing import List, Optional
 from dataclasses import dataclass
-
-from fastapi import FastAPI
-import typer
 
 from .models import (
     DocumentationSet, 

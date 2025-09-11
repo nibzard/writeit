@@ -151,7 +151,7 @@ def show_metrics(
     try:
         # Generate documentation to get fresh metrics
         generator = DocumentationGenerator(config_path=config)
-        docs = generator.generate_all()
+        generator.generate_all()
         metrics = generator.get_metrics()
         
         # Display metrics table

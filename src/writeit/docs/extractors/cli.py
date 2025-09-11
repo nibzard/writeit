@@ -4,8 +4,7 @@ CLI documentation extractor from Typer commands
 
 import inspect
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
+from typing import List, Optional
 
 import typer
 from typer.models import CommandInfo, OptionInfo, ArgumentInfo
@@ -13,8 +12,7 @@ from typer.models import CommandInfo, OptionInfo, ArgumentInfo
 from ..models import (
     CLIDocumentation,
     CommandDocumentation,
-    ParameterDocumentation,
-    CodeExample
+    ParameterDocumentation
 )
 
 
@@ -131,7 +129,7 @@ class CLIExtractor:
         
         try:
             return str(param.annotation).replace("typing.", "").replace("builtins.", "")
-        except:
+        except Exception:
             return "str"
     
     def _get_param_description(self, param_name: str, cmd_info: CommandInfo) -> str:
@@ -163,7 +161,7 @@ class CLIExtractor:
         
         try:
             return repr(param.default)
-        except:
+        except Exception:
             return str(param.default)
     
     def _generate_usage(self, cmd_info: CommandInfo, sig) -> str:
@@ -276,7 +274,7 @@ class CLIExtractor:
         """Get source file path for callback function"""
         try:
             return Path(inspect.getfile(callback))
-        except:
+        except Exception:
             return None
     
     def generate_shell_completion_docs(self, app: typer.Typer) -> str:

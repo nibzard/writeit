@@ -3,7 +3,7 @@ Data models for documentation generation system
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional
 from pathlib import Path
 from datetime import datetime
 
@@ -269,7 +269,13 @@ class ValidationResult:
 @dataclass
 class DocumentationConfig:
     """Configuration for documentation generation"""
-    sources: Dict[str, Any] = field(default_factory=dict)
+    sources: Dict[str, Any] = field(default_factory=lambda: {
+        "modules": {
+            "path": "src/writeit",
+            "patterns": ["**/*.py"],
+            "exclude": ["**/__pycache__/**", "**/tests/**"]
+        }
+    })
     outputs: Dict[str, Any] = field(default_factory=dict)
     validation: Dict[str, Any] = field(default_factory=dict)
     deployment: Dict[str, Any] = field(default_factory=dict)

@@ -5,8 +5,7 @@ Module documentation extractor from Python source code
 import ast
 import inspect
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
-from dataclasses import dataclass
+from typing import List, Optional
 
 from ..models import (
     ModuleDocumentation,
@@ -315,7 +314,7 @@ class ModuleExtractor:
                     return ast.unparse(annotation)
                 except AttributeError:
                     return "Any"
-        except (AttributeError, TypeError) as e:
+        except (AttributeError, TypeError):
             # Handle any AST parsing errors gracefully
             return "Any"
         

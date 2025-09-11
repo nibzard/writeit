@@ -2,19 +2,13 @@
 Documentation validation system
 """
 
-import json
 import re
-import ssl
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Set
-from urllib.parse import urlparse
-import urllib.request
+from typing import List, Set
 from urllib.error import URLError
 
 from .models import (
     DocumentationSet,
     ValidationResult,
-    ValidationError,
     DocumentationMetrics
 )
 
@@ -468,7 +462,7 @@ class DocumentationValidator:
                         req = urllib.request.Request(url, headers=headers)
                         with urllib.request.urlopen(req, timeout=10, context=ssl_context) as response:
                             return response.status >= 400
-                    except:
+                    except Exception:
                         return True
                 return e.code >= 400
             
@@ -538,7 +532,7 @@ class DocumentationValidator:
             from fastapi.openapi.utils import get_openapi
             
             # Generate OpenAPI spec
-            openapi_spec = get_openapi(
+            get_openapi(
                 title=app.title,
                 version=app.version,
                 description=app.description,

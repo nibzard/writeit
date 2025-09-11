@@ -3,19 +3,17 @@ Template system for customizable documentation output
 """
 
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, List
 from dataclasses import dataclass
 import jinja2
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 
 from .models import (
     DocumentationSet,
     APIDocumentation,
     ModuleDocumentation,
     CLIDocumentation,
-    TemplateDocumentationSet,
-    UserGuide,
-    CodeExample
+    UserGuide
 )
 
 

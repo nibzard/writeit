@@ -5,11 +5,9 @@ Documentation deployment system
 import shutil
 import subprocess
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import tempfile
-import os
+from typing import List, Optional
 
-from .models import DocumentationSet, DocumentationMetrics
+from .models import DocumentationSet
 from .templates import DocumentationTemplateSystem, TemplateConfig
 from .html_generator import HTMLDocumentationGenerator
 from .pdf_generator import PDFDocumentationGenerator

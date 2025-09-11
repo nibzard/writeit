@@ -2,11 +2,9 @@
 PDF documentation generator
 """
 
-import os
 import tempfile
 from pathlib import Path
-from typing import Optional, List
-from datetime import datetime
+from typing import Optional
 
 from .models import DocumentationSet
 
@@ -73,13 +71,13 @@ class PDFDocumentationGenerator:
     def _generate_from_content(self, docs: DocumentationSet, output_path: Path) -> bool:
         """Generate PDF directly from documentation content using ReportLab"""
         try:
-            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.lib.pagesizes import A4
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
             from reportlab.platypus import Table, TableStyle
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
             from reportlab.lib import colors
-            from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+            from reportlab.lib.enums import TA_CENTER
             
             # Create PDF document
             doc = SimpleDocTemplate(

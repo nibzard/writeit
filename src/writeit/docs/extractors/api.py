@@ -3,12 +3,10 @@ API documentation extractor from FastAPI/OpenAPI specifications
 """
 
 import json
-import inspect
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
-from dataclasses import dataclass
+from typing import List, Optional, Dict, Any
 
-from fastapi import FastAPI, openapi
+from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
 from ..models import (

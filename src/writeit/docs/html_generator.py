@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import json
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 
 from .models import DocumentationSet
 
@@ -288,7 +288,7 @@ Use the search functionality above to find what you're looking for.
     def _build_with_mkdocs(self, output_path: Path):
         """Build documentation with MkDocs"""
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["mkdocs", "build", "--site-dir", "site", "--clean"], 
                 cwd=output_path, 
                 check=True, 

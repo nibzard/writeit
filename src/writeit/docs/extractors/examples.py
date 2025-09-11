@@ -5,7 +5,7 @@ Example extraction from docstrings and test files
 import ast
 import re
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List
 
 from ..models import CodeExample
 
@@ -66,7 +66,7 @@ class ExampleExtractor:
                 try:
                     code_line = ast.unparse(stmt)
                     function_body.append(code_line)
-                except:
+                except Exception:
                     continue
         
         if function_body:
@@ -93,7 +93,6 @@ class ExampleExtractor:
         lines = docstring.split('\n')
         in_example = False
         example_lines = []
-        example_description = ""
         start_line = 0
         
         for i, line in enumerate(lines):
