@@ -248,7 +248,7 @@ class CLIPipelineRunner:
                 return False
         
         # End token tracking
-        finished_run = self.token_tracker.finish_current_run()
+        self.token_tracker.finish_current_run()
         
         # Show final results
         self._show_pipeline_summary()

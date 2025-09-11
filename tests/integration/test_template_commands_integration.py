@@ -354,8 +354,8 @@ class TestWorkspaceTemplateIntegration:
             "template", "create", "run-test", "--non-interactive"
         ])
         
-        # Try to run pipeline (will fail due to TUI, but should find workspace template)
-        result = cli_runner.invoke(app, ["run", "run-test"])
+        # Use --cli flag to avoid launching TUI during test
+        result = cli_runner.invoke(app, ["run", "run-test", "--cli"])
         
         # Should show workspace scope
         assert "Scope: Workspace (default)" in result.stdout
@@ -372,8 +372,8 @@ class TestWorkspaceTemplateIntegration:
             "template", "create", "global-test", "--non-interactive"
         ])
         
-        # Run with --global flag
-        result = cli_runner.invoke(app, ["run", "global-test", "--global"])
+        # Run with --global flag and --cli to avoid TUI
+        result = cli_runner.invoke(app, ["run", "global-test", "--global", "--cli"])
         
         # Should show global scope
         assert "Scope: Global" in result.stdout

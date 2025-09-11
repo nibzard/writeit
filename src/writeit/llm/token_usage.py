@@ -17,9 +17,48 @@ class TokenUsage:
     
     @property
     def cost_estimate(self) -> Optional[Decimal]:
-        """Estimate cost based on typical pricing (placeholder for model-specific pricing)."""
-        # This would need model-specific pricing data
-        return None
+        """Estimate cost based on model-specific pricing."""
+        # Pricing per 1M tokens (as of Jan 2025)
+        MODEL_PRICING = {
+            # OpenAI models (per 1M tokens)
+            'gpt-4o': {'input': Decimal('2.50'), 'output': Decimal('10.00')},
+            'gpt-4o-mini': {'input': Decimal('0.15'), 'output': Decimal('0.60')},
+            'gpt-4-turbo': {'input': Decimal('10.00'), 'output': Decimal('30.00')},
+            'gpt-3.5-turbo': {'input': Decimal('0.50'), 'output': Decimal('1.50')},
+            
+            # Anthropic models (per 1M tokens)
+            'claude-3-5-sonnet': {'input': Decimal('3.00'), 'output': Decimal('15.00')},
+            'claude-3-opus': {'input': Decimal('15.00'), 'output': Decimal('75.00')},
+            'claude-3-haiku': {'input': Decimal('0.25'), 'output': Decimal('1.25')},
+            'claude-3-sonnet': {'input': Decimal('3.00'), 'output': Decimal('15.00')},
+            
+            # Default pricing for unknown models
+            'default': {'input': Decimal('1.00'), 'output': Decimal('3.00')}
+        }
+        
+        if not self.details:
+            return None
+        
+        # Try to extract model name from details
+        model_name = self.details.get('model', '').lower() if isinstance(self.details, dict) else None
+        if not model_name:
+            return None
+        
+        # Find matching pricing
+        pricing = None
+        for key in MODEL_PRICING:
+            if key in model_name:
+                pricing = MODEL_PRICING[key]
+                break
+        
+        if not pricing:
+            pricing = MODEL_PRICING['default']
+        
+        # Calculate cost (pricing is per 1M tokens)
+        input_cost = (Decimal(self.input_tokens) / Decimal('1000000')) * pricing['input']
+        output_cost = (Decimal(self.output_tokens) / Decimal('1000000')) * pricing['output']
+        
+        return input_cost + output_cost
     
     @classmethod
     def from_llm_response(cls, response) -> 'TokenUsage':

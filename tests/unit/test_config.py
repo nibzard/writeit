@@ -261,7 +261,7 @@ class TestConfigUtilityFunctions:
                     del os.environ['WRITEIT_WORKSPACE']
                 
                 # Mock the workspace manager creation
-                with patch('writeit.workspace.config.Workspace') as mock_workspace:
+                with patch('writeit.workspace.workspace.Workspace') as mock_workspace:
                     mock_workspace.return_value = workspace_manager
                     
                     workspace = get_active_workspace()
@@ -274,7 +274,7 @@ class TestConfigUtilityFunctions:
                 del os.environ['WRITEIT_WORKSPACE']
             
             # Mock workspace manager that doesn't have config
-            with patch('writeit.workspace.config.Workspace') as mock_workspace:
+            with patch('writeit.workspace.workspace.Workspace') as mock_workspace:
                 mock_instance = Mock()
                 mock_instance.config_file.exists.return_value = False
                 mock_workspace.return_value = mock_instance

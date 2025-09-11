@@ -569,28 +569,6 @@ class PipelineRunnerApp(App[None]):
         
         return template
     
-    def generate_mock_responses(self, step: PipelineStep) -> List[str]:
-        """Generate mock responses for testing."""
-        if step.key == "angles":
-            return [
-                "**Angle 1: Practical Implementation Guide**\n\nTitle: 'Building Production-Ready APIs: A Complete Developer's Handbook'\n\nThis angle focuses on hands-on implementation with real-world examples, covering everything from initial setup to deployment best practices.",
-                "**Angle 2: Performance & Scalability Focus**\n\nTitle: 'Scaling Your API Architecture: Performance Patterns That Work'\n\nThis approach emphasizes performance optimization, caching strategies, and scalability patterns used by major tech companies.",
-                "**Angle 3: Security-First Approach**\n\nTitle: 'API Security Fundamentals: Protecting Your Digital Assets'\n\nThis angle prioritizes security considerations, authentication patterns, and common vulnerabilities in API design."
-            ]
-        elif step.key == "outline":
-            return [
-                "# Article Outline: Building Production-Ready APIs\n\n## Introduction (200 words)\n- Current state of API development\n- Why production-readiness matters\n\n## Core Architecture Principles (400 words)\n- RESTful design patterns\n- Error handling strategies\n- Data validation approaches\n\n## Implementation Best Practices (600 words)\n- Code organization\n- Testing strategies\n- Documentation approaches\n\n## Deployment & Monitoring (400 words)\n- CI/CD pipelines\n- Health checks\n- Logging and metrics\n\n## Conclusion (200 words)\n- Key takeaways\n- Next steps",
-            ]
-        elif step.key == "draft":
-            return [
-                "# Building Production-Ready APIs: A Complete Developer's Handbook\n\nIn today's interconnected digital landscape, APIs serve as the backbone of modern applications...\n\n## Core Architecture Principles\n\nWhen designing production-ready APIs, several fundamental principles must guide your approach...\n\n[This would be a full ~2000 word article draft]",
-            ]
-        elif step.key == "polish":
-            return [
-                "# Building Production-Ready APIs: A Complete Developer's Handbook\n\nIn today's interconnected digital landscape, APIs serve as the critical backbone that enables seamless communication between applications, services, and platforms...\n\n[This would be the polished, publication-ready version]",
-            ]
-        
-        return [f"Mock response for step: {step.name}"]
     
     async def show_completion_phase(self) -> None:
         """Show the pipeline completion phase."""
@@ -706,12 +684,66 @@ class PipelineRunnerApp(App[None]):
     
     async def handle_export_result(self) -> None:
         """Handle exporting the final result."""
-        # Would implement actual export functionality
-        pass
+        # Export final result to file
+        if not self.step_results:
+            await self.show_error("No results to export")
+            return
+        
+        from pathlib import Path
+        from datetime import datetime
+        
+        # Create exports directory if it doesn't exist
+        export_dir = Path.home() / ".writeit" / "exports"
+        export_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        pipeline_name = self.pipeline_config.metadata.get('name', 'pipeline').replace(' ', '_')
+        filename = export_dir / f"{pipeline_name}_{timestamp}.md"
+        
+        # Get the final output
+        final_output = self.step_results.get("polish", "")
+        if not final_output:
+            # Try to get the last available result
+            for key in reversed(list(self.step_results.keys())):
+                if self.step_results[key]:
+                    final_output = self.step_results[key]
+                    break
+        
+        if final_output:
+            filename.write_text(final_output)
+            # Show success message
+            content = self.query_one("#dynamic-content")
+            await content.mount(Static(f"✅ Exported to: {filename}", classes="success"))
     
     def action_show_help(self) -> None:
         """Show help information."""
-        pass
+        from textual.widgets import Static
+        
+        help_text = """# WriteIt Pipeline Runner Help
+
+## Keyboard Shortcuts:
+- **Tab/Shift+Tab**: Navigate between elements
+- **Enter**: Select/activate buttons
+- **Arrow Keys**: Navigate responses
+- **Space**: Select response
+- **Ctrl+C**: Exit application
+- **Ctrl+R**: Regenerate current step
+- **Ctrl+E**: Export results
+
+## Pipeline Phases:
+1. **Input Phase**: Enter required values
+2. **Step Execution**: Generate and select responses
+3. **Completion**: View and export final result
+
+## Tips:
+- Provide detailed feedback to guide generation
+- Use style primers for consistent output
+- Export results for later use
+"""
+        
+        # Push a help screen
+        self.push_screen("help", lambda: Static(help_text))
     
     def action_focus_next(self) -> None:
         """Focus next widget and ensure it's visible."""
@@ -762,7 +794,6 @@ class PipelineRunnerApp(App[None]):
             
             # Get the focused widget's position relative to viewport
             focused_offset = focused.virtual_region_with_margin
-            main_viewport = main_content.scrollable_content_region
             
             # Calculate if widget is outside visible area
             visible_top = main_content.scroll_y

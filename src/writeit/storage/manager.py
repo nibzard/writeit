@@ -10,15 +10,20 @@ import pickle
 class StorageManager:
     """Workspace-aware storage manager for WriteIt data persistence."""
     
-    def __init__(self, workspace_manager=None, workspace_name: Optional[str] = None):
+    def __init__(self, workspace_manager=None, workspace_name: Optional[str] = None,
+                 map_size_mb: int = 100, max_dbs: int = 10):
         """Initialize storage manager.
         
         Args:
             workspace_manager: Workspace instance for path resolution
             workspace_name: Specific workspace name (defaults to active workspace)
+            map_size_mb: Initial LMDB map size in megabytes (default: 100MB)
+            max_dbs: Maximum number of named databases (default: 10)
         """
         self.workspace_manager = workspace_manager
         self.workspace_name = workspace_name
+        self.map_size = map_size_mb * 1024 * 1024  # Convert to bytes
+        self.max_dbs = max_dbs
         self._connections: Dict[str, lmdb.Environment] = {}
     
     @property
@@ -57,17 +62,28 @@ class StorageManager:
         Yields:
             LMDB environment
         """
-        connection_key = f"{self.workspace_name or 'default'}:{db_name}"
+        connection_key = f"{self.workspace_name or 'default'}:{db_name}:{readonly}"
         
         if connection_key not in self._connections:
             db_path = self.get_db_path(db_name)
             db_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # LMDB requires the database file to not exist initially
+            # LMDB can't open non-existent databases in readonly mode
+            # If database doesn't exist and we need readonly access, create it first
+            if readonly and not db_path.exists():
+                # Create the database first
+                temp_env = lmdb.open(
+                    str(db_path),
+                    map_size=self.map_size,
+                    max_dbs=self.max_dbs,
+                    readonly=False
+                )
+                temp_env.close()
+            
             env = lmdb.open(
                 str(db_path),
-                map_size=100 * 1024 * 1024,  # 100MB initial size
-                max_dbs=10,  # Support multiple named databases
+                map_size=self.map_size,
+                max_dbs=self.max_dbs,
                 readonly=readonly
             )
             self._connections[connection_key] = env
@@ -125,7 +141,7 @@ class StorageManager:
                 if data is None:
                     return default
                 return json.loads(data.decode('utf-8'))
-        except (json.JSONDecodeError, UnicodeDecodeError):
+        except (json.JSONDecodeError, UnicodeDecodeError, lmdb.Error, OSError):
             return default
     
     def store_binary(self, key: str, data: bytes, db_name: str = "main", db_key: Optional[str] = None) -> None:
@@ -152,8 +168,11 @@ class StorageManager:
         Returns:
             Binary data or default
         """
-        with self.get_transaction(db_name, write=False, db_key=db_key) as (txn, db):
-            return txn.get(key.encode('utf-8'), default, db=db)
+        try:
+            with self.get_transaction(db_name, write=False, db_key=db_key) as (txn, db):
+                return txn.get(key.encode('utf-8'), default, db=db)
+        except (lmdb.Error, OSError):
+            return default
     
     def store_object(self, key: str, obj: Any, db_name: str = "main", db_key: Optional[str] = None) -> None:
         """Store Python object using pickle.
@@ -179,13 +198,13 @@ class StorageManager:
         Returns:
             Deserialized object or default
         """
-        data = self.load_binary(key, db_name=db_name, db_key=db_key)
-        if data is None:
-            return default
-        
         try:
+            data = self.load_binary(key, db_name=db_name, db_key=db_key)
+            if data is None:
+                return default
+            
             return pickle.loads(data)
-        except (pickle.PickleError, EOFError):
+        except (pickle.PickleError, EOFError, lmdb.Error, OSError):
             return default
     
     def delete(self, key: str, db_name: str = "main", db_key: Optional[str] = None) -> bool:
