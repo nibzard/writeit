@@ -54,7 +54,8 @@ writeit workspace remove <name>     # Delete workspace
 
 # Pipeline Operations
 writeit list-pipelines              # List available pipelines  
-writeit run <pipeline.yaml>         # Start TUI pipeline execution in active workspace
+writeit run <pipeline.yaml>         # Start CLI pipeline execution in active workspace (default)
+writeit run <pipeline> --tui        # Start TUI pipeline execution for rich interactive mode
 writeit run --global <pipeline>     # Use global pipeline template
 writeit --workspace <name> run <pipeline>  # Use specific workspace
 
@@ -74,7 +75,8 @@ writeit validate --local ./template             # Only check current directory
 # Development commands (use uv run for local development)
 uv run writeit init                             # Initialize for development
 uv run writeit validate --detailed tech-article # Validate during development (no .yaml needed)
-uv run writeit run quick-article                # Test pipelines
+uv run writeit run quick-article                # Test pipelines (CLI mode by default)
+uv run writeit run quick-article --tui          # Test pipelines in TUI mode
 uv run pytest tests/               # Run all tests
 uv run pytest tests/contract/      # Contract tests only
 uv run pytest tests/integration/   # Integration tests only

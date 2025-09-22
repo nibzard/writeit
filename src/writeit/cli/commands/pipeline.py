@@ -111,23 +111,23 @@ def run(
         "-w",
         help="Use specific workspace (overrides active workspace and global option)",
     ),
-    cli_mode: bool = typer.Option(
-        False, "--cli", help="Run in CLI mode with simple prompts (no TUI)"
+    tui_mode: bool = typer.Option(
+        False, "--tui", help="Run in TUI mode with rich interactive interface"
     ),
 ):
     """
-    Run pipeline execution (TUI or CLI mode).
+    Run pipeline execution (CLI or TUI mode).
 
     Searches for the pipeline in workspace-specific directories first,
     then falls back to global templates.
 
     [bold cyan]Examples:[/bold cyan]
 
-    Run a pipeline (TUI):
+    Run a pipeline (CLI mode):
       [dim]$ writeit run article-template[/dim]
 
-    Run in CLI mode:
-      [dim]$ writeit run article-template --cli[/dim]
+    Run in TUI mode:
+      [dim]$ writeit run article-template --tui[/dim]
 
     Run global pipeline only:
       [dim]$ writeit run article-template --global[/dim]
@@ -181,19 +181,7 @@ def run(
         console.print()
 
         # Choose execution mode
-        if cli_mode:
-            # CLI mode execution
-            try:
-                from writeit.cli.pipeline_runner import run_pipeline_cli
-                import asyncio
-
-                console.print("Starting CLI pipeline execution...")
-                result = asyncio.run(run_pipeline_cli(pipeline_path, workspace_name))
-                raise typer.Exit(result)
-            except Exception as cli_error:
-                print_error(f"CLI execution failed: {cli_error}")
-                return 1
-        else:
+        if tui_mode:
             # TUI mode execution
             try:
                 from writeit.tui.pipeline_runner import run_pipeline_tui
@@ -207,11 +195,23 @@ def run(
                     "TUI dependencies not available. Install with: pip install textual"
                 )
                 console.print(
-                    "[info]Tip: Use --cli flag for non-interactive mode[/info]"
+                    "[info]Note: CLI mode is the default and doesn't require additional dependencies[/info]"
                 )
                 return 1
             except Exception as tui_error:
                 print_error(f"TUI execution failed: {tui_error}")
+                return 1
+        else:
+            # CLI mode execution (default)
+            try:
+                from writeit.cli.pipeline_runner import run_pipeline_cli
+                import asyncio
+
+                console.print("Starting CLI pipeline execution...")
+                result = asyncio.run(run_pipeline_cli(pipeline_path, workspace_name))
+                raise typer.Exit(result)
+            except Exception as cli_error:
+                print_error(f"CLI execution failed: {cli_error}")
                 return 1
 
     except Exception as e:
