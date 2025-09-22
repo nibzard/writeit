@@ -151,6 +151,14 @@ class ModelPreference:
             **kwargs
         )
     
+    @classmethod
+    def default(cls, **kwargs) -> Self:
+        """Create default model preference."""
+        return cls(
+            models=["gpt-4o-mini"],
+            **kwargs
+        )
+    
     def __str__(self) -> str:
         """String representation."""
         if len(self.models) == 1:

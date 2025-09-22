@@ -3,7 +3,7 @@
 Domain entity representing a pipeline template that can be instantiated into pipeline runs.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Self
 
@@ -137,7 +137,7 @@ class PipelineStepTemplate:
     
     def get_required_variables(self) -> set[str]:
         """Get all variables required by this step's prompt template."""
-        return self.prompt_template.get_variables()
+        return self.prompt_template.variables
 
 
 @dataclass
@@ -426,7 +426,7 @@ class PipelineTemplate:
         Returns:
             New pipeline template with updated fields
         """
-        return dataclass.replace(
+        return replace(
             self,
             name=name if name is not None else self.name,
             description=description if description is not None else self.description,

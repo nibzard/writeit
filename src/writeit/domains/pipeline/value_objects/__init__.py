@@ -5,14 +5,18 @@ Value objects are immutable, validate themselves, and encapsulate domain behavio
 """
 
 from .pipeline_id import PipelineId
+from .pipeline_name import PipelineName
 from .step_id import StepId
+from .step_name import StepName
 from .prompt_template import PromptTemplate
 from .model_preference import ModelPreference
 from .execution_status import ExecutionStatus
 
 __all__ = [
     "PipelineId",
-    "StepId", 
+    "PipelineName",
+    "StepId",
+    "StepName",
     "PromptTemplate",
     "ModelPreference",
     "ExecutionStatus",

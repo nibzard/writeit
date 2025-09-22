@@ -14,30 +14,38 @@ template definition to result generation.
 
 ## Key Entities
 
-- **Pipeline**: The template definition with metadata and steps
+- **PipelineTemplate**: The template definition with metadata and steps
 - **PipelineRun**: A specific execution instance with runtime state
 - **PipelineStep**: Individual step definition with dependencies
 - **StepExecution**: Runtime state and results for a specific step
+- **PipelineMetadata**: Pipeline metadata, versioning, and usage statistics
 
 ## Key Value Objects
 
 - **PipelineId**: Strongly-typed pipeline identifier
-- **StepId**: Strongly-typed step identifier  
-- **PromptTemplate**: Template string with validation
+- **PipelineName**: Validated pipeline name
+- **StepId**: Strongly-typed step identifier
+- **StepName**: Validated step name
+- **PromptTemplate**: Template string with validation and variable substitution
+- **ModelPreference**: LLM model selection criteria
 - **ExecutionStatus**: State enumeration with valid transitions
-
-## Domain Services
-
-- **PipelineValidationService**: Template validation logic
-- **PipelineExecutionService**: Core execution orchestration
-- **StepDependencyService**: Step dependency resolution
 
 ## Domain Events
 
-- **PipelineStarted**: Pipeline execution began
-- **StepCompleted**: Individual step finished
-- **PipelineCompleted**: Full pipeline finished
-- **PipelineFailure**: Pipeline execution failed
+- **PipelineCreated**: Pipeline template created
+- **PipelineUpdated**: Pipeline template updated
+- **PipelineDeleted**: Pipeline template deleted
+- **PipelinePublished**: Pipeline template published
+- **PipelineDeprecated**: Pipeline template deprecated
+- **PipelineExecutionStarted**: Pipeline execution began
+- **PipelineExecutionCompleted**: Pipeline execution completed successfully
+- **PipelineExecutionFailed**: Pipeline execution failed
+- **PipelineExecutionCancelled**: Pipeline execution cancelled
+- **StepExecutionStarted**: Step execution started
+- **StepExecutionCompleted**: Step execution completed
+- **StepExecutionFailed**: Step execution failed
+- **StepExecutionSkipped**: Step execution skipped
+- **StepExecutionRetried**: Step execution retried
 
 ## Boundaries
 
@@ -46,6 +54,7 @@ This domain owns:
 - Execution state and progress tracking
 - Step orchestration and dependency management
 - Pipeline-level validation and error handling
+- Pipeline lifecycle and versioning
 
 This domain does NOT own:
 - LLM integration (Execution Domain)
@@ -53,3 +62,87 @@ This domain does NOT own:
 - Workspace isolation (Workspace Domain)
 - Template rendering (Content Domain)
 """
+
+# Import main domain components for easy access
+from .value_objects import (
+    PipelineId,
+    PipelineName,
+    StepId,
+    StepName,
+    PromptTemplate,
+    ModelPreference,
+    ExecutionStatus
+)
+
+from .entities import (
+    PipelineTemplate,
+    PipelineInput,
+    PipelineStepTemplate,
+    PipelineRun,
+    PipelineStep,
+    StepExecution,
+    PipelineMetadata,
+    PipelineUsageStats,
+    PipelineCategory,
+    PipelineComplexity,
+    PipelineStatus
+)
+
+from .events import (
+    PipelineCreated,
+    PipelineUpdated,
+    PipelineDeleted,
+    PipelinePublished,
+    PipelineDeprecated,
+    PipelineExecutionStarted,
+    PipelineExecutionCompleted,
+    PipelineExecutionFailed,
+    PipelineExecutionCancelled,
+    StepExecutionStarted,
+    StepExecutionCompleted,
+    StepExecutionFailed,
+    StepExecutionSkipped,
+    StepExecutionRetried
+)
+
+__all__ = [
+    # Value Objects
+    "PipelineId",
+    "PipelineName",
+    "StepId",
+    "StepName", 
+    "PromptTemplate",
+    "ModelPreference",
+    "ExecutionStatus",
+    
+    # Entities
+    "PipelineTemplate",
+    "PipelineInput",
+    "PipelineStepTemplate",
+    "PipelineRun",
+    "PipelineStep",
+    "StepExecution",
+    "PipelineMetadata",
+    "PipelineUsageStats",
+    
+    # Enums
+    "PipelineCategory",
+    "PipelineComplexity", 
+    "PipelineStatus",
+    
+    # Events
+    "PipelineCreated",
+    "PipelineUpdated",
+    "PipelineDeleted",
+    "PipelinePublished",
+    "PipelineDeprecated",
+    "PipelineExecutionStarted",
+    "PipelineExecutionCompleted",
+    "PipelineExecutionFailed",
+    "PipelineExecutionCancelled",
+    "StepExecutionStarted",
+    "StepExecutionCompleted",
+    "StepExecutionFailed",
+    "StepExecutionSkipped",
+    "StepExecutionRetried",
+]
