@@ -10,12 +10,13 @@ from typing import Optional, Dict, Any, List, AsyncContextManager, Type, TypeVar
 from contextlib import asynccontextmanager
 from uuid import UUID
 import json
-import pickle
+import warnings
 from datetime import datetime
 
 from ...storage.manager import StorageManager
 from ...shared.repository import RepositoryError, EntityNotFoundError, EntityAlreadyExistsError
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
+from .safe_serialization import SafeDomainEntitySerializer, SerializationFormat
 
 T = TypeVar('T')
 

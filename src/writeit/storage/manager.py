@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 from contextlib import contextmanager
 import json
-import pickle
+import warnings
+
+# Safe serialization
+from ..infrastructure.base.safe_serialization import create_safe_serializer, SerializationFormat
 
 
 class StorageManager:
@@ -31,6 +34,9 @@ class StorageManager:
         self.map_size = map_size_mb * 1024 * 1024  # Convert to bytes
         self.max_dbs = max_dbs
         self._connections: Dict[str, lmdb.Environment] = {}
+        
+        # Initialize safe serializer for binary data
+        self._safe_serializer = create_safe_serializer(SerializationFormat.MSGPACK)
 
     @property
     def storage_path(self) -> Path:
@@ -201,7 +207,7 @@ class StorageManager:
     def store_object(
         self, key: str, obj: Any, db_name: str = "main", db_key: Optional[str] = None
     ) -> None:
-        """Store Python object using pickle.
+        """Store Python object using safe serialization.
 
         Args:
             key: Storage key
@@ -209,8 +215,17 @@ class StorageManager:
             db_name: Database name
             db_key: Sub-database key
         """
-        data = pickle.dumps(obj)
-        self.store_binary(key, data, db_name, db_key)
+        try:
+            data = self._safe_serializer.serialize(obj)
+            self.store_binary(key, data, db_name, db_key)
+        except Exception as e:
+            # Log warning and try to use a fallback method
+            warnings.warn(
+                f"Failed to serialize object {type(obj).__name__} with safe serializer: {e}. "
+                "This may indicate the object is not compatible with safe serialization.",
+                RuntimeWarning
+            )
+            raise
 
     def load_object(
         self,
@@ -218,14 +233,16 @@ class StorageManager:
         default: Any = None,
         db_name: str = "main",
         db_key: Optional[str] = None,
+        object_type: type = None,
     ) -> Any:
-        """Load Python object using pickle.
+        """Load Python object using safe deserialization.
 
         Args:
             key: Storage key
             default: Default value if key not found
             db_name: Database name
             db_key: Sub-database key
+            object_type: Expected object type for validation
 
         Returns:
             Deserialized object or default
@@ -235,8 +252,28 @@ class StorageManager:
             if data is None:
                 return default
 
-            return pickle.loads(data)
-        except (pickle.PickleError, EOFError, lmdb.Error, OSError):
+            # Check for legacy pickle format and reject it
+            if data.startswith(b'\x80\x03') or data.startswith(b'\x80\x04') or data.startswith(b'PICKLE:'):
+                warnings.warn(
+                    f"Legacy pickle data detected for key '{key}'. "
+                    "This data cannot be loaded for security reasons. "
+                    "Please regenerate or migrate the data.",
+                    RuntimeWarning
+                )
+                return default
+
+            # Use safe deserializer
+            if object_type:
+                return self._safe_serializer.deserialize(data, object_type)
+            else:
+                # For backward compatibility, try to deserialize as dict
+                return self._safe_serializer.deserialize(data, dict)
+        except Exception as e:
+            warnings.warn(
+                f"Failed to deserialize object for key '{key}': {e}. "
+                "Returning default value.",
+                RuntimeWarning
+            )
             return default
 
     def delete(

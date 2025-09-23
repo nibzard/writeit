@@ -28,6 +28,7 @@ dependencies = [
     "reportlab>=4.4.3",
     "trio>=0.31.0",
     "psutil>=7.1.0",
+    "msgpack>=1.0.0",
 ]
 
 [project.optional-dependencies]

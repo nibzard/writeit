@@ -2,10 +2,13 @@
 
 Handles conversion between domain entities and storage formats,
 including JSON serialization with support for value objects.
+
+DEPRECATED: This module is deprecated in favor of safe_serialization.py
+which provides enhanced security and removes pickle dependencies.
 """
 
 import json
-import pickle
+import warnings
 from typing import Type, TypeVar, Any, Dict, Optional
 from datetime import datetime
 from uuid import UUID
@@ -13,6 +16,14 @@ from dataclasses import is_dataclass, fields, asdict
 from abc import ABC, abstractmethod
 
 from ...shared.repository import RepositoryError
+from .safe_serialization import SafeDomainEntitySerializer, SerializationFormat
+
+# Issue deprecation warning
+warnings.warn(
+    "The serialization module is deprecated. Use safe_serialization module instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 T = TypeVar('T')
 
@@ -271,69 +282,53 @@ class JSONEntitySerializer(EntitySerializer):
 
 
 class PickleEntitySerializer(EntitySerializer):
-    """Pickle-based entity serializer for complex objects."""
+    """DEPRECATED: Pickle-based serializer replaced with safe alternatives."""
+    
+    def __init__(self):
+        raise SerializationError(
+            "PickleEntitySerializer is deprecated and disabled for security reasons. "
+            "Use SafeDomainEntitySerializer from safe_serialization module instead."
+        )
     
     def serialize(self, entity: Any) -> bytes:
-        """Serialize entity using pickle.
-        
-        Args:
-            entity: Entity to serialize
-            
-        Returns:
-            Pickled bytes
-            
-        Raises:
-            SerializationError: If serialization fails
-        """
-        try:
-            return pickle.dumps(entity)
-        except Exception as e:
-            raise SerializationError(f"Failed to pickle {type(entity).__name__}: {e}") from e
+        """DEPRECATED: Raises security error."""
+        raise SerializationError("Pickle serialization disabled for security reasons")
     
     def deserialize(self, data: bytes, entity_type: Type[T]) -> T:
-        """Deserialize pickle bytes to entity.
-        
-        Args:
-            data: Pickled bytes
-            entity_type: Expected entity type
-            
-        Returns:
-            Deserialized entity
-            
-        Raises:
-            SerializationError: If deserialization fails
-        """
-        try:
-            entity = pickle.loads(data)
-            if not isinstance(entity, entity_type):
-                raise SerializationError(
-                    f"Type mismatch: expected {entity_type.__name__}, got {type(entity).__name__}"
-                )
-            return entity
-        except Exception as e:
-            raise SerializationError(f"Failed to unpickle {entity_type.__name__}: {e}") from e
+        """DEPRECATED: Raises security error."""
+        raise SerializationError("Pickle deserialization disabled for security reasons")
 
 
 class DomainEntitySerializer:
-    """Main serializer for domain entities with fallback strategies."""
+    """DEPRECATED: Main serializer for domain entities. Use SafeDomainEntitySerializer instead."""
     
     def __init__(self, prefer_json: bool = True):
         """Initialize with serializer preference.
         
         Args:
-            prefer_json: If True, use JSON when possible, otherwise use pickle
+            prefer_json: Ignored, always uses safe serialization
         """
+        warnings.warn(
+            "DomainEntitySerializer is deprecated. Use SafeDomainEntitySerializer instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        
+        # Use safe serializer internally
+        self._safe_serializer = SafeDomainEntitySerializer(
+            default_format=SerializationFormat.JSON
+        )
         self.json_serializer = JSONEntitySerializer()
-        self.pickle_serializer = PickleEntitySerializer()
-        self.prefer_json = prefer_json
+        # No pickle serializer for security
     
     def register_type(self, name: str, type_class: Type) -> None:
-        """Register a type for JSON serialization.
+        """Register a type for safe serialization.
         
         Args:
             name: Type name
             type_class: Class to register
         """
+        self._safe_serializer.register_type(name, type_class)
         self.json_serializer.register_type(name, type_class)
     
     def register_value_object(self, type_class: Type) -> None:
@@ -342,10 +337,11 @@ class DomainEntitySerializer:
         Args:
             type_class: Value object class
         """
+        self._safe_serializer.register_value_object(type_class)
         self.json_serializer.register_value_object(type_class)
     
     def serialize(self, entity: Any) -> bytes:
-        """Serialize entity with best available method.
+        """Serialize entity with safe serialization.
         
         Args:
             entity: Entity to serialize
@@ -353,20 +349,10 @@ class DomainEntitySerializer:
         Returns:
             Serialized bytes with format prefix
         """
-        if self.prefer_json and is_dataclass(entity):
-            try:
-                data = self.json_serializer.serialize(entity)
-                return b'JSON:' + data
-            except SerializationError:
-                # Fall back to pickle
-                data = self.pickle_serializer.serialize(entity)
-                return b'PICKLE:' + data
-        else:
-            data = self.pickle_serializer.serialize(entity)
-            return b'PICKLE:' + data
+        return self._safe_serializer.serialize(entity)
     
     def deserialize(self, data: bytes, entity_type: Type[T]) -> T:
-        """Deserialize bytes to entity.
+        """Deserialize bytes to entity with legacy support.
         
         Args:
             data: Serialized bytes with format prefix
@@ -375,13 +361,12 @@ class DomainEntitySerializer:
         Returns:
             Deserialized entity
         """
-        if data.startswith(b'JSON:'):
-            return self.json_serializer.deserialize(data[5:], entity_type)
-        elif data.startswith(b'PICKLE:'):
-            return self.pickle_serializer.deserialize(data[7:], entity_type)
-        else:
-            # Legacy format - try pickle first, then JSON
-            try:
-                return self.pickle_serializer.deserialize(data, entity_type)
-            except SerializationError:
-                return self.json_serializer.deserialize(data, entity_type)
+        # Check for legacy pickle format and reject it
+        if data.startswith(b'PICKLE:') or data.startswith(b'\\x80\\x03') or data.startswith(b'\\x80\\x04'):
+            raise SerializationError(
+                "Legacy pickle format detected and rejected for security reasons. "
+                "Please migrate data to safe serialization format."
+            )
+        
+        # Use safe deserializer
+        return self._safe_serializer.deserialize(data, entity_type)
