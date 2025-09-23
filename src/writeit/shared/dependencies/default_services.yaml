@@ -1,0 +1,124 @@
+# Default service registrations for WriteIt DI container
+# This file defines the standard service bindings for all domains
+
+services:
+  # Pipeline Domain Repositories
+  - service_type: "writeit.domains.pipeline.repositories.pipeline_template_repository.PipelineTemplateRepository"
+    implementation_type: "writeit.infrastructure.pipeline.pipeline_template_repository_impl.LMDBPipelineTemplateRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  - service_type: "writeit.domains.pipeline.repositories.pipeline_run_repository.PipelineRunRepository"
+    implementation_type: "writeit.infrastructure.pipeline.pipeline_run_repository_impl.LMDBPipelineRunRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  - service_type: "writeit.domains.pipeline.repositories.step_execution_repository.StepExecutionRepository"
+    implementation_type: "writeit.infrastructure.pipeline.step_execution_repository_impl.LMDBStepExecutionRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  # Workspace Domain Repositories
+  - service_type: "writeit.domains.workspace.repositories.workspace_repository.WorkspaceRepository"
+    implementation_type: "writeit.infrastructure.workspace.workspace_repository_impl.LMDBWorkspaceRepository"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.workspace.repositories.workspace_config_repository.WorkspaceConfigRepository"
+    implementation_type: "writeit.infrastructure.workspace.workspace_config_repository_impl.LMDBWorkspaceConfigRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  # Content Domain Repositories
+  - service_type: "writeit.domains.content.repositories.content_template_repository.ContentTemplateRepository"
+    implementation_type: "writeit.infrastructure.content.content_template_repository_impl.LMDBContentTemplateRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  - service_type: "writeit.domains.content.repositories.style_primer_repository.StylePrimerRepository"
+    implementation_type: "writeit.infrastructure.content.style_primer_repository_impl.LMDBStylePrimerRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  - service_type: "writeit.domains.content.repositories.generated_content_repository.GeneratedContentRepository"
+    implementation_type: "writeit.infrastructure.content.generated_content_repository_impl.LMDBGeneratedContentRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  # Execution Domain Repositories
+  - service_type: "writeit.domains.execution.repositories.llm_cache_repository.LLMCacheRepository"
+    implementation_type: "writeit.infrastructure.execution.llm_cache_repository_impl.LMDBLLMCacheRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  - service_type: "writeit.domains.execution.repositories.token_usage_repository.TokenUsageRepository"
+    implementation_type: "writeit.infrastructure.execution.token_usage_repository_impl.LMDBTokenUsageRepository"
+    lifetime: "singleton"
+    workspace_specific: true
+
+  # Pipeline Domain Services
+  - service_type: "writeit.domains.pipeline.services.pipeline_validation_service.PipelineValidationService"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.pipeline.services.pipeline_execution_service.PipelineExecutionService"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.pipeline.services.step_dependency_service.StepDependencyService"
+    lifetime: "singleton"
+
+  # Workspace Domain Services
+  - service_type: "writeit.domains.workspace.services.workspace_isolation_service.WorkspaceIsolationService"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.workspace.services.workspace_template_service.WorkspaceTemplateService"
+    lifetime: "singleton"
+
+  # Content Domain Services
+  - service_type: "writeit.domains.content.services.template_rendering_service.TemplateRenderingService"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.content.services.content_validation_service.ContentValidationService"
+    lifetime: "singleton"
+
+  # Execution Domain Services
+  - service_type: "writeit.domains.execution.services.llm_orchestration_service.LLMOrchestrationService"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.execution.services.cache_management_service.CacheManagementService"
+    lifetime: "singleton"
+
+  - service_type: "writeit.domains.execution.services.token_analytics_service.TokenAnalyticsService"
+    lifetime: "singleton"
+
+  # Application Services
+  - service_type: "writeit.application.services.pipeline_application_service.PipelineApplicationService"
+    lifetime: "singleton"
+
+  # Storage Infrastructure
+  - service_type: "writeit.storage.manager.StorageManager"
+    lifetime: "singleton"
+    workspace_specific: true
+
+# Environment-specific configurations
+environment: "development"
+
+# Default configuration values
+defaults:
+  storage_path: "~/.writeit"
+  cache_size: 1000
+  cache_ttl_seconds: 3600
+  max_parallel_steps: 5
+  step_timeout_seconds: 300
+  enable_metrics: true
+  enable_event_logging: true
+
+# Workspace-specific service overrides
+workspace_services:
+  # Test workspace with mock services
+  test:
+    - service_type: "writeit.domains.execution.repositories.llm_cache_repository.LLMCacheRepository"
+      implementation_type: "writeit.infrastructure.testing.mock_llm_cache_repository.MockLLMCacheRepository"
+      lifetime: "singleton"
+    
+    - service_type: "writeit.domains.execution.services.llm_orchestration_service.LLMOrchestrationService"
+      implementation_type: "writeit.infrastructure.testing.mock_llm_orchestration_service.MockLLMOrchestrationService"
+      lifetime: "singleton"
