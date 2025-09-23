@@ -46,6 +46,16 @@ from .workspace_isolation_service import (
     WorkspaceIsolationError,
     IsolatedWorkspaceOperations
 )
+from .workspace_template_service import (
+    WorkspaceTemplateService,
+    TemplateScope,
+    TemplateVisibility,
+    TemplateResolutionResult,
+    TemplateSearchCriteria,
+    WorkspaceTemplateError,
+    TemplateNotFoundError,
+    TemplateConflictError
+)
 
 __all__ = [
     # Management Service
@@ -89,4 +99,14 @@ __all__ = [
     "WorkspaceAccessError",
     "WorkspaceIsolationError",
     "IsolatedWorkspaceOperations",
+    
+    # Template Service
+    "WorkspaceTemplateService",
+    "TemplateScope",
+    "TemplateVisibility",
+    "TemplateResolutionResult",
+    "TemplateSearchCriteria",
+    "WorkspaceTemplateError",
+    "TemplateNotFoundError",
+    "TemplateConflictError",
 ]

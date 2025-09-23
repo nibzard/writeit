@@ -52,6 +52,19 @@ from .content_generation_service import (
     ContentInsights,
 )
 
+from .template_rendering_service import (
+    TemplateRenderingService,
+    RenderingMode,
+    VariableType,
+    VariableDefinition,
+    RenderingContext,
+    RenderingResult,
+    TemplateRenderingError,
+    VariableValidationError,
+    MissingVariableError,
+    TemplateCompilationError,
+)
+
 __all__ = [
     # Template Management Service
     "TemplateManagementService",
@@ -97,4 +110,16 @@ __all__ = [
     "ContentAnalytics",
     "ContentEnhancementSuggestion",
     "ContentInsights",
+    
+    # Template Rendering Service
+    "TemplateRenderingService",
+    "RenderingMode",
+    "VariableType",
+    "VariableDefinition",
+    "RenderingContext",
+    "RenderingResult",
+    "TemplateRenderingError",
+    "VariableValidationError",
+    "MissingVariableError",
+    "TemplateCompilationError",
 ]
