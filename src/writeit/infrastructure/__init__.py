@@ -1,46 +1,82 @@
+"""Infrastructure layer for WriteIt.
+
+Provides concrete implementations of domain repositories using LMDB storage.
+Includes transaction management, data serialization, and workspace isolation.
 """
-Infrastructure Layer - External System Adapters
 
-This layer contains adapters that connect the core domain logic
-to external systems and frameworks.
+from .base.storage_manager import LMDBStorageManager
+from .base.repository_base import LMDBRepositoryBase
+from .base.unit_of_work import LMDBUnitOfWork
+from .base.serialization import DomainEntitySerializer
+from .base.exceptions import (
+    InfrastructureError,
+    StorageError,
+    ConnectionError,
+    SerializationError,
+    TransactionError,
+    ValidationError,
+    ConfigurationError,
+    CacheError
+)
+from .factory import InfrastructureFactory, get_infrastructure_factory, reset_infrastructure_factory
 
-## Responsibilities
+# Repository implementations
+from .pipeline import (
+    LMDBPipelineTemplateRepository,
+    LMDBPipelineRunRepository,
+    LMDBStepExecutionRepository
+)
+from .workspace import (
+    LMDBWorkspaceRepository,
+    LMDBWorkspaceConfigRepository
+)
+from .content import (
+    LMDBContentTemplateRepository,
+    LMDBStylePrimerRepository,
+    LMDBGeneratedContentRepository
+)
+from .execution import (
+    LMDBLLMCacheRepository,
+    LMDBTokenUsageRepository
+)
 
-- Implement domain repository interfaces with concrete storage
-- Provide framework-specific adapters (FastAPI, CLI, TUI)
-- Handle external system integration (LLM APIs, file system)
-- Manage infrastructure concerns (logging, monitoring, security)
-
-## Modules
-
-### Persistence (writeit.infrastructure.persistence)
-- LMDB storage implementation
-- File system storage implementation
-- Cache storage implementation
-- Transaction management
-
-### LLM (writeit.infrastructure.llm)
-- OpenAI API adapter
-- Anthropic API adapter
-- Local LLM adapter
-- Provider health monitoring
-
-### Web (writeit.infrastructure.web)
-- FastAPI application setup
-- REST endpoint implementations
-- WebSocket handlers
-- HTTP middleware
-
-### CLI (writeit.infrastructure.cli)
-- Command-line interface adapters
-- Output formatting
-- Error handling for CLI context
-- Progress reporting
-
-## Design Principles
-
-1. **Dependency Inversion**: Infrastructure depends on domain abstractions
-2. **Single Responsibility**: Each adapter has one external system concern
-3. **Error Translation**: Convert infrastructure errors to domain errors
-4. **Configuration**: External configuration for all infrastructure components
-"""
+__all__ = [
+    # Base infrastructure
+    "LMDBStorageManager",
+    "LMDBRepositoryBase", 
+    "LMDBUnitOfWork",
+    "DomainEntitySerializer",
+    
+    # Exceptions
+    "InfrastructureError",
+    "StorageError",
+    "ConnectionError",
+    "SerializationError",
+    "TransactionError",
+    "ValidationError",
+    "ConfigurationError",
+    "CacheError",
+    
+    # Factory
+    "InfrastructureFactory",
+    "get_infrastructure_factory",
+    "reset_infrastructure_factory",
+    
+    # Pipeline repositories
+    "LMDBPipelineTemplateRepository",
+    "LMDBPipelineRunRepository",
+    "LMDBStepExecutionRepository",
+    
+    # Workspace repositories
+    "LMDBWorkspaceRepository",
+    "LMDBWorkspaceConfigRepository",
+    
+    # Content repositories
+    "LMDBContentTemplateRepository",
+    "LMDBStylePrimerRepository",
+    "LMDBGeneratedContentRepository",
+    
+    # Execution repositories
+    "LMDBLLMCacheRepository",
+    "LMDBTokenUsageRepository",
+]
