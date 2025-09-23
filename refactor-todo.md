@@ -325,11 +325,17 @@
 
 ### 4.1 Implement CQRS Command Handlers
 
-- [ ] **Pipeline Commands**
-  - [ ] `CreatePipelineCommand`: Create new pipeline template
-  - [ ] `ExecutePipelineCommand`: Execute pipeline with inputs
-  - [ ] `StopPipelineCommand`: Halt running pipeline
-  - [ ] `ValidatePipelineCommand`: Validate template
+- [✅] **Pipeline Commands** - COMPLETED 2025-01-23 12:50
+  - [✅] `CreatePipelineTemplateCommand`: Create new pipeline template - COMPLETED 2025-01-23 12:50
+  - [✅] `ExecutePipelineCommand`: Execute pipeline with inputs - COMPLETED 2025-01-23 12:50
+  - [✅] `StopPipelineCommand`: Halt running pipeline - COMPLETED 2025-01-23 12:50
+  - [✅] `ValidatePipelineTemplateCommand`: Validate template - COMPLETED 2025-01-23 12:50
+  - [✅] `UpdatePipelineTemplateCommand`: Update existing template - COMPLETED 2025-01-23 12:50
+  - [✅] `DeletePipelineTemplateCommand`: Delete template - COMPLETED 2025-01-23 12:50
+  - [✅] `PublishPipelineTemplateCommand`: Publish template - COMPLETED 2025-01-23 12:50
+  - [✅] `CancelPipelineExecutionCommand`: Cancel running execution - COMPLETED 2025-01-23 12:50
+  - [✅] `RetryPipelineExecutionCommand`: Retry failed execution - COMPLETED 2025-01-23 12:50
+  - [✅] `StreamingPipelineExecutionCommand`: Real-time execution updates - COMPLETED 2025-01-23 12:50
 
 - [ ] **Workspace Commands**
   - [ ] `CreateWorkspaceCommand`: Create new workspace

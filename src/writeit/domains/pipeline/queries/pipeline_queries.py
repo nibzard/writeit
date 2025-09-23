@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 
-from ...shared.query import (
+from ....shared.query import (
     Query,
     QueryResult,
     ListQuery,
