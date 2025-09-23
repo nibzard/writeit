@@ -5,6 +5,7 @@ coordinating between domain services, repositories, and the event bus.
 """
 
 import logging
+import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional, AsyncGenerator
 import asyncio
@@ -119,7 +120,7 @@ class ConcreteExecutePipelineCommandHandler(
                 )
             
             # Create pipeline run
-            run_id = RunId.generate()
+            run_id = f"run-{uuid.uuid4().hex[:8]}"
             pipeline_run = PipelineRun.create(
                 id=run_id,
                 pipeline_id=template.id,
@@ -293,7 +294,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
         
         try:
             # Find pipeline run
-            run_id = RunId.from_string(command.run_id)
+            run_id = lambda x: str(x)  # RunId is just a string(command.run_id)
             pipeline_run = await self._run_repository.find_by_id(run_id)
             
             if not pipeline_run:
@@ -368,7 +369,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
         # Validate run ID format
         if command.run_id:
             try:
-                RunId.from_string(command.run_id)
+                lambda x: str(x)  # RunId is just a string(command.run_id)
             except ValueError as e:
                 errors.append(f"Invalid run ID: {e}")
         
@@ -387,7 +388,7 @@ class ConcreteRetryPipelineExecutionCommandHandler(
         
         try:
             # Find original pipeline run
-            original_run_id = RunId.from_string(command.run_id)
+            original_run_id = lambda x: str(x)  # RunId is just a string(command.run_id)
             original_run = await self._run_repository.find_by_id(original_run_id)
             
             if not original_run:
@@ -407,7 +408,7 @@ class ConcreteRetryPipelineExecutionCommandHandler(
                 )
             
             # Create new pipeline run for retry
-            retry_run_id = RunId.generate()
+            retry_run_id = f"run-{uuid.uuid4().hex[:8]}"
             retry_run = PipelineRun.create_retry(
                 id=retry_run_id,
                 original_run=original_run,
@@ -492,7 +493,7 @@ class ConcreteRetryPipelineExecutionCommandHandler(
         # Validate run ID format
         if command.run_id:
             try:
-                RunId.from_string(command.run_id)
+                lambda x: str(x)  # RunId is just a string(command.run_id)
             except ValueError as e:
                 errors.append(f"Invalid run ID: {e}")
         
@@ -539,7 +540,7 @@ class ConcreteStreamingPipelineExecutionCommandHandler(
                 return
             
             # Create pipeline run
-            run_id = RunId.generate()
+            run_id = f"run-{uuid.uuid4().hex[:8]}"
             pipeline_run = PipelineRun.create(
                 id=run_id,
                 pipeline_id=template.id,

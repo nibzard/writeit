@@ -42,6 +42,7 @@ class PipelineRun:
     pipeline_id: PipelineId
     workspace_name: str
     status: ExecutionStatus
+    pipeline_name: Optional[str] = None
     inputs: Dict[str, Any] = field(default_factory=dict)
     outputs: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
@@ -59,6 +60,9 @@ class PipelineRun:
             
         if not isinstance(self.pipeline_id, PipelineId):
             raise TypeError("Pipeline id must be a PipelineId")
+            
+        if self.pipeline_name is not None and not isinstance(self.pipeline_name, str):
+            raise TypeError("Pipeline name must be a string or None")
             
         if not self.workspace_name or not isinstance(self.workspace_name, str):
             raise ValueError("Workspace name must be a non-empty string")
@@ -334,33 +338,146 @@ class PipelineRun:
     @classmethod
     def create(
         cls,
+        id: str,
         pipeline_id: PipelineId,
-        workspace_name: str,
+        pipeline_name: Optional[str] = None,
+        workspace_name: Optional[str] = None,
         inputs: Optional[Dict[str, Any]] = None,
+        execution_options: Optional[Dict[str, Any]] = None,
+        mode: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Self:
         """Create a new pipeline run.
         
         Args:
+            id: Run identifier
             pipeline_id: Pipeline template identifier
+            pipeline_name: Pipeline name
             workspace_name: Workspace name
             inputs: Pipeline input values
+            execution_options: Execution options
+            mode: Execution mode
             metadata: Additional metadata
             
         Returns:
             New pipeline run
         """
-        run_id = f"run-{uuid.uuid4().hex[:8]}"
-        
+        if not id:
+            run_id = f"run-{uuid.uuid4().hex[:8]}"
+        else:
+            run_id = id
+            
         return cls(
             id=run_id,
             pipeline_id=pipeline_id,
-            workspace_name=workspace_name,
+            workspace_name=workspace_name or "",
             status=ExecutionStatus.created(),
             inputs=inputs or {},
             metadata=metadata or {},
             created_at=datetime.now()
         )
+    
+    @classmethod
+    def create_retry(
+        cls,
+        id: str,
+        original_run: Self,
+        from_step: Optional[StepId] = None,
+        skip_failed_steps: bool = False,
+        execution_options: Optional[Dict[str, Any]] = None
+    ) -> Self:
+        """Create a retry pipeline run.
+        
+        Args:
+            id: New run identifier
+            original_run: Original run to retry
+            from_step: Step to retry from
+            skip_failed_steps: Whether to skip failed steps
+            execution_options: Execution options for retry
+            
+        Returns:
+            New retry pipeline run
+        """
+        metadata = {
+            **(original_run.metadata or {}),
+            "retry_of": original_run.id,
+            "from_step": str(from_step) if from_step else None,
+            "skip_failed_steps": skip_failed_steps
+        }
+        
+        return cls.create(
+            id=id,
+            pipeline_id=original_run.pipeline_id,
+            pipeline_name=original_run.pipeline_name,
+            workspace_name=original_run.workspace_name,
+            inputs=original_run.inputs,
+            execution_options=execution_options,
+            mode="retry",
+            metadata=metadata
+        )
+    
+    def complete_execution(
+        self,
+        results: Optional[Dict[str, Any]] = None,
+        status: Optional[str] = None,
+        metrics: Optional[Dict[str, Any]] = None
+    ) -> Self:
+        """Complete pipeline execution with results.
+        
+        Args:
+            results: Step execution results
+            status: Final status
+            metrics: Execution metrics
+            
+        Returns:
+            Updated pipeline run
+        """
+        execution_status = ExecutionStatus.completed()
+        
+        updated_run = self.complete(results)
+        if metrics:
+            updated_run = updated_run.update_metadata(metrics)
+            
+        return updated_run
+    
+    def cancel_execution(self, reason: Optional[str] = None) -> Self:
+        """Cancel pipeline execution.
+        
+        Args:
+            reason: Cancellation reason
+            
+        Returns:
+            Updated pipeline run
+        """
+        metadata = {**(self.metadata or {}), "cancel_reason": reason}
+        return self.cancel().update_metadata(metadata)
+    
+    def fail_execution(
+        self,
+        error_message: str,
+        failed_step: Optional[StepId] = None,
+        step_results: Optional[Dict[str, Any]] = None
+    ) -> Self:
+        """Fail pipeline execution.
+        
+        Args:
+            error_message: Error message
+            failed_step: Step that failed
+            step_results: Step execution results
+            
+        Returns:
+            Updated pipeline run
+        """
+        metadata = {
+            **(self.metadata or {}),
+            "failed_step": str(failed_step) if failed_step else None
+        }
+        
+        failed_run = self.fail(error_message)
+        if step_results:
+            failed_run = failed_run.set_outputs(step_results)
+            
+        return failed_run.update_metadata(metadata)
     
     @classmethod
     def from_template(
@@ -393,6 +510,7 @@ class PipelineRun:
         return {
             'id': self.id,
             'pipeline_id': str(self.pipeline_id),
+            'pipeline_name': self.pipeline_name,
             'workspace_name': self.workspace_name,
             'status': str(self.status.status),
             'inputs': self.inputs,
