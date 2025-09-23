@@ -4,7 +4,7 @@ Domain entity representing an instance of pipeline execution.
 """
 
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Self
 
@@ -134,7 +134,7 @@ class PipelineRun:
             
         new_status = self.status.transition_to(PipelineExecutionStatus.RUNNING)
         
-        return dataclass.replace(
+        return replace(
             self,
             status=new_status,
             started_at=datetime.now()
@@ -154,7 +154,7 @@ class PipelineRun:
             
         new_status = self.status.transition_to(PipelineExecutionStatus.PAUSED)
         
-        return dataclass.replace(
+        return replace(
             self,
             status=new_status
         )
@@ -173,7 +173,7 @@ class PipelineRun:
             
         new_status = self.status.transition_to(PipelineExecutionStatus.RUNNING)
         
-        return dataclass.replace(
+        return replace(
             self,
             status=new_status
         )
@@ -195,7 +195,7 @@ class PipelineRun:
             
         new_status = self.status.transition_to(PipelineExecutionStatus.COMPLETED)
         
-        return dataclass.replace(
+        return replace(
             self,
             status=new_status,
             outputs=outputs or self.outputs,
@@ -216,7 +216,7 @@ class PipelineRun:
             error_message=error_message
         )
         
-        return dataclass.replace(
+        return replace(
             self,
             status=new_status,
             error=error_message,
@@ -231,7 +231,7 @@ class PipelineRun:
         """
         new_status = self.status.transition_to(PipelineExecutionStatus.CANCELLED)
         
-        return dataclass.replace(
+        return replace(
             self,
             status=new_status,
             completed_at=datetime.now()
@@ -249,7 +249,7 @@ class PipelineRun:
         if not isinstance(status, ExecutionStatus):
             raise TypeError("Status must be an ExecutionStatus")
             
-        return dataclass.replace(self, status=status)
+        return replace(self, status=status)
     
     def update_metadata(self, metadata: Dict[str, Any]) -> Self:
         """Update pipeline metadata.
@@ -261,7 +261,7 @@ class PipelineRun:
             New pipeline run with updated metadata
         """
         new_metadata = {**self.metadata, **metadata}
-        return dataclass.replace(self, metadata=new_metadata)
+        return replace(self, metadata=new_metadata)
     
     def add_token_usage(self, provider: str, tokens: int) -> Self:
         """Add token usage for a provider.
@@ -276,7 +276,7 @@ class PipelineRun:
         new_token_usage = self.total_tokens_used.copy()
         new_token_usage[provider] = new_token_usage.get(provider, 0) + tokens
         
-        return dataclass.replace(self, total_tokens_used=new_token_usage)
+        return replace(self, total_tokens_used=new_token_usage)
     
     def update_execution_time(self, additional_time: float) -> Self:
         """Update total execution time.
@@ -287,7 +287,7 @@ class PipelineRun:
         Returns:
             New pipeline run with updated execution time
         """
-        return dataclass.replace(
+        return replace(
             self,
             total_execution_time=self.total_execution_time + additional_time
         )
@@ -301,7 +301,7 @@ class PipelineRun:
         Returns:
             New pipeline run with updated outputs
         """
-        return dataclass.replace(self, outputs=outputs)
+        return replace(self, outputs=outputs)
     
     def get_input(self, key: str, default: Any = None) -> Any:
         """Get input value by key.

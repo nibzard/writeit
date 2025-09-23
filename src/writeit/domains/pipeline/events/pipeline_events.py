@@ -2,7 +2,7 @@
 
 Events related to pipeline template creation, modification, and lifecycle changes."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -19,15 +19,15 @@ class PipelineCreated(DomainEvent):
     created and persisted to the system.
     """
     
-    pipeline_id: PipelineId
-    pipeline_name: PipelineName
-    version: str
-    author: Optional[str]
-    category: str
-    complexity: str
-    step_count: int
-    created_at: datetime
-    metadata: Dict[str, Any]
+    pipeline_id: PipelineId = field()
+    pipeline_name: PipelineName = field()
+    version: str = field()
+    author: Optional[str] = field()
+    category: str = field()
+    complexity: str = field()
+    step_count: int = field()
+    created_at: datetime = field()
+    metadata: Dict[str, Any] = field()
     
     @property
     def event_type(self) -> str:
@@ -65,13 +65,13 @@ class PipelineUpdated(DomainEvent):
     including changes to metadata, steps, or configuration.
     """
     
-    pipeline_id: PipelineId
-    pipeline_name: PipelineName
-    old_version: str
-    new_version: str
-    author: Optional[str]
-    changes: Dict[str, Any]
-    updated_at: datetime
+    pipeline_id: PipelineId = field()
+    pipeline_name: PipelineName = field()
+    old_version: str = field()
+    new_version: str = field()
+    author: Optional[str] = field()
+    changes: Dict[str, Any] = field()
+    updated_at: datetime = field()
     
     @property
     def event_type(self) -> str:
@@ -107,12 +107,12 @@ class PipelineDeleted(DomainEvent):
     removed from the system.
     """
     
-    pipeline_id: PipelineId
-    pipeline_name: PipelineName
-    version: str
-    deleted_by: Optional[str]
-    deleted_at: datetime
-    reason: Optional[str]
+    pipeline_id: PipelineId = field()
+    pipeline_name: PipelineName = field()
+    version: str = field()
+    deleted_by: Optional[str] = field()
+    deleted_at: datetime = field()
+    reason: Optional[str] = field()
     
     @property
     def event_type(self) -> str:
@@ -147,12 +147,12 @@ class PipelinePublished(DomainEvent):
     publicly available or moved from draft to active status.
     """
     
-    pipeline_id: PipelineId
-    pipeline_name: PipelineName
-    version: str
-    published_by: Optional[str]
-    published_at: datetime
-    previous_status: str
+    pipeline_id: PipelineId = field()
+    pipeline_name: PipelineName = field()
+    version: str = field()
+    published_by: Optional[str] = field()
+    published_at: datetime = field()
+    previous_status: str = field()
     
     @property
     def event_type(self) -> str:
@@ -187,13 +187,13 @@ class PipelineDeprecated(DomainEvent):
     as deprecated, typically when a newer version is available.
     """
     
-    pipeline_id: PipelineId
-    pipeline_name: PipelineName
-    version: str
-    deprecated_by: Optional[str]
-    deprecated_at: datetime
-    reason: Optional[str]
-    replacement_version: Optional[str]
+    pipeline_id: PipelineId = field()
+    pipeline_name: PipelineName = field()
+    version: str = field()
+    deprecated_by: Optional[str] = field()
+    deprecated_at: datetime = field()
+    reason: Optional[str] = field()
+    replacement_version: Optional[str] = field()
     
     @property
     def event_type(self) -> str:

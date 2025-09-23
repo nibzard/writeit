@@ -2,7 +2,7 @@
 
 Events related to pipeline and step execution lifecycle."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, Optional
 
@@ -19,14 +19,14 @@ class PipelineExecutionStarted(DomainEvent):
     and execution has started.
     """
     
-    run_id: str
-    pipeline_id: PipelineId
-    workspace_name: str
-    inputs: Dict[str, Any]
-    step_count: int
-    started_at: datetime
-    started_by: Optional[str]
-    execution_mode: str  # 'cli', 'tui', 'api'
+    run_id: str = field()
+    pipeline_id: PipelineId = field()
+    workspace_name: str = field()
+    inputs: Dict[str, Any] = field()
+    step_count: int = field()
+    started_at: datetime = field()
+    started_by: Optional[str] = field()
+    execution_mode: str = field()  # 'cli', 'tui', 'api'
     
     @property
     def event_type(self) -> str:
@@ -63,15 +63,15 @@ class PipelineExecutionCompleted(DomainEvent):
     successfully with all steps completed.
     """
     
-    run_id: str
-    pipeline_id: PipelineId
-    workspace_name: str
-    outputs: Dict[str, Any]
-    execution_time: float  # seconds
-    total_tokens_used: int
-    completed_at: datetime
-    steps_completed: int
-    steps_skipped: int
+    run_id: str = field()
+    pipeline_id: PipelineId = field()
+    workspace_name: str = field()
+    outputs: Dict[str, Any] = field()
+    execution_time: float = field()  # seconds
+    total_tokens_used: int = field()
+    completed_at: datetime = field()
+    steps_completed: int = field()
+    steps_skipped: int = field()
     
     @property
     def event_type(self) -> str:
@@ -109,16 +109,16 @@ class PipelineExecutionFailed(DomainEvent):
     due to an error or unrecoverable condition.
     """
     
-    run_id: str
-    pipeline_id: PipelineId
-    workspace_name: str
-    error_message: str
-    error_type: str
-    failed_step_id: Optional[StepId]
-    execution_time: float  # seconds
-    failed_at: datetime
-    steps_completed: int
-    recoverable: bool
+    run_id: str = field()
+    pipeline_id: PipelineId = field()
+    workspace_name: str = field()
+    error_message: str = field()
+    error_type: str = field()
+    failed_step_id: Optional[StepId] = field()
+    execution_time: float = field()  # seconds
+    failed_at: datetime = field()
+    steps_completed: int = field()
+    recoverable: bool = field()
     
     @property
     def event_type(self) -> str:
@@ -157,14 +157,14 @@ class PipelineExecutionCancelled(DomainEvent):
     by user request or system intervention.
     """
     
-    run_id: str
-    pipeline_id: PipelineId
-    workspace_name: str
-    cancelled_by: Optional[str]
-    cancelled_at: datetime
-    execution_time: float  # seconds
-    steps_completed: int
-    reason: Optional[str]
+    run_id: str = field()
+    pipeline_id: PipelineId = field()
+    workspace_name: str = field()
+    cancelled_by: Optional[str] = field()
+    cancelled_at: datetime = field()
+    execution_time: float = field()  # seconds
+    steps_completed: int = field()
+    reason: Optional[str] = field()
     
     @property
     def event_type(self) -> str:
@@ -201,13 +201,13 @@ class StepExecutionStarted(DomainEvent):
     starts execution within a pipeline run.
     """
     
-    run_id: str
-    step_id: StepId
-    step_name: str
-    step_type: str
-    inputs: Dict[str, Any]
-    started_at: datetime
-    attempt_number: int
+    run_id: str = field()
+    step_id: StepId = field()
+    step_name: str = field()
+    step_type: str = field()
+    inputs: Dict[str, Any] = field()
+    started_at: datetime = field()
+    attempt_number: int = field()
     
     @property
     def event_type(self) -> str:
@@ -243,15 +243,15 @@ class StepExecutionCompleted(DomainEvent):
     finishes successfully with outputs.
     """
     
-    run_id: str
-    step_id: StepId
-    step_name: str
-    step_type: str
-    outputs: Dict[str, Any]
-    execution_time: float  # seconds
-    tokens_used: int
-    completed_at: datetime
-    attempt_number: int
+    run_id: str = field()
+    step_id: StepId = field()
+    step_name: str = field()
+    step_type: str = field()
+    outputs: Dict[str, Any] = field()
+    execution_time: float = field()  # seconds
+    tokens_used: int = field()
+    completed_at: datetime = field()
+    attempt_number: int = field()
     
     @property
     def event_type(self) -> str:
@@ -289,16 +289,16 @@ class StepExecutionFailed(DomainEvent):
     fails due to an error or timeout.
     """
     
-    run_id: str
-    step_id: StepId
-    step_name: str
-    step_type: str
-    error_message: str
-    error_type: str
-    execution_time: float  # seconds
-    failed_at: datetime
-    attempt_number: int
-    will_retry: bool
+    run_id: str = field()
+    step_id: StepId = field()
+    step_name: str = field()
+    step_type: str = field()
+    error_message: str = field()
+    error_type: str = field()
+    execution_time: float = field()  # seconds
+    failed_at: datetime = field()
+    attempt_number: int = field()
+    will_retry: bool = field()
     
     @property
     def event_type(self) -> str:
@@ -337,12 +337,12 @@ class StepExecutionSkipped(DomainEvent):
     is skipped due to conditional logic or dependencies.
     """
     
-    run_id: str
-    step_id: StepId
-    step_name: str
-    step_type: str
-    reason: str
-    skipped_at: datetime
+    run_id: str = field()
+    step_id: StepId = field()
+    step_name: str = field()
+    step_type: str = field()
+    reason: str = field()
+    skipped_at: datetime = field()
     
     @property
     def event_type(self) -> str:
@@ -377,15 +377,15 @@ class StepExecutionRetried(DomainEvent):
     is retried after a previous failure.
     """
     
-    run_id: str
-    step_id: StepId
-    step_name: str
-    step_type: str
-    previous_error: str
-    retry_attempt: int
-    max_retries: int
-    retried_at: datetime
-    delay_seconds: float
+    run_id: str = field()
+    step_id: StepId = field()
+    step_name: str = field()
+    step_type: str = field()
+    previous_error: str = field()
+    retry_attempt: int = field()
+    max_retries: int = field()
+    retried_at: datetime = field()
+    delay_seconds: float = field()
     
     @property
     def event_type(self) -> str:
