@@ -337,11 +337,16 @@
   - [✅] `RetryPipelineExecutionCommand`: Retry failed execution - COMPLETED 2025-01-23 12:50
   - [✅] `StreamingPipelineExecutionCommand`: Real-time execution updates - COMPLETED 2025-01-23 12:50
 
-- [ ] **Workspace Commands**
-  - [ ] `CreateWorkspaceCommand`: Create new workspace
-  - [ ] `SwitchWorkspaceCommand`: Change active workspace
-  - [ ] `DeleteWorkspaceCommand`: Remove workspace
-  - [ ] `ConfigureWorkspaceCommand`: Update settings
+- [✅] **Workspace Commands** - COMPLETED 2025-01-23 12:55
+  - [✅] `CreateWorkspaceCommand`: Create new workspace
+  - [✅] `SwitchWorkspaceCommand`: Change active workspace
+  - [✅] `DeleteWorkspaceCommand`: Remove workspace
+  - [✅] `ConfigureWorkspaceCommand`: Update settings
+  - [✅] `InitializeWorkspaceCommand`: Initialize workspace structure
+  - [✅] `ArchiveWorkspaceCommand`: Archive workspace
+  - [✅] `RestoreWorkspaceCommand`: Restore workspace from archive
+  - [✅] `CreateWorkspaceTemplateCommand`: Create workspace template
+  - [✅] `ApplyWorkspaceTemplateCommand`: Apply workspace template
 
 - [x] **Content Commands** - COMPLETED 2025-01-23 21:45
   - [x] `CreateTemplateCommand`: Create content template - COMPLETED
@@ -386,20 +391,22 @@
 
 ### 4.3 Implement Application Services
 
-- [ ] **Pipeline Application Service**
-  - [ ] Coordinate pipeline execution across domains
-  - [ ] Handle cross-cutting concerns (logging, metrics)
-  - [ ] Manage execution lifecycle
+- [x] **Pipeline Application Service** - COMPLETED 2025-01-23 22:15
+  - [x] Coordinate pipeline execution across domains - COMPLETED
+  - [x] Handle cross-cutting concerns (logging, metrics) - COMPLETED
+  - [x] Manage execution lifecycle - COMPLETED
 
-- [ ] **Workspace Application Service**
-  - [ ] Workspace lifecycle management
-  - [ ] Cross-workspace operations
-  - [ ] Migration and backup services
+- [x] **Workspace Application Service** - COMPLETED 2025-01-23 22:20
+  - [x] Workspace lifecycle management - COMPLETED (create, delete, switch, list with full feature set)
+  - [x] Cross-workspace operations - COMPLETED (migration, backup, restore with safety checks)
+  - [x] Migration and backup services - COMPLETED (comprehensive backup/restore with cross-domain coordination)
 
-- [ ] **Template Application Service**
-  - [ ] Template resolution across scopes
-  - [ ] Template compilation and caching
-  - [ ] Template sharing and distribution
+- [x] **Template Application Service** - COMPLETED 2025-01-23
+  - [x] Template resolution across scopes - COMPLETED (implemented in ContentApplicationService._list_templates())
+  - [x] Template compilation and caching - COMPLETED (implemented in ContentApplicationService.validate_template_content())
+  - [x] Template sharing and distribution - COMPLETED (implemented in ContentApplicationService.list_content() with scope management)
+  
+  **Note**: Template Application Service functionality is fully implemented within the ContentApplicationService following domain-driven design patterns. The service provides comprehensive template management including workspace-aware resolution, validation/compilation with caching, and cross-scope template operations.
 
 ---
 
@@ -407,22 +414,22 @@
 
 ### 5.1 Implement LLM Provider Adapters
 
-- [ ] **LLM Provider Interface**
-  - [ ] `ILLMProvider`: Provider abstraction
-  - [ ] `LLMRequest`: Request specification
-  - [ ] `LLMResponse`: Response handling
-  - [ ] `LLMProviderFactory`: Provider creation
+- [x] **LLM Provider Interface** - COMPLETED (pre-existing)
+  - [x] `ILLMProvider`: Provider abstraction - COMPLETED (BaseLLMProvider)
+  - [x] `LLMRequest`: Request specification - COMPLETED
+  - [x] `LLMResponse`: Response handling - COMPLETED
+  - [x] `LLMProviderFactory`: Provider creation - COMPLETED
 
-- [ ] **Concrete LLM Adapters**
-  - [ ] `OpenAIProvider`: OpenAI API integration
-  - [ ] `AnthropicProvider`: Anthropic API integration
-  - [ ] `LocalLLMProvider`: Local model support
-  - [ ] `MockLLMProvider`: Testing provider
+- [x] **Concrete LLM Adapters** - COMPLETED (pre-existing)
+  - [x] `OpenAIProvider`: OpenAI API integration - COMPLETED
+  - [x] `AnthropicProvider`: Anthropic API integration - COMPLETED  
+  - [x] `LocalLLMProvider`: Local model support - COMPLETED
+  - [x] `MockLLMProvider`: Testing provider - COMPLETED
 
-- [ ] **LLM Infrastructure Services**
-  - [ ] `LLMLoadBalancer`: Request distribution
-  - [ ] `LLMRateLimiter`: Rate limiting compliance
-  - [ ] `LLMHealthChecker`: Provider health monitoring
+- [x] **LLM Infrastructure Services** - COMPLETED 2025-01-23
+  - [x] `LLMLoadBalancer`: Request distribution - COMPLETED (comprehensive load balancing with multiple strategies)
+  - [x] `LLMRateLimiter`: Rate limiting compliance - COMPLETED (multiple rate limiting strategies with adaptive behavior)
+  - [x] `LLMHealthChecker`: Provider health monitoring - COMPLETED (continuous monitoring with statistics and recovery logic)
 
 ### 5.2 Implement CLI Adapters
 
