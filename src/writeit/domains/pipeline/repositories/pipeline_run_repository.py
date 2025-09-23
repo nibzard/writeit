@@ -264,3 +264,38 @@ class DateRangeSpecification(Specification[PipelineRun]):
             run.started_at is not None and
             self.start_date <= run.started_at <= self.end_date
         )
+
+
+class ByPipelineSpecification(Specification[PipelineRun]):
+    """Specification for filtering runs by pipeline ID."""
+    
+    def __init__(self, pipeline_id: PipelineId):
+        self.pipeline_id = pipeline_id
+    
+    def is_satisfied_by(self, run: PipelineRun) -> bool:
+        return run.pipeline_id == self.pipeline_id
+
+
+class ByWorkspaceSpecification(Specification[PipelineRun]):
+    """Specification for filtering runs by workspace."""
+    
+    def __init__(self, workspace_name: WorkspaceName):
+        self.workspace_name = workspace_name
+    
+    def is_satisfied_by(self, run: PipelineRun) -> bool:
+        return run.workspace_name == self.workspace_name
+
+
+class RecentRunsSpecification(Specification[PipelineRun]):
+    """Specification for filtering recent runs."""
+    
+    def __init__(self, days: int = 7, limit: int = 100):
+        self.days = days
+        self.limit = limit
+        self.cutoff_date = datetime.now() - timedelta(days=days)
+    
+    def is_satisfied_by(self, run: PipelineRun) -> bool:
+        return (
+            run.started_at is not None and
+            run.started_at >= self.cutoff_date
+        )

@@ -4,6 +4,8 @@ Commands represent write operations that change system state.
 Each command has a corresponding handler that executes the business logic.
 """
 
+from .registration import register_command_handlers, get_command_handler_registrations
+
 from .pipeline_commands import (
     # Pipeline Template Commands
     CreatePipelineTemplateCommand,

@@ -294,8 +294,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
         
         try:
             # Find pipeline run
-            run_id = lambda x: str(x)  # RunId is just a string(command.run_id)
-            pipeline_run = await self._run_repository.find_by_id(run_id)
+            pipeline_run = await self._run_repository.find_by_id(command.run_id)
             
             if not pipeline_run:
                 return PipelineExecutionCommandResult(
@@ -369,7 +368,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
         # Validate run ID format
         if command.run_id:
             try:
-                lambda x: str(x)  # RunId is just a string(command.run_id)
+                str(command.run_id)  # Run ID validation
             except ValueError as e:
                 errors.append(f"Invalid run ID: {e}")
         
@@ -388,8 +387,7 @@ class ConcreteRetryPipelineExecutionCommandHandler(
         
         try:
             # Find original pipeline run
-            original_run_id = lambda x: str(x)  # RunId is just a string(command.run_id)
-            original_run = await self._run_repository.find_by_id(original_run_id)
+            original_run = await self._run_repository.find_by_id(command.run_id)
             
             if not original_run:
                 return PipelineExecutionCommandResult(
