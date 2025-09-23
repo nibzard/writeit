@@ -3,7 +3,7 @@
 Domain entity representing a workspace that provides isolation for WriteIt operations.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Dict, Any, Optional, Self
 
@@ -59,7 +59,7 @@ class Workspace:
         Returns:
             Updated workspace with activation timestamp
         """
-        return dataclass.replace(
+        return replace(
             self,
             is_active=True,
             last_accessed=datetime.now(),
@@ -72,7 +72,7 @@ class Workspace:
         Returns:
             Updated workspace
         """
-        return dataclass.replace(
+        return replace(
             self,
             is_active=False,
             updated_at=datetime.now()
@@ -87,7 +87,7 @@ class Workspace:
         Returns:
             Updated workspace
         """
-        return dataclass.replace(
+        return replace(
             self,
             configuration=configuration,
             updated_at=datetime.now()
@@ -106,7 +106,7 @@ class Workspace:
         new_metadata = self.metadata.copy()
         new_metadata[key] = value
         
-        return dataclass.replace(
+        return replace(
             self,
             metadata=new_metadata,
             updated_at=datetime.now()
@@ -127,7 +127,7 @@ class Workspace:
         new_metadata = self.metadata.copy()
         del new_metadata[key]
         
-        return dataclass.replace(
+        return replace(
             self,
             metadata=new_metadata,
             updated_at=datetime.now()

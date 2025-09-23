@@ -3,7 +3,7 @@
 Domain entity for managing workspace-specific settings and preferences.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Self
 
@@ -69,13 +69,13 @@ class WorkspaceConfiguration:
         
         # Create new configuration value with the updated value
         if isinstance(config_def, StringConfigValue):
-            new_config = dataclass.replace(config_def, value=value)
+            new_config = replace(config_def, value=value)
         elif isinstance(config_def, IntConfigValue):
-            new_config = dataclass.replace(config_def, value=value)
+            new_config = replace(config_def, value=value)
         elif isinstance(config_def, BoolConfigValue):
-            new_config = dataclass.replace(config_def, value=value)
+            new_config = replace(config_def, value=value)
         elif isinstance(config_def, ListConfigValue):
-            new_config = dataclass.replace(config_def, value=value)
+            new_config = replace(config_def, value=value)
         else:
             raise TypeError(f"Unsupported configuration type for '{key}'")
         
@@ -83,7 +83,7 @@ class WorkspaceConfiguration:
         new_values = self.values.copy()
         new_values[key] = new_config
         
-        return dataclass.replace(
+        return replace(
             self,
             values=new_values,
             updated_at=datetime.now()
@@ -262,7 +262,7 @@ class WorkspaceConfiguration:
                 # Add new configuration from other
                 merged_values[key] = other_value
         
-        return dataclass.replace(
+        return replace(
             self,
             values=merged_values,
             updated_at=datetime.now()
