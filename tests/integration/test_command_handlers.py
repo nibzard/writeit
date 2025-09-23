@@ -11,31 +11,31 @@ from typing import Dict, Any
 import tempfile
 import shutil
 
-from src.writeit.application.commands.handlers.workspace_handlers import (
+from writeit.application.commands.handlers.workspace_handlers import (
     ConcreteCreateWorkspaceCommandHandler,
     ConcreteSwitchWorkspaceCommandHandler,
     ConcreteDeleteWorkspaceCommandHandler,
     ConcreteConfigureWorkspaceCommandHandler
 )
-from src.writeit.application.commands.workspace_commands import (
+from writeit.application.commands.workspace_commands import (
     CreateWorkspaceCommand,
     SwitchWorkspaceCommand,
     DeleteWorkspaceCommand,
     ConfigureWorkspaceCommand,
     WorkspaceCommandResult
 )
-from src.writeit.application.commands.handlers.pipeline_template_handlers import (
+from writeit.application.commands.handlers.pipeline_template_handlers import (
     ConcreteCreatePipelineTemplateCommandHandler,
     ConcreteValidatePipelineTemplateCommandHandler
 )
-from src.writeit.application.commands.pipeline_commands import (
+from writeit.application.commands.pipeline_commands import (
     CreatePipelineTemplateCommand,
     ValidatePipelineTemplateCommand,
     PipelineTemplateCommandResult
 )
-from src.writeit.application.di_config import DIConfiguration
-from src.writeit.shared.dependencies.container import Container
-from src.writeit.shared.events.event_bus import EventBus
+from writeit.application.di_config import DIConfiguration
+from writeit.shared.dependencies.container import Container
+from writeit.shared.events.event_bus import EventBus
 
 
 class TestWorkspaceCommandHandlers:

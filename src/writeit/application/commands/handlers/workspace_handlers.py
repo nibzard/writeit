@@ -24,8 +24,7 @@ from ....domains.workspace.events import (
     WorkspaceDeleted, 
     WorkspaceConfigUpdated,
     WorkspaceInitialized,
-    WorkspaceArchived,
-    WorkspaceRestored
+    WorkspaceArchived
 )
 
 from ..workspace_commands import (

@@ -4,16 +4,14 @@ Commands for write operations related to content management,
 templates, style primers, and generated content.
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import List, Optional
 from enum import Enum
 
 from ...shared.command import Command, CommandHandler, CommandResult
 from ...domains.content.entities import Template, StylePrimer, GeneratedContent
-from ...domains.content.value_objects import TemplateName, StyleName, ContentId, ContentType, ContentFormat
+from ...domains.content.value_objects import ContentType, ContentFormat
 
 
 class ContentValidationLevel(str, Enum):
@@ -52,16 +50,20 @@ class ContentCommandResult(CommandResult):
 class CreateTemplateCommand(Command):
     """Command to create a new template."""
     
-    name: str
-    content: str
+    name: str = ""
+    content: str = ""
     description: Optional[str] = None
     template_type: str = "pipeline"
     scope: TemplateScope = TemplateScope.WORKSPACE
     workspace_name: Optional[str] = None
     file_path: Optional[Path] = None
-    tags: List[str] = None
+    tags: Optional[List[str]] = None
     author: Optional[str] = None
     validation_level: ContentValidationLevel = ContentValidationLevel.STRICT
+    
+    def __post_init__(self):
+        if self.tags is None:
+            object.__setattr__(self, 'tags', [])
 
 
 @dataclass(frozen=True)
@@ -109,15 +111,18 @@ class ValidateTemplateCommand(Command):
 class CreateStylePrimerCommand(Command):
     """Command to create a new style primer."""
     
-    name: str
-    content: str
+    name: Optional[str] = None
+    content: Optional[str] = None
     description: Optional[str] = None
     scope: TemplateScope = TemplateScope.WORKSPACE
-    workspace_name: Optional[str] = None
     file_path: Optional[Path] = None
-    tags: List[str] = None
+    tags: Optional[List[str]] = None
     author: Optional[str] = None
     parent_style: Optional[str] = None
+    
+    def __post_init__(self):
+        if self.tags is None:
+            object.__setattr__(self, 'tags', [])
 
 
 @dataclass(frozen=True)
@@ -151,24 +156,25 @@ class DeleteStylePrimerCommand(Command):
 class CreateGeneratedContentCommand(Command):
     """Command to create generated content."""
     
-    content_type: ContentType
-    content_format: ContentFormat
-    raw_content: str
-    metadata: Optional[Dict[str, Any]] = None
+    content_type: Optional[ContentType] = None
+    content_format: Optional[ContentFormat] = None
+    raw_content: Optional[str] = None
     template_id: Optional[str] = None
     pipeline_run_id: Optional[str] = None
-    workspace_name: Optional[str] = None
-    tags: List[str] = None
+    tags: Optional[List[str]] = None
     author: Optional[str] = None
+    
+    def __post_init__(self):
+        if self.tags is None:
+            object.__setattr__(self, 'tags', [])
 
 
 @dataclass(frozen=True)
 class UpdateGeneratedContentCommand(Command):
     """Command to update generated content."""
     
-    content_id: str
+    content_id: Optional[str] = None
     raw_content: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
     tags: Optional[List[str]] = None
     status: Optional[str] = None
 
@@ -177,8 +183,7 @@ class UpdateGeneratedContentCommand(Command):
 class DeleteGeneratedContentCommand(Command):
     """Command to delete generated content."""
     
-    content_id: str
-    workspace_name: Optional[str] = None
+    content_id: Optional[str] = None
     force: bool = False
 
 

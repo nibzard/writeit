@@ -14,7 +14,7 @@ from ....shared.events import EventBus
 from ....domains.pipeline.entities import PipelineRun, PipelineTemplate
 from ....domains.pipeline.repositories import PipelineRunRepository, PipelineTemplateRepository
 from ....domains.pipeline.services import PipelineExecutionService, PipelineValidationService
-from ....domains.pipeline.value_objects import PipelineId, PipelineName, StepId, RunId
+from ....domains.pipeline.value_objects import PipelineId, PipelineName, StepId
 from ....domains.workspace.value_objects import WorkspaceName
 from ....domains.pipeline.events import (
     PipelineExecutionStarted, 

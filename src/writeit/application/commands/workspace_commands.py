@@ -34,7 +34,7 @@ class WorkspaceCommandResult(CommandResult):
 class CreateWorkspaceCommand(Command):
     """Command to create a new workspace."""
     
-    name: str
+    name: str = ""
     description: Optional[str] = None
     base_path: Optional[Path] = None
     template_name: Optional[str] = None
@@ -47,7 +47,7 @@ class CreateWorkspaceCommand(Command):
 class SwitchWorkspaceCommand(Command):
     """Command to switch the active workspace."""
     
-    workspace_name: str
+    workspace_name: str = ""
     save_current_state: bool = True
     validate_workspace: bool = True
 
@@ -56,7 +56,7 @@ class SwitchWorkspaceCommand(Command):
 class DeleteWorkspaceCommand(Command):
     """Command to delete a workspace."""
     
-    workspace_name: str
+    workspace_name: str = ""
     force: bool = False
     backup_before_delete: bool = True
     confirm_deletion: bool = True
@@ -66,10 +66,14 @@ class DeleteWorkspaceCommand(Command):
 class ConfigureWorkspaceCommand(Command):
     """Command to update workspace configuration."""
     
-    workspace_name: str
-    configuration_updates: Dict[str, Any]
+    workspace_name: str = ""
+    configuration_updates: Dict[str, Any] = None
     merge_with_existing: bool = True
     validate_configuration: bool = True
+    
+    def __post_init__(self):
+        if self.configuration_updates is None:
+            object.__setattr__(self, 'configuration_updates', {})
 
 
 # Workspace Lifecycle Commands
@@ -78,7 +82,7 @@ class ConfigureWorkspaceCommand(Command):
 class InitializeWorkspaceCommand(Command):
     """Command to initialize a workspace with default structure."""
     
-    workspace_name: str
+    workspace_name: str = ""
     template_name: Optional[str] = None
     configuration: Optional[Dict[str, Any]] = None
     create_directories: bool = True
@@ -89,7 +93,7 @@ class InitializeWorkspaceCommand(Command):
 class ArchiveWorkspaceCommand(Command):
     """Command to archive a workspace."""
     
-    workspace_name: str
+    workspace_name: str = ""
     archive_path: Optional[Path] = None
     include_storage: bool = True
     include_config: bool = True
@@ -100,7 +104,7 @@ class ArchiveWorkspaceCommand(Command):
 class RestoreWorkspaceCommand(Command):
     """Command to restore a workspace from archive."""
     
-    archive_path: Path
+    archive_path: Path = None
     workspace_name: Optional[str] = None
     restore_path: Optional[Path] = None
     overwrite_existing: bool = False
@@ -112,8 +116,8 @@ class RestoreWorkspaceCommand(Command):
 class CreateWorkspaceTemplateCommand(Command):
     """Command to create a workspace template from existing workspace."""
     
-    workspace_name: str
-    template_name: str
+    workspace_name: str = ""
+    template_name: str = ""
     description: Optional[str] = None
     include_configuration: bool = True
     include_templates: bool = True
@@ -125,8 +129,8 @@ class CreateWorkspaceTemplateCommand(Command):
 class ApplyWorkspaceTemplateCommand(Command):
     """Command to apply a template to a workspace."""
     
-    workspace_name: str
-    template_name: str
+    workspace_name: str = ""
+    template_name: str = ""
     merge_existing: bool = True
     override_conflicts: bool = False
     apply_configuration: bool = True

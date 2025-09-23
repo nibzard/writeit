@@ -23,16 +23,12 @@ from ....domains.workspace.value_objects import WorkspaceName
 from ....domains.content.events import (
     TemplateCreated, 
     TemplateUpdated, 
-    TemplateDeleted, 
     TemplatePublished,
     TemplateDeprecated,
     TemplateValidated,
     StylePrimerCreated,
     StylePrimerUpdated,
-    StylePrimerDeleted,
     ContentGenerated,
-    ContentUpdated,
-    ContentDeleted,
     ContentValidated
 )
 

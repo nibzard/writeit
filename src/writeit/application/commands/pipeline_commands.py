@@ -39,14 +39,14 @@ class PipelineSource(str, Enum):
 class CreatePipelineTemplateCommand(Command):
     """Command to create a new pipeline template."""
     
-    name: str
-    description: str
-    content: str
+    name: str = ""
+    description: str = ""
+    content: str = ""
     workspace_name: Optional[str] = None
     template_path: Optional[Path] = None
     validation_level: str = "strict"
     author: Optional[str] = None
-    tags: List[str] = None
+    tags: Optional[List[str]] = None
     
     def __post_init__(self):
         if self.tags is None:
@@ -57,7 +57,7 @@ class CreatePipelineTemplateCommand(Command):
 class UpdatePipelineTemplateCommand(Command):
     """Command to update an existing pipeline template."""
     
-    pipeline_id: PipelineId
+    pipeline_id: PipelineId = None
     workspace_name: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
@@ -71,7 +71,7 @@ class UpdatePipelineTemplateCommand(Command):
 class DeletePipelineTemplateCommand(Command):
     """Command to delete a pipeline template."""
     
-    pipeline_id: PipelineId
+    pipeline_id: PipelineId = None
     workspace_name: Optional[str] = None
     force: bool = False
 
@@ -80,7 +80,7 @@ class DeletePipelineTemplateCommand(Command):
 class PublishPipelineTemplateCommand(Command):
     """Command to publish a pipeline template."""
     
-    pipeline_id: PipelineId
+    pipeline_id: PipelineId = None
     workspace_name: Optional[str] = None
     target_scope: str = "workspace"  # workspace, global
 
@@ -101,7 +101,7 @@ class ValidatePipelineTemplateCommand(Command):
 class ExecutePipelineCommand(Command):
     """Command to execute a pipeline."""
     
-    pipeline_name: str
+    pipeline_name: str = ""
     workspace_name: Optional[str] = None
     source: PipelineSource = PipelineSource.WORKSPACE
     mode: PipelineExecutionMode = PipelineExecutionMode.CLI
@@ -120,7 +120,7 @@ class ExecutePipelineCommand(Command):
 class CancelPipelineExecutionCommand(Command):
     """Command to cancel a running pipeline execution."""
     
-    run_id: str
+    run_id: str = ""
     reason: Optional[str] = None
     force: bool = False
 
@@ -129,7 +129,7 @@ class CancelPipelineExecutionCommand(Command):
 class RetryPipelineExecutionCommand(Command):
     """Command to retry a failed pipeline execution."""
     
-    run_id: str
+    run_id: str = ""
     from_step: Optional[StepId] = None
     skip_failed_steps: bool = False
     execution_options: Optional[Dict[str, Any]] = None
@@ -143,7 +143,7 @@ class RetryPipelineExecutionCommand(Command):
 class ResumePipelineExecutionCommand(Command):
     """Command to resume a paused pipeline execution."""
     
-    run_id: str
+    run_id: str = ""
     execution_options: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
@@ -157,23 +157,25 @@ class ResumePipelineExecutionCommand(Command):
 class ExecuteStepCommand(Command):
     """Command to execute a single pipeline step."""
     
-    run_id: str
-    step_id: StepId
-    inputs: Dict[str, Any]
+    run_id: str = ""
+    step_id: StepId = None
+    inputs: Dict[str, Any] = None
     execution_options: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
         if self.execution_options is None:
             object.__setattr__(self, 'execution_options', {})
+        if self.inputs is None:
+            object.__setattr__(self, 'inputs', {})
 
 
 @dataclass(frozen=True)
 class RetryStepExecutionCommand(Command):
     """Command to retry a failed step execution."""
     
-    run_id: str
-    step_id: StepId
-    attempt_number: int
+    run_id: str = ""
+    step_id: StepId = None
+    attempt_number: int = 0
     execution_options: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
@@ -265,6 +267,15 @@ class ValidatePipelineTemplateCommandHandler(PipelineTemplateCommandHandler):
     @abstractmethod
     async def handle(self, command: ValidatePipelineTemplateCommand) -> PipelineTemplateCommandResult:
         """Handle pipeline template validation."""
+        pass
+
+
+class PublishPipelineTemplateCommandHandler(PipelineTemplateCommandHandler):
+    """Handler for publishing pipeline templates."""
+    
+    @abstractmethod
+    async def handle(self, command: PublishPipelineTemplateCommand) -> PipelineTemplateCommandResult:
+        """Handle pipeline template publishing."""
         pass
 
 
