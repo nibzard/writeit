@@ -1,41 +1,16 @@
-"""
-Shared Kernel - Common Domain Abstractions
+"""Shared kernel for WriteIt domain-driven design implementation.
 
-This package contains shared abstractions, value objects, and interfaces
-that are used across multiple domains.
+Provides common patterns, interfaces, and utilities shared across
+all domain boundaries including repository patterns, specifications,
+and error handling.
 
-## Responsibilities
+## Repository Patterns
 
-- Define shared value objects used across domains
-- Provide common abstractions and interfaces
-- Define shared domain events
-- Implement common error types and handling
-
-## Modules
-
-### Events (writeit.shared.events)
-- Base event interfaces
-- Event bus abstraction
-- Event handler registration
-- Event persistence and replay
-
-### Value Objects (writeit.shared.value_objects)
-- Common value objects (IDs, dates, etc.)
-- Validation rules and constraints
-- Equality and comparison logic
-- Serialization support
-
-### Errors (writeit.shared.errors)
-- Base exception classes
-- Domain-specific error types
-- Error code definitions
-- Error message templates
-
-### Interfaces (writeit.shared.interfaces)
-- Common repository interfaces
-- Service abstractions
-- Event handler interfaces
-- Validation interfaces
+The shared kernel provides repository abstractions that all domains implement:
+- Repository[T]: Base repository interface with CRUD operations
+- WorkspaceAwareRepository[T]: Repository with workspace isolation
+- Specification[T]: Composable query specification pattern
+- UnitOfWork: Transaction boundary management across repositories
 
 ## Design Principles
 
@@ -52,3 +27,38 @@ that are used across multiple domains.
 - Use interfaces to define contracts between domains
 - Keep shared value objects immutable and side-effect free
 """
+
+from .repository import (
+    Repository,
+    WorkspaceAwareRepository,
+    Specification,
+    UnitOfWork,
+    AndSpecification,
+    OrSpecification,
+    NotSpecification,
+    RepositoryError,
+    EntityNotFoundError,
+    EntityAlreadyExistsError,
+    ConcurrencyError,
+    UnitOfWorkError,
+)
+
+__all__ = [
+    # Repository patterns
+    "Repository",
+    "WorkspaceAwareRepository",
+    "UnitOfWork",
+    
+    # Specification pattern
+    "Specification",
+    "AndSpecification",
+    "OrSpecification", 
+    "NotSpecification",
+    
+    # Exceptions
+    "RepositoryError",
+    "EntityNotFoundError",
+    "EntityAlreadyExistsError",
+    "ConcurrencyError",
+    "UnitOfWorkError",
+]
