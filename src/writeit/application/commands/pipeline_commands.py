@@ -151,6 +151,16 @@ class ResumePipelineExecutionCommand(Command):
             object.__setattr__(self, 'execution_options', {})
 
 
+@dataclass(frozen=True)
+class StopPipelineCommand(Command):
+    """Command to stop/halt a running pipeline."""
+    
+    run_id: str = ""
+    reason: Optional[str] = None
+    force: bool = False
+    save_state: bool = True
+
+
 # Commands for Step Execution
 
 @dataclass(frozen=True)
@@ -303,6 +313,15 @@ class RetryPipelineExecutionCommandHandler(PipelineExecutionCommandHandler):
     @abstractmethod
     async def handle(self, command: RetryPipelineExecutionCommand) -> PipelineExecutionCommandResult:
         """Handle pipeline execution retry."""
+        pass
+
+
+class StopPipelineCommandHandler(PipelineExecutionCommandHandler):
+    """Handler for stopping pipeline executions."""
+    
+    @abstractmethod
+    async def handle(self, command: StopPipelineCommand) -> PipelineExecutionCommandResult:
+        """Handle pipeline execution stop."""
         pass
 
 

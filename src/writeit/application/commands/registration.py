@@ -12,6 +12,7 @@ from .handlers.pipeline_execution_handlers import (
     ConcreteExecutePipelineCommandHandler,
     ConcreteCancelPipelineExecutionCommandHandler,
     ConcreteRetryPipelineExecutionCommandHandler,
+    ConcreteStopPipelineCommandHandler,
     ConcreteStreamingPipelineExecutionCommandHandler,
 )
 from .handlers.pipeline_template_handlers import (
@@ -45,6 +46,7 @@ from .pipeline_commands import (
     ExecutePipelineCommandHandler,
     CancelPipelineExecutionCommandHandler,
     RetryPipelineExecutionCommandHandler,
+    StopPipelineCommandHandler,
     StreamingPipelineExecutionCommandHandler,
     CreatePipelineTemplateCommandHandler,
     UpdatePipelineTemplateCommandHandler,
@@ -95,6 +97,11 @@ def register_command_handlers(container: Container) -> None:
     container.register_transient(
         RetryPipelineExecutionCommandHandler,
         ConcreteRetryPipelineExecutionCommandHandler
+    )
+    
+    container.register_transient(
+        StopPipelineCommandHandler,
+        ConcreteStopPipelineCommandHandler
     )
     
     container.register_transient(
@@ -224,6 +231,10 @@ def get_command_handler_registrations() -> Dict[Type, Dict[str, Any]]:
         },
         RetryPipelineExecutionCommandHandler: {
             'implementation': ConcreteRetryPipelineExecutionCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        StopPipelineCommandHandler: {
+            'implementation': ConcreteStopPipelineCommandHandler,
             'lifetime': ServiceLifetime.TRANSIENT
         },
         StreamingPipelineExecutionCommandHandler: {

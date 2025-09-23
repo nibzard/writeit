@@ -32,6 +32,7 @@ from ..pipeline_commands import (
     CancelPipelineExecutionCommand,
     RetryPipelineExecutionCommand,
     ResumePipelineExecutionCommand,
+    StopPipelineCommand,
     ExecuteStepCommand,
     RetryStepExecutionCommand,
     PipelineExecutionCommandResult,
@@ -39,6 +40,7 @@ from ..pipeline_commands import (
     ExecutePipelineCommandHandler,
     CancelPipelineExecutionCommandHandler,
     RetryPipelineExecutionCommandHandler,
+    StopPipelineCommandHandler,
     StreamingPipelineExecutionCommandHandler,
     PipelineSource,
     PipelineExecutionMode,
@@ -313,7 +315,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
             
             # Cancel execution using domain service
             cancel_result = await self._execution_service.cancel_pipeline_execution(
-                run_id=run_id,
+                run_id=command.run_id,
                 reason=command.reason,
                 force=command.force
             )
@@ -331,7 +333,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
             
             # Publish cancellation event
             cancelled_event = PipelineExecutionCancelled(
-                run_id=run_id,
+                run_id=command.run_id,
                 pipeline_id=pipeline_run.pipeline_id,
                 pipeline_name=pipeline_run.pipeline_name,
                 reason=command.reason,
@@ -369,7 +371,7 @@ class ConcreteCancelPipelineExecutionCommandHandler(
         if command.run_id:
             try:
                 str(command.run_id)  # Run ID validation
-            except ValueError as e:
+            except Exception as e:
                 errors.append(f"Invalid run ID: {e}")
         
         return errors
@@ -491,8 +493,8 @@ class ConcreteRetryPipelineExecutionCommandHandler(
         # Validate run ID format
         if command.run_id:
             try:
-                lambda x: str(x)  # RunId is just a string(command.run_id)
-            except ValueError as e:
+                str(command.run_id)  # Run ID is just a string
+            except Exception as e:
                 errors.append(f"Invalid run ID: {e}")
         
         # Validate from_step if provided
@@ -501,6 +503,100 @@ class ConcreteRetryPipelineExecutionCommandHandler(
                 StepId.from_string(str(command.from_step))
             except ValueError as e:
                 errors.append(f"Invalid step ID: {e}")
+        
+        return errors
+
+
+class ConcreteStopPipelineCommandHandler(
+    ConcretePipelineExecutionCommandHandler,
+    StopPipelineCommandHandler
+):
+    """Concrete handler for stopping pipeline executions."""
+    
+    async def handle(self, command: StopPipelineCommand) -> PipelineExecutionCommandResult:
+        """Handle pipeline execution stop."""
+        logger.info(f"Stopping pipeline execution: {command.run_id}")
+        
+        try:
+            # Find pipeline run
+            pipeline_run = await self._run_repository.find_by_id(command.run_id)
+            
+            if not pipeline_run:
+                return PipelineExecutionCommandResult(
+                    success=False,
+                    message=f"Pipeline run not found: {command.run_id}",
+                    errors=[f"Run with ID {command.run_id} does not exist"]
+                )
+            
+            # Check if run can be stopped
+            if pipeline_run.is_completed:
+                return PipelineExecutionCommandResult(
+                    success=False,
+                    message="Cannot stop completed pipeline run",
+                    errors=["Pipeline execution has already completed"]
+                )
+            
+            # Stop execution using domain service
+            stop_result = await self._execution_service.stop_pipeline_execution(
+                run_id=command.run_id,
+                reason=command.reason,
+                force=command.force,
+                save_state=command.save_state
+            )
+            
+            if not stop_result.success:
+                return PipelineExecutionCommandResult(
+                    success=False,
+                    message=stop_result.message,
+                    errors=stop_result.errors
+                )
+            
+            # Update pipeline run status
+            stopped_run = pipeline_run.stop_execution(command.reason, command.save_state)
+            await self._run_repository.save(stopped_run)
+            
+            # Publish stop event
+            stopped_event = PipelineExecutionCancelled(
+                run_id=command.run_id,
+                pipeline_id=pipeline_run.pipeline_id,
+                pipeline_name=pipeline_run.pipeline_name,
+                reason=command.reason,
+                cancelled_by=None,  # TODO: Extract from command context
+                cancelled_at=datetime.now()
+            )
+            await self._event_bus.publish(stopped_event)
+            
+            logger.info(f"Pipeline execution stopped: {command.run_id}")
+            
+            return PipelineExecutionCommandResult(
+                success=True,
+                message="Pipeline execution stopped successfully",
+                run_id=command.run_id,
+                pipeline_run=stopped_run,
+                execution_status="stopped"
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to stop pipeline execution: {e}", exc_info=True)
+            return PipelineExecutionCommandResult(
+                success=False,
+                message=f"Failed to stop pipeline execution: {str(e)}",
+                errors=[str(e)]
+            )
+    
+    async def validate(self, command: StopPipelineCommand) -> list[str]:
+        """Validate stop pipeline execution command."""
+        errors = []
+        
+        if not command.run_id or not command.run_id.strip():
+            errors.append("Run ID is required")
+        
+        # Validate run ID format
+        if command.run_id:
+            try:
+                str(command.run_id)  # Run ID validation
+            except Exception as e:
+                errors.append(f"Invalid run ID: {e}")
         
         return errors
 

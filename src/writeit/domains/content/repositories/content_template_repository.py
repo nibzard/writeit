@@ -331,3 +331,13 @@ class UsesVariableSpecification(Specification[Template]):
         # This would need access to template content analysis
         # Implementation would check if variable is used in template
         return self.variable in template.variables
+
+
+class PublishedTemplatesSpecification(Specification[Template]):
+    """Specification for filtering published templates."""
+    
+    def __init__(self):
+        pass
+    
+    def is_satisfied_by(self, template: Template) -> bool:
+        return template.is_published

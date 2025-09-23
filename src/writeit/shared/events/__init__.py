@@ -35,6 +35,7 @@ __all__ = [
     # Decorators and discovery
     "event_handler",
     "get_decorated_handlers",
+    "clear_decorated_handlers",
     "auto_discover_handlers",
     "HandlerDiscovery",
 ]
