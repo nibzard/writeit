@@ -370,6 +370,7 @@ class PipelineRun:
         return cls(
             id=run_id,
             pipeline_id=pipeline_id,
+            pipeline_name=pipeline_name,
             workspace_name=workspace_name or "",
             status=ExecutionStatus.created(),
             inputs=inputs or {},
@@ -499,6 +500,7 @@ class PipelineRun:
             New pipeline run
         """
         return cls.create(
+            id="",  # Will be auto-generated
             pipeline_id=pipeline_id,
             workspace_name=workspace_name,
             inputs=template_inputs,
@@ -512,7 +514,7 @@ class PipelineRun:
             'pipeline_id': str(self.pipeline_id),
             'pipeline_name': self.pipeline_name,
             'workspace_name': self.workspace_name,
-            'status': str(self.status.status),
+            'status': self.status.status.value,
             'inputs': self.inputs,
             'outputs': self.outputs,
             'created_at': self.created_at.isoformat(),
@@ -526,9 +528,9 @@ class PipelineRun:
     
     def __str__(self) -> str:
         """String representation."""
-        return f"PipelineRun({self.id} - {self.status.status})"
+        return f"PipelineRun({self.id} - {self.status.status.value})"
     
     def __repr__(self) -> str:
         """Debug representation."""
         return (f"PipelineRun(id='{self.id}', pipeline_id={self.pipeline_id}, "
-                f"status={self.status.status}, workspace='{self.workspace_name}')")
+                f"status={self.status.status.value}, workspace='{self.workspace_name}')")

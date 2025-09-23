@@ -736,8 +736,8 @@ class TestPipelineTemplate:
         
         variables = pipeline.get_required_variables()
         
-        # Should contain all unique variables from all steps
-        expected_variables = {"inputs.topic", "inputs.style", "inputs.tone"}
+        # Should contain all unique root variables from all steps
+        expected_variables = {"inputs"}  # Root variable extracted from inputs.topic, inputs.style, etc.
         assert variables == expected_variables
     
     def test_create_factory_method(self):

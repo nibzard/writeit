@@ -218,9 +218,13 @@ class ExecutionStatus:
             StepExecutionStatus.TIMEOUT: set(),
         }
         
-        # Combine transitions based on status type
-        all_transitions = {**pipeline_transitions, **step_transitions}
-        return all_transitions.get(self.status, set())
+        # Return transitions based on the actual status type
+        if isinstance(self.status, PipelineExecutionStatus):
+            return pipeline_transitions.get(self.status, set())
+        elif isinstance(self.status, StepExecutionStatus):
+            return step_transitions.get(self.status, set())
+        else:
+            return set()
     
     @classmethod
     def created(cls, metadata: Optional[dict] = None) -> Self:
@@ -256,6 +260,33 @@ class ExecutionStatus:
             status=PipelineExecutionStatus.FAILED,
             changed_at=datetime.now(),
             error_message=error_message,
+            metadata=metadata
+        )
+    
+    @classmethod
+    def completed(cls, metadata: Optional[dict] = None) -> Self:
+        """Create a new COMPLETED status."""
+        return cls(
+            status=PipelineExecutionStatus.COMPLETED,
+            changed_at=datetime.now(),
+            metadata=metadata
+        )
+    
+    @classmethod
+    def cancelled(cls, metadata: Optional[dict] = None) -> Self:
+        """Create a new CANCELLED status."""
+        return cls(
+            status=PipelineExecutionStatus.CANCELLED,
+            changed_at=datetime.now(),
+            metadata=metadata
+        )
+    
+    @classmethod
+    def paused(cls, metadata: Optional[dict] = None) -> Self:
+        """Create a new PAUSED status."""
+        return cls(
+            status=PipelineExecutionStatus.PAUSED,
+            changed_at=datetime.now(),
             metadata=metadata
         )
     
