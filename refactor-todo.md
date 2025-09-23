@@ -433,18 +433,18 @@
 
 ### 5.2 Implement CLI Adapters
 
-- [ ] **CLI Command Infrastructure**
-  - [ ] `BaseCommand`: Common command functionality
-  - [ ] `CommandContext`: Request/response context
-  - [ ] `CLIErrorHandler`: CLI-specific error handling
-  - [ ] `CLIOutputFormatter`: Response formatting
+- [x] **CLI Command Infrastructure** - COMPLETED 2025-01-23
+  - [x] `BaseCommand`: Common command functionality - COMPLETED 2025-01-23 
+  - [x] `CommandContext`: Request/response context - COMPLETED 2025-01-23
+  - [x] `CLIErrorHandler`: CLI-specific error handling - COMPLETED 2025-01-23
+  - [x] `CLIOutputFormatter`: Response formatting - COMPLETED 2025-01-23
 
-- [ ] **CLI Command Implementations**
-  - [ ] `InitCommand`: Workspace initialization
-  - [ ] `PipelineCommand`: Pipeline operations
-  - [ ] `WorkspaceCommand`: Workspace management
-  - [ ] `TemplateCommand`: Template operations
-  - [ ] `ValidateCommand`: Validation operations
+- [x] **CLI Command Implementations** - COMPLETED 2025-01-23
+  - [x] `InitCommand`: Workspace initialization - COMPLETED
+  - [x] `PipelineCommand`: Pipeline operations - COMPLETED (pre-existing)
+  - [x] `WorkspaceCommand`: Workspace management - COMPLETED (pre-existing)
+  - [x] `TemplateCommand`: Template operations - COMPLETED
+  - [x] `ValidateCommand`: Validation operations - COMPLETED
 
 ### 5.3 Implement Web API Adapters
 
