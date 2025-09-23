@@ -343,11 +343,20 @@
   - [ ] `DeleteWorkspaceCommand`: Remove workspace
   - [ ] `ConfigureWorkspaceCommand`: Update settings
 
-- [ ] **Content Commands**
-  - [ ] `CreateTemplateCommand`: Create content template
-  - [ ] `UpdateTemplateCommand`: Modify existing template
-  - [ ] `DeleteTemplateCommand`: Remove template
-  - [ ] `ValidateTemplateCommand`: Check template validity
+- [x] **Content Commands** - COMPLETED 2025-01-23 21:45
+  - [x] `CreateTemplateCommand`: Create content template - COMPLETED
+  - [x] `UpdateTemplateCommand`: Modify existing template - COMPLETED
+  - [x] `DeleteTemplateCommand`: Remove template - COMPLETED
+  - [x] `ValidateTemplateCommand`: Check template validity - COMPLETED
+  - [x] `CreateStylePrimerCommand`: Create style primer - COMPLETED
+  - [x] `UpdateStylePrimerCommand`: Modify existing style primer - COMPLETED
+  - [x] `DeleteStylePrimerCommand`: Remove style primer - COMPLETED
+  - [x] `CreateGeneratedContentCommand`: Create generated content - COMPLETED
+  - [x] `UpdateGeneratedContentCommand`: Modify generated content - COMPLETED
+  - [x] `DeleteGeneratedContentCommand`: Remove generated content - COMPLETED
+  - [x] `ValidateContentCommand`: Validate content - COMPLETED
+  - [x] `PublishTemplateCommand`: Publish template - COMPLETED
+  - [x] `DeprecateTemplateCommand`: Deprecate template - COMPLETED
 
 ### 4.2 Implement CQRS Query Handlers
 

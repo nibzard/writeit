@@ -39,7 +39,14 @@ from .handlers.content_handlers import (
     ConcreteDeleteTemplateCommandHandler,
     ConcreteValidateTemplateCommandHandler,
     ConcreteCreateStylePrimerCommandHandler,
+    ConcreteUpdateStylePrimerCommandHandler,
+    ConcreteDeleteStylePrimerCommandHandler,
     ConcreteCreateGeneratedContentCommandHandler,
+    ConcreteUpdateGeneratedContentCommandHandler,
+    ConcreteDeleteGeneratedContentCommandHandler,
+    ConcreteValidateContentCommandHandler,
+    ConcretePublishTemplateCommandHandler,
+    ConcreteDeprecateTemplateCommandHandler,
 )
 
 from .pipeline_commands import (
@@ -73,7 +80,14 @@ from .content_commands import (
     DeleteTemplateCommandHandler,
     ValidateTemplateCommandHandler,
     CreateStylePrimerCommandHandler,
+    UpdateStylePrimerCommandHandler,
+    DeleteStylePrimerCommandHandler,
     CreateGeneratedContentCommandHandler,
+    UpdateGeneratedContentCommandHandler,
+    DeleteGeneratedContentCommandHandler,
+    ValidateContentCommandHandler,
+    PublishTemplateCommandHandler,
+    DeprecateTemplateCommandHandler,
 )
 
 
@@ -208,8 +222,43 @@ def register_command_handlers(container: Container) -> None:
     )
     
     container.register_transient(
+        UpdateStylePrimerCommandHandler,
+        ConcreteUpdateStylePrimerCommandHandler
+    )
+    
+    container.register_transient(
+        DeleteStylePrimerCommandHandler,
+        ConcreteDeleteStylePrimerCommandHandler
+    )
+    
+    container.register_transient(
         CreateGeneratedContentCommandHandler,
         ConcreteCreateGeneratedContentCommandHandler
+    )
+    
+    container.register_transient(
+        UpdateGeneratedContentCommandHandler,
+        ConcreteUpdateGeneratedContentCommandHandler
+    )
+    
+    container.register_transient(
+        DeleteGeneratedContentCommandHandler,
+        ConcreteDeleteGeneratedContentCommandHandler
+    )
+    
+    container.register_transient(
+        ValidateContentCommandHandler,
+        ConcreteValidateContentCommandHandler
+    )
+    
+    container.register_transient(
+        PublishTemplateCommandHandler,
+        ConcretePublishTemplateCommandHandler
+    )
+    
+    container.register_transient(
+        DeprecateTemplateCommandHandler,
+        ConcreteDeprecateTemplateCommandHandler
     )
 
 
@@ -323,8 +372,36 @@ def get_command_handler_registrations() -> Dict[Type, Dict[str, Any]]:
             'implementation': ConcreteCreateStylePrimerCommandHandler,
             'lifetime': ServiceLifetime.TRANSIENT
         },
+        UpdateStylePrimerCommandHandler: {
+            'implementation': ConcreteUpdateStylePrimerCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        DeleteStylePrimerCommandHandler: {
+            'implementation': ConcreteDeleteStylePrimerCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
         CreateGeneratedContentCommandHandler: {
             'implementation': ConcreteCreateGeneratedContentCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        UpdateGeneratedContentCommandHandler: {
+            'implementation': ConcreteUpdateGeneratedContentCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        DeleteGeneratedContentCommandHandler: {
+            'implementation': ConcreteDeleteGeneratedContentCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        ValidateContentCommandHandler: {
+            'implementation': ConcreteValidateContentCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        PublishTemplateCommandHandler: {
+            'implementation': ConcretePublishTemplateCommandHandler,
+            'lifetime': ServiceLifetime.TRANSIENT
+        },
+        DeprecateTemplateCommandHandler: {
+            'implementation': ConcreteDeprecateTemplateCommandHandler,
             'lifetime': ServiceLifetime.TRANSIENT
         },
     }

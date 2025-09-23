@@ -506,6 +506,55 @@ class StylePrimerCreated(DomainEvent):
 
 
 @dataclass(frozen=True)
+class TemplateDeleted(DomainEvent):
+    """Event fired when a template is deleted.
+    
+    This event is published when a template is permanently removed
+    from the system, either by user action or cleanup processes.
+    """
+    
+    template_id: ContentId = field()
+    template_name: TemplateName = field()
+    template_type: str = field()
+    scope: str = field()
+    workspace_name: Optional[str] = field()
+    deleted_at: datetime = field()
+    deleted_by: Optional[str] = field()
+    reason: Optional[str] = field()
+    backup_location: Optional[str] = field(default=None)
+    
+    def __post_init__(self):
+        super().__init__()
+    
+    @property
+    def event_type(self) -> str:
+        return "content.template_deleted"
+    
+    @property
+    def aggregate_id(self) -> str:
+        return str(self.template_id)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "event_type": self.event_type,
+            "event_id": str(self.event_id),
+            "aggregate_id": self.aggregate_id,
+            "timestamp": self.timestamp.isoformat(),
+            "data": {
+                "template_id": str(self.template_id),
+                "template_name": str(self.template_name),
+                "template_type": self.template_type,
+                "scope": self.scope,
+                "workspace_name": self.workspace_name,
+                "deleted_at": self.deleted_at.isoformat(),
+                "deleted_by": self.deleted_by,
+                "reason": self.reason,
+                "backup_location": self.backup_location
+            }
+        }
+
+
+@dataclass(frozen=True)
 class StylePrimerUpdated(DomainEvent):
     """Event fired when a style primer is updated.
     

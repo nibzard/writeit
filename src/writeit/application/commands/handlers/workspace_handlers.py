@@ -17,14 +17,15 @@ from ....shared.events import EventBus
 from ....domains.workspace.entities import Workspace, WorkspaceConfiguration
 from ....domains.workspace.repositories import WorkspaceRepository, WorkspaceConfigRepository
 from ....domains.workspace.services import WorkspaceIsolationService, WorkspaceTemplateService
-from ....domains.workspace.value_objects import WorkspaceName
+from ....domains.workspace.value_objects import WorkspaceName, WorkspacePath
 from ....domains.workspace.events import (
     WorkspaceCreated, 
     WorkspaceActivated, 
     WorkspaceDeleted, 
     WorkspaceConfigUpdated,
     WorkspaceInitialized,
-    WorkspaceArchived
+    WorkspaceArchived,
+    WorkspaceRestored
 )
 
 from ..workspace_commands import (
@@ -128,17 +129,15 @@ class ConcreteCreateWorkspaceCommandHandler(
                 )
             
             # Publish domain event
+            workspace_path = WorkspacePath.from_path(workspace.base_path) if workspace.base_path else WorkspacePath.from_path(Path.home() / ".writeit" / "workspaces" / str(workspace_name))
+            
             event = WorkspaceCreated(
-                workspace_id=workspace.id,
                 workspace_name=workspace_name,
-                description=command.description,
-                base_path=str(workspace.base_path) if workspace.base_path else None,
+                workspace_path=workspace_path,
+                created_by=None,  # TODO: Add user context
                 created_at=datetime.now(),
-                metadata={
-                    "initialize_storage": command.initialize_storage,
-                    "copy_global_templates": command.copy_global_templates,
-                    "template_name": command.template_name
-                }
+                initial_config=command.configuration or {},
+                is_default=False
             )
             await self._event_bus.publish(event)
             
@@ -229,16 +228,14 @@ class ConcreteSwitchWorkspaceCommandHandler(
             await self._workspace_repository.set_active_workspace(target_workspace)
             
             # Publish domain event
+            target_workspace_path = WorkspacePath.from_path(target_workspace.base_path) if target_workspace.base_path else WorkspacePath.from_path(Path.home() / ".writeit" / "workspaces" / str(target_workspace_name))
+            
             event = WorkspaceActivated(
-                workspace_id=target_workspace.id,
                 workspace_name=target_workspace_name,
-                previous_workspace_id=current_workspace.id if current_workspace else None,
-                previous_workspace_name=current_workspace.name if current_workspace else None,
+                workspace_path=target_workspace_path,
+                activated_by=None,  # TODO: Add user context
                 activated_at=datetime.now(),
-                metadata={
-                    "save_current_state": command.save_current_state,
-                    "validate_workspace": command.validate_workspace
-                }
+                previous_workspace=current_workspace.name if current_workspace else None
             )
             await self._event_bus.publish(event)
             
@@ -329,15 +326,16 @@ class ConcreteDeleteWorkspaceCommandHandler(
             await self._workspace_repository.delete(workspace.id)
             
             # Publish domain event
+            workspace_path = WorkspacePath.from_path(workspace.base_path) if workspace.base_path else WorkspacePath.from_path(Path.home() / ".writeit" / "workspaces" / str(workspace_name))
+            
             event = WorkspaceDeleted(
-                workspace_id=workspace.id,
                 workspace_name=workspace_name,
+                workspace_path=workspace_path,
+                deleted_by=None,  # TODO: Add user context
                 deleted_at=datetime.now(),
                 reason="User requested deletion",
-                metadata={
-                    "force": command.force,
-                    "backup_created": command.backup_before_delete
-                }
+                backup_created=command.backup_before_delete,
+                backup_location=None  # TODO: Add backup location if backup was created
             )
             await self._event_bus.publish(event)
             
@@ -452,16 +450,21 @@ class ConcreteConfigureWorkspaceCommandHandler(
             await self._workspace_repository.save(updated_workspace)
             
             # Publish domain event
+            workspace_path = WorkspacePath.from_path(workspace.base_path) if workspace.base_path else WorkspacePath.from_path(Path.home() / ".writeit" / "workspaces" / str(workspace_name))
+            
+            # Calculate config changes
+            old_settings = current_config.settings if current_config else {}
+            new_settings = updated_config.settings
+            config_changes = {k: v for k, v in new_settings.items() if k not in old_settings or old_settings[k] != v}
+            
             event = WorkspaceConfigUpdated(
-                workspace_id=workspace.id,
                 workspace_name=workspace_name,
-                old_settings=current_config.settings if current_config else {},
-                new_settings=updated_config.settings,
+                workspace_path=workspace_path,
+                updated_by=None,  # TODO: Add user context
                 updated_at=datetime.now(),
-                metadata={
-                    "merge_with_existing": command.merge_with_existing,
-                    "validate_configuration": command.validate_configuration
-                }
+                config_changes=config_changes,
+                old_config=old_settings,
+                new_config=new_settings
             )
             await self._event_bus.publish(event)
             
@@ -550,15 +553,16 @@ class ConcreteInitializeWorkspaceCommandHandler(
                 )
             
             # Publish domain event
+            workspace_path = WorkspacePath.from_path(workspace.base_path) if workspace.base_path else WorkspacePath.from_path(Path.home() / ".writeit" / "workspaces" / str(workspace_name))
+            
             event = WorkspaceInitialized(
-                workspace_id=workspace.id,
                 workspace_name=workspace_name,
+                workspace_path=workspace_path,
+                initialized_by=None,  # TODO: Add user context
                 initialized_at=datetime.now(),
-                metadata={
-                    "create_directories": command.create_directories,
-                    "setup_storage": command.setup_storage,
-                    "template_name": command.template_name
-                }
+                directories_created=["templates", "storage", "config"] if command.create_directories else [],
+                templates_installed=[command.template_name] if command.template_name else [],
+                config_file_path=str(workspace_path / "config" / "workspace.yaml")
             )
             await self._event_bus.publish(event)
             
@@ -638,16 +642,17 @@ class ConcreteArchiveWorkspaceCommandHandler(
             )
             
             # Publish domain event
+            workspace_path = WorkspacePath.from_path(workspace.base_path) if workspace.base_path else WorkspacePath.from_path(Path.home() / ".writeit" / "workspaces" / str(workspace_name))
+            archive_location = WorkspacePath.from_path(archive_path)
+            
             event = WorkspaceArchived(
-                workspace_id=workspace.id,
                 workspace_name=workspace_name,
-                archive_path=str(archive_path),
+                workspace_path=workspace_path,
+                archived_by=None,  # TODO: Add user context
                 archived_at=datetime.now(),
-                metadata={
-                    "include_storage": command.include_storage,
-                    "include_config": command.include_config,
-                    "compression_level": command.compression_level
-                }
+                archive_location=archive_location,
+                archive_format="zip",
+                reason="User requested archive"
             )
             await self._event_bus.publish(event)
             
@@ -788,15 +793,17 @@ class ConcreteRestoreWorkspaceCommandHandler(
             await self._isolation_service.initialize_workspace_storage(workspace)
             
             # Publish domain event
+            workspace_path = WorkspacePath.from_path(restore_path)
+            archive_source = WorkspacePath.from_path(command.archive_path)
+            
             event = WorkspaceRestored(
-                workspace_id=workspace.id,
                 workspace_name=workspace_name_obj,
-                archive_path=str(command.archive_path),
-                restore_path=str(restore_path),
+                workspace_path=workspace_path,
+                restored_by=None,  # TODO: Add user context
                 restored_at=datetime.now(),
-                metadata={
-                    "overwrite_existing": command.overwrite_existing
-                }
+                archive_source=archive_source,
+                restoration_mode="full",
+                overwrite_existing=command.overwrite_existing
             )
             await self._event_bus.publish(event)
             

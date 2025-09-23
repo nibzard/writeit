@@ -6,6 +6,7 @@ from .content_events import (
     # Template events
     TemplateCreated,
     TemplateUpdated,
+    TemplateDeleted,
     TemplatePublished,
     TemplateDeprecated,
     TemplateValidated,
@@ -24,7 +25,8 @@ from .content_events import (
 __all__ = [
     # Template events
     "TemplateCreated",
-    "TemplateUpdated", 
+    "TemplateUpdated",
+    "TemplateDeleted", 
     "TemplatePublished",
     "TemplateDeprecated",
     "TemplateValidated",

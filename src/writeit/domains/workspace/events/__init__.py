@@ -9,7 +9,8 @@ from .workspace_events import (
     WorkspaceDeleted,
     WorkspaceConfigUpdated,
     WorkspaceInitialized,
-    WorkspaceArchived
+    WorkspaceArchived,
+    WorkspaceRestored
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "WorkspaceConfigUpdated",
     "WorkspaceInitialized",
     "WorkspaceArchived",
+    "WorkspaceRestored",
 ]

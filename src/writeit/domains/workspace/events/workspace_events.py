@@ -274,3 +274,48 @@ class WorkspaceArchived(DomainEvent):
                 "reason": self.reason
             }
         }
+
+
+@dataclass(frozen=True)
+class WorkspaceRestored(DomainEvent):
+    """Event fired when a workspace is restored from archive.
+    
+    This event is published when a workspace is successfully
+    restored from an archive file to active use.
+    """
+    
+    workspace_name: WorkspaceName = field()
+    workspace_path: WorkspacePath = field()
+    restored_by: Optional[str] = field()
+    restored_at: datetime = field()
+    archive_source: WorkspacePath = field()
+    restoration_mode: str = field(default="full")  # "full", "partial", "config_only"
+    overwrite_existing: bool = field(default=False)
+    
+    def __post_init__(self):
+        super().__init__()
+    
+    @property
+    def event_type(self) -> str:
+        return "workspace.restored"
+    
+    @property
+    def aggregate_id(self) -> str:
+        return str(self.workspace_name)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "event_type": self.event_type,
+            "event_id": str(self.event_id),
+            "aggregate_id": self.aggregate_id,
+            "timestamp": self.timestamp.isoformat(),
+            "data": {
+                "workspace_name": str(self.workspace_name),
+                "workspace_path": str(self.workspace_path),
+                "restored_by": self.restored_by,
+                "restored_at": self.restored_at.isoformat(),
+                "archive_source": str(self.archive_source),
+                "restoration_mode": self.restoration_mode,
+                "overwrite_existing": self.overwrite_existing
+            }
+        }
