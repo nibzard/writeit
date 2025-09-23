@@ -404,6 +404,105 @@ class ConcreteDeletePipelineTemplateCommandHandler(
         return errors
 
 
+class ConcretePublishPipelineTemplateCommandHandler(
+    ConcretePipelineTemplateCommandHandler,
+    PublishPipelineTemplateCommandHandler
+):
+    """Concrete handler for publishing pipeline templates."""
+    
+    async def handle(self, command: PublishPipelineTemplateCommand) -> PipelineTemplateCommandResult:
+        """Handle pipeline template publishing."""
+        logger.info(f"Publishing pipeline template: {command.pipeline_id}")
+        
+        try:
+            # Find existing template
+            template = await self._template_repository.find_by_id(command.pipeline_id)
+            if not template:
+                return PipelineTemplateCommandResult(
+                    success=False,
+                    message=f"Pipeline template not found: {command.pipeline_id}",
+                    errors=[f"Template with ID {command.pipeline_id} does not exist"]
+                )
+            
+            # Validate template before publishing
+            validation_result = await self._validation_service.validate_template_content(
+                content=template.content,
+                validation_level="strict"
+            )
+            
+            if not validation_result.is_valid:
+                return PipelineTemplateCommandResult(
+                    success=False,
+                    message="Template validation failed - cannot publish invalid template",
+                    validation_errors=validation_result.errors,
+                    warnings=validation_result.warnings
+                )
+            
+            # Check target scope
+            if command.target_scope == "global":
+                # Publishing to global scope requires additional validation
+                # TODO: Add global scope validation (permissions, naming conventions, etc.)
+                pass
+            
+            # Publish template (mark as published)
+            published_template = template.publish(target_scope=command.target_scope)
+            
+            # Save published template
+            await self._template_repository.save(published_template)
+            
+            # Publish domain event
+            event = PipelinePublished(
+                pipeline_id=command.pipeline_id,
+                pipeline_name=template.name,
+                version=published_template.version,
+                target_scope=command.target_scope,
+                published_by=None,  # TODO: Extract from command context
+                published_at=datetime.now(),
+                metadata={
+                    "workspace": command.workspace_name,
+                    "validation_passed": True
+                }
+            )
+            await self._event_bus.publish(event)
+            
+            logger.info(f"Successfully published pipeline template: {command.pipeline_id}")
+            
+            return PipelineTemplateCommandResult(
+                success=True,
+                message=f"Pipeline template published to {command.target_scope} scope successfully",
+                pipeline_id=command.pipeline_id,
+                template=published_template,
+                warnings=validation_result.warnings
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to publish pipeline template: {e}", exc_info=True)
+            return PipelineTemplateCommandResult(
+                success=False,
+                message=f"Failed to publish pipeline template: {str(e)}",
+                errors=[str(e)]
+            )
+    
+    async def validate(self, command: PublishPipelineTemplateCommand) -> List[str]:
+        """Validate publish pipeline template command."""
+        errors = []
+        
+        if not command.pipeline_id:
+            errors.append("Pipeline ID is required")
+        
+        if command.target_scope not in ["workspace", "global"]:
+            errors.append("Target scope must be 'workspace' or 'global'")
+        
+        # Validate workspace name if provided
+        if command.workspace_name:
+            try:
+                WorkspaceName.from_string(command.workspace_name)
+            except ValueError as e:
+                errors.append(f"Invalid workspace name: {e}")
+        
+        return errors
+
+
 class ConcreteValidatePipelineTemplateCommandHandler(
     ConcretePipelineTemplateCommandHandler,
     ValidatePipelineTemplateCommandHandler
