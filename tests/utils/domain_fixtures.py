@@ -10,17 +10,20 @@ from uuid import uuid4
 import pytest
 from pathlib import Path
 
-# Domain entity imports
-from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
+# Domain entity imports - Updated to match current domain structure
+from writeit.domains.pipeline.entities.pipeline_template import (
+    PipelineTemplate, PipelineStepTemplate, PipelineInput
+)
 from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from writeit.domains.pipeline.entities.pipeline_step import PipelineStep
-from writeit.domains.pipeline.entities.pipeline_metadata import PipelineMetadata
+from writeit.domains.pipeline.entities.pipeline_step import PipelineStep, StepExecution
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from writeit.domains.content.entities.template import Template
 from writeit.domains.content.entities.style_primer import StylePrimer
 from writeit.domains.content.entities.generated_content import GeneratedContent
-from writeit.domains.execution.entities.llm_provider import LLMProvider
+from writeit.domains.execution.entities.llm_provider import (
+    LLMProvider, ProviderType, ProviderStatus
+)
 from writeit.domains.execution.entities.execution_context import ExecutionContext
 from writeit.domains.execution.entities.token_usage import TokenUsage
 
@@ -97,28 +100,67 @@ class DomainFixtures:
         return ExecutionStatus(status)
     
     @staticmethod
-    def create_pipeline_metadata(
-        name: str = "test-pipeline",
-        description: str = "Test pipeline description",
-        version: str = "1.0.0",
-        author: str = "Test Author",
+    def create_pipeline_input(
+        key: str = "topic",
+        input_type: str = "text",
+        label: str = "Topic",
+        required: bool = True,
         **kwargs
-    ) -> PipelineMetadata:
-        """Create test pipeline metadata."""
-        return PipelineMetadata(
+    ) -> PipelineInput:
+        """Create a test pipeline input."""
+        return PipelineInput(
+            key=key,
+            type=input_type,
+            label=label,
+            required=required,
+            placeholder=kwargs.get("placeholder", "Enter topic..."),
+            help=kwargs.get("help", ""),
+            options=kwargs.get("options", []),
+            max_length=kwargs.get("max_length"),
+            validation=kwargs.get("validation", {})
+        )
+    
+    @staticmethod
+    def create_pipeline_step_template(
+        step_id: StepId = None,
+        name: str = "Test Step",
+        description: str = "Test step description",
+        step_type: str = "llm_generate",
+        prompt_template: PromptTemplate = None,
+        model_preference: ModelPreference = None,
+        depends_on: List[StepId] = None,
+        **kwargs
+    ) -> PipelineStepTemplate:
+        """Create a test pipeline step template."""
+        if step_id is None:
+            step_id = DomainFixtures.create_step_id()
+        if prompt_template is None:
+            prompt_template = DomainFixtures.create_prompt_template()
+        if model_preference is None:
+            model_preference = DomainFixtures.create_model_preference()
+        if depends_on is None:
+            depends_on = []
+        
+        return PipelineStepTemplate(
+            id=step_id,
             name=name,
             description=description,
-            version=version,
-            author=author,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
-            **kwargs
+            type=step_type,
+            prompt_template=prompt_template,
+            model_preference=model_preference,
+            depends_on=depends_on,
+            selection_prompt=kwargs.get("selection_prompt", ""),
+            validation=kwargs.get("validation", {}),
+            ui=kwargs.get("ui", {}),
+            parallel=kwargs.get("parallel", False),
+            retry_config=kwargs.get("retry_config", {})
         )
     
     @staticmethod
     def create_pipeline_step(
         step_id: StepId = None,
         name: StepName = None,
+        description: str = "Test step description",
         step_type: str = "llm_generate",
         prompt_template: PromptTemplate = None,
         model_preference: ModelPreference = None,
@@ -137,83 +179,99 @@ class DomainFixtures:
         if depends_on is None:
             depends_on = []
         
-        return PipelineStep(
+        return PipelineStep.create(
             step_id=step_id,
             name=name,
+            description=description,
             step_type=step_type,
             prompt_template=prompt_template,
             model_preference=model_preference,
             depends_on=depends_on,
-            configuration=kwargs.get("configuration", {}),
-            retry_configuration=kwargs.get("retry_configuration", {})
+            **kwargs
+        )
+    
+    @staticmethod
+    def create_step_execution(
+        step_id: StepId = None,
+        step_name: StepName = None,
+        status: ExecutionStatus = None,
+        **kwargs
+    ) -> StepExecution:
+        """Create a test step execution."""
+        if step_id is None:
+            step_id = DomainFixtures.create_step_id()
+        if step_name is None:
+            step_name = DomainFixtures.create_step_name()
+        if status is None:
+            status = DomainFixtures.create_execution_status("pending")
+        
+        return StepExecution.create(
+            step_id=step_id,
+            step_name=step_name,
+            max_retries=kwargs.get("max_retries", 3),
+            metadata=kwargs.get("metadata", {})
         )
     
     @staticmethod
     def create_pipeline_template(
         pipeline_id: PipelineId = None,
-        metadata: PipelineMetadata = None,
-        inputs: Dict[str, Any] = None,
-        steps: List[PipelineStep] = None,
+        name: str = "Test Pipeline",
+        description: str = "Test pipeline description",
+        version: str = "1.0.0",
+        inputs: List[PipelineInput] = None,
+        steps: List[PipelineStepTemplate] = None,
         defaults: Dict[str, Any] = None,
         **kwargs
     ) -> PipelineTemplate:
         """Create a test pipeline template."""
         if pipeline_id is None:
             pipeline_id = DomainFixtures.create_pipeline_id()
-        if metadata is None:
-            metadata = DomainFixtures.create_pipeline_metadata()
         if inputs is None:
-            inputs = {
-                "topic": {
-                    "type": "text",
-                    "label": "Topic",
-                    "required": True,
-                    "placeholder": "Enter topic..."
-                }
-            }
+            inputs = [DomainFixtures.create_pipeline_input()]
         if steps is None:
-            steps = [DomainFixtures.create_pipeline_step()]
+            steps = [DomainFixtures.create_pipeline_step_template()]
         if defaults is None:
             defaults = {"model": "gpt-4o-mini"}
         
-        return PipelineTemplate(
-            pipeline_id=pipeline_id,
-            metadata=metadata,
+        return PipelineTemplate.create(
+            name=name,
+            description=description,
             inputs=inputs,
             steps=steps,
+            version=version,
+            metadata=kwargs.get("metadata", {}),
             defaults=defaults,
-            **kwargs
+            tags=kwargs.get("tags", []),
+            author=kwargs.get("author")
         )
     
     @staticmethod
     def create_pipeline_run(
         run_id: str = None,
-        pipeline_template: PipelineTemplate = None,
-        workspace_name: WorkspaceName = None,
-        user_inputs: Dict[str, Any] = None,
+        pipeline_id: PipelineId = None,
+        pipeline_name: str = None,
+        workspace_name: str = "test-workspace",
+        inputs: Dict[str, Any] = None,
         status: ExecutionStatus = None,
         **kwargs
     ) -> PipelineRun:
         """Create a test pipeline run."""
         if run_id is None:
-            run_id = str(uuid4())
-        if pipeline_template is None:
-            pipeline_template = DomainFixtures.create_pipeline_template()
-        if workspace_name is None:
-            workspace_name = DomainFixtures.create_workspace_name()
-        if user_inputs is None:
-            user_inputs = {"topic": "Test Topic"}
+            run_id = f"run-{uuid4().hex[:8]}"
+        if pipeline_id is None:
+            pipeline_id = DomainFixtures.create_pipeline_id()
+        if inputs is None:
+            inputs = {"topic": "Test Topic"}
         if status is None:
-            status = DomainFixtures.create_execution_status("running")
+            status = DomainFixtures.create_execution_status("created")
         
-        return PipelineRun(
-            run_id=run_id,
-            pipeline_template=pipeline_template,
+        return PipelineRun.create(
+            id=run_id,
+            pipeline_id=pipeline_id,
+            pipeline_name=pipeline_name,
             workspace_name=workspace_name,
-            user_inputs=user_inputs,
-            status=status,
-            created_at=datetime.now(timezone.utc),
-            **kwargs
+            inputs=inputs,
+            metadata=kwargs.get("metadata", {})
         )
     
     # ============================================================================
@@ -447,22 +505,23 @@ class DomainFixtures:
     
     @staticmethod
     def create_llm_provider(
-        provider_name: str = "openai",
-        model_name: ModelName = None,
-        api_key: str = "test-api-key",
+        name: str = "OpenAI Test",
+        provider_type: ProviderType = ProviderType.OPENAI,
+        status: ProviderStatus = ProviderStatus.ACTIVE,
+        api_key_ref: str = "test-api-key",
+        supported_models: List[ModelName] = None,
         **kwargs
     ) -> LLMProvider:
         """Create a test LLM provider."""
-        if model_name is None:
-            model_name = DomainFixtures.create_model_name()
+        if supported_models is None:
+            supported_models = [DomainFixtures.create_model_name()]
         
-        return LLMProvider(
-            provider_name=provider_name,
-            model_name=model_name,
-            api_key=api_key,
-            configuration=kwargs.get("configuration", {}),
-            rate_limits=kwargs.get("rate_limits", {}),
-            **kwargs
+        return LLMProvider.create(
+            name=name,
+            provider_type=provider_type,
+            api_key_ref=api_key_ref,
+            supported_models=supported_models,
+            capabilities=kwargs.get("capabilities")
         )
     
     @staticmethod
