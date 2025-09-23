@@ -11,6 +11,12 @@ from pathlib import Path
 from .factory import ContainerFactory, workspace_containers
 from .resolver import ServiceResolver
 from .configuration import DIConfiguration, Environment
+from .service_manager import (
+    ServiceManager,
+    get_service_manager,
+    configure_for_environment,
+    create_default_container
+)
 
 # Import domain services (these would be the actual imports)
 # from writeit.domains.pipeline.services import PipelineExecutionService
@@ -177,6 +183,89 @@ def example_configuration_based_setup() -> None:
         print(f"Configuration setup error: {e}")
 
 
+def example_service_manager_usage() -> None:
+    """Example of using the new ServiceManager."""
+    print("Working with ServiceManager")
+    
+    try:
+        # Get the global service manager (creates default if none exists)
+        manager = get_service_manager()
+        print(f"Service manager environment: {manager.environment}")
+        
+        # Create container with default services
+        container = manager.create_container(workspace_name="example-workspace")
+        print(f"Created container with {len(manager.get_registered_services())} services")
+        
+        # Diagnose container health
+        diagnostics = manager.diagnose_container(container)
+        print(f"Container diagnostics:")
+        print(f"  - Registered services: {len(diagnostics['registered_services'])}")
+        print(f"  - Failed resolutions: {len(diagnostics['failed_resolutions'])}")
+        print(f"  - Circular dependencies: {len(diagnostics['circular_dependencies'])}")
+        
+        # Configure for specific environment
+        test_manager = configure_for_environment(Environment.TESTING)
+        test_container = test_manager.create_container("test-workspace")
+        print(f"Created testing container for environment: {test_manager.environment}")
+        
+    except Exception as e:
+        print(f"Service manager error: {e}")
+
+
+def example_environment_specific_setup() -> None:
+    """Example of environment-specific service configuration."""
+    print("Setting up environment-specific services")
+    
+    try:
+        # Development environment
+        dev_manager = ServiceManager.for_environment(Environment.DEVELOPMENT)
+        dev_container = dev_manager.create_container("dev-workspace")
+        print(f"Development container created with {len(dev_manager.get_registered_services())} services")
+        
+        # Testing environment (could have mock services)
+        test_manager = ServiceManager.for_environment(Environment.TESTING) 
+        test_container = test_manager.create_container("test-workspace")
+        print(f"Testing container created with {len(test_manager.get_registered_services())} services")
+        
+        # Production environment
+        prod_manager = ServiceManager.for_environment(Environment.PRODUCTION)
+        prod_container = prod_manager.create_container("prod-workspace")
+        print(f"Production container created with {len(prod_manager.get_registered_services())} services")
+        
+        # Validate configurations
+        for name, manager in [("dev", dev_manager), ("test", test_manager), ("prod", prod_manager)]:
+            issues = manager.validate_configuration()
+            if issues:
+                print(f"{name} configuration issues: {issues}")
+            else:
+                print(f"{name} configuration is valid")
+        
+    except Exception as e:
+        print(f"Environment setup error: {e}")
+
+
+def example_default_container() -> None:
+    """Example of using the convenience function for default container."""
+    print("Using default container convenience function")
+    
+    try:
+        # Simple way to get a container with all default services
+        container = create_default_container("simple-workspace")
+        resolver = ServiceResolver(container)
+        
+        print("Default container created with all registered services")
+        
+        # This container has all the WriteIt services automatically registered
+        # pipeline_service = resolver.resolve(PipelineExecutionService)
+        # workspace_service = resolver.resolve(WorkspaceIsolationService)
+        # content_service = resolver.resolve(ContentValidationService)
+        
+        print("All domain services available for resolution")
+        
+    except Exception as e:
+        print(f"Default container error: {e}")
+
+
 def example_child_containers() -> None:
     """Example of using child containers for isolation."""
     print("Working with child containers")
@@ -225,6 +314,15 @@ def main() -> None:
         print()
         
         example_child_containers()
+        print()
+        
+        example_service_manager_usage()
+        print()
+        
+        example_environment_specific_setup()
+        print()
+        
+        example_default_container()
         print()
         
         # Asynchronous examples

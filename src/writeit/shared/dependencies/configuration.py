@@ -98,10 +98,10 @@ class DIConfiguration:
         """Create default configuration for WriteIt.
         
         Returns:
-            Default configuration with common WriteIt services
+            Default configuration with all implemented WriteIt services
         """
         services = [
-            # Storage repositories
+            # Repository interfaces (with infrastructure implementations)
             {
                 "service_type": "writeit.domains.pipeline.repositories.PipelineTemplateRepository",
                 "implementation_type": "writeit.infrastructure.persistence.LMDBPipelineTemplateRepository",
@@ -141,6 +141,11 @@ class DIConfiguration:
                 "implementation_type": "writeit.infrastructure.persistence.FileSystemStylePrimerRepository",
                 "lifetime": "singleton"
             },
+            {
+                "service_type": "writeit.domains.content.repositories.GeneratedContentRepository",
+                "implementation_type": "writeit.infrastructure.persistence.LMDBGeneratedContentRepository",
+                "lifetime": "singleton"
+            },
             
             # Execution repositories
             {
@@ -154,7 +159,7 @@ class DIConfiguration:
                 "lifetime": "singleton"
             },
             
-            # Domain services
+            # Pipeline Domain Services
             {
                 "service_type": "writeit.domains.pipeline.services.PipelineValidationService",
                 "lifetime": "singleton"
@@ -167,12 +172,40 @@ class DIConfiguration:
                 "service_type": "writeit.domains.pipeline.services.StepDependencyService",
                 "lifetime": "singleton"
             },
+            
+            # Workspace Domain Services
+            {
+                "service_type": "writeit.domains.workspace.services.WorkspaceManagementService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.domains.workspace.services.WorkspaceConfigurationService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.domains.workspace.services.WorkspaceAnalyticsService",
+                "lifetime": "singleton"
+            },
             {
                 "service_type": "writeit.domains.workspace.services.WorkspaceIsolationService",
                 "lifetime": "singleton"
             },
             {
                 "service_type": "writeit.domains.workspace.services.WorkspaceTemplateService",
+                "lifetime": "singleton"
+            },
+            
+            # Content Domain Services
+            {
+                "service_type": "writeit.domains.content.services.TemplateManagementService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.domains.content.services.StyleManagementService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.domains.content.services.ContentGenerationService",
                 "lifetime": "singleton"
             },
             {
@@ -183,6 +216,8 @@ class DIConfiguration:
                 "service_type": "writeit.domains.content.services.ContentValidationService",
                 "lifetime": "singleton"
             },
+            
+            # Execution Domain Services
             {
                 "service_type": "writeit.domains.execution.services.LLMOrchestrationService",
                 "lifetime": "singleton"
@@ -196,9 +231,21 @@ class DIConfiguration:
                 "lifetime": "singleton"
             },
             
-            # Application services
+            # Application Services
             {
                 "service_type": "writeit.application.services.PipelineApplicationService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.application.services.WorkspaceApplicationService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.application.services.ContentApplicationService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.application.services.ExecutionApplicationService",
                 "lifetime": "singleton"
             }
         ]

@@ -219,21 +219,21 @@
 
 ### 2.1 Implement Dependency Injection Container
 
-- [*] **Create DI Container** - IN PROGRESS 2025-01-23 11:31
-  - [*] `src/writeit/shared/container.py`: Main DI container - IN PROGRESS 2025-01-23 11:31
-  - [*] Support for singleton, transient, and scoped lifetimes - IN PROGRESS 2025-01-23 11:31
-  - [*] Auto-wiring based on type hints - IN PROGRESS 2025-01-23 11:31
-  - [*] Configuration-based registration - IN PROGRESS 2025-01-23 11:31
+- [x] **Create DI Container** - COMPLETED 2025-01-23 11:36
+  - [x] `src/writeit/shared/container.py`: Main DI container - COMPLETED 2025-01-23 11:36
+  - [x] Support for singleton, transient, and scoped lifetimes - COMPLETED 2025-01-23 11:36
+  - [x] Auto-wiring based on type hints - COMPLETED 2025-01-23 11:36
+  - [x] Configuration-based registration - COMPLETED 2025-01-23 11:36
 
-- [ ] **Repository Registration**
-  - [ ] Register all repository interfaces with implementations
-  - [ ] Configure repository scoping (per-workspace, global, etc.)
-  - [ ] Environment-based configuration (dev, test, prod)
+- [x] **Repository Registration** - COMPLETED 2025-01-23 11:35
+  - [x] Register all repository interfaces with implementations
+  - [x] Configure repository scoping (per-workspace, global, etc.)
+  - [x] Environment-based configuration (dev, test, prod)
 
-- [ ] **Service Registration**
-  - [ ] Register domain services with dependencies
-  - [ ] Application service registration
-  - [ ] Infrastructure service registration
+- [x] **Service Registration** - COMPLETED 2025-01-23 11:50
+  - [x] Register domain services with dependencies - COMPLETED 2025-01-23 11:50
+  - [x] Application service registration - COMPLETED 2025-01-23 11:50
+  - [x] Infrastructure service registration - COMPLETED 2025-01-23 11:50
 
 ### 2.2 Implement Event Bus & Domain Events
 
