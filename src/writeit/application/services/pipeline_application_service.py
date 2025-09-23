@@ -39,10 +39,45 @@ from ...domains.pipeline.value_objects import (
     PipelineId,
     StepId,
     ExecutionStatus,
-    PipelineExecutionStatus,
 )
 from ...domains.workspace.entities import Workspace
 from ...domains.workspace.value_objects import WorkspaceName
+
+# Query infrastructure
+from ...shared.query import QueryBus, SimpleQueryBus
+from ...domains.pipeline.queries import (
+    GetPipelineTemplatesQuery,
+    GetPipelineTemplatesResult,
+    GetPipelineTemplateQuery,
+    GetPipelineTemplateResult,
+    GetPipelineRunQuery,
+    GetPipelineRunResult,
+    GetPipelineRunsQuery,
+    GetPipelineRunsResult,
+    SearchPipelineTemplatesQuery,
+    SearchPipelineTemplatesResult,
+    GetPipelineHistoryQuery,
+    GetPipelineHistoryResult,
+    GetPipelineMetricsQuery,
+    GetPipelineMetricsResult,
+    GetStepExecutionsQuery,
+    GetStepExecutionsResult,
+    GetPipelineTemplatesHandler,
+    GetPipelineTemplateHandler,
+    GetPipelineRunHandler,
+    GetPipelineRunsHandler,
+    SearchPipelineTemplatesHandler,
+    GetPipelineHistoryHandler,
+    GetPipelineMetricsHandler,
+    GetStepExecutionsHandler,
+)
+
+# Repository interfaces
+from ...domains.pipeline.repositories import (
+    PipelineTemplateRepository,
+    PipelineRunRepository,
+    StepExecutionRepository,
+)
 
 
 class PipelineExecutionMode(str, Enum):
@@ -77,7 +112,7 @@ class PipelineExecutionRequest:
 class PipelineExecutionResult:
     """Result of pipeline execution."""
     pipeline_run: PipelineRun
-    execution_status: PipelineExecutionStatus
+    execution_status: ExecutionStatus
     step_results: Dict[str, Any]
     execution_metrics: Dict[str, Any]
     errors: List[str]
@@ -154,6 +189,12 @@ class PipelineApplicationService:
         llm_orchestration_service: LLMOrchestrationService,
         cache_management_service: CacheManagementService,
         token_analytics_service: TokenAnalyticsService,
+        # Query infrastructure
+        query_bus: Optional[QueryBus] = None,
+        # Repositories (optional - will be provided by DI container)
+        template_repository: Optional[PipelineTemplateRepository] = None,
+        run_repository: Optional[PipelineRunRepository] = None,
+        step_repository: Optional[StepExecutionRepository] = None,
     ):
         """Initialize the pipeline application service."""
         # Pipeline domain services
@@ -175,6 +216,18 @@ class PipelineApplicationService:
         self._llm_orchestration = llm_orchestration_service
         self._cache_management = cache_management_service
         self._token_analytics = token_analytics_service
+        
+        # Query infrastructure
+        self._query_bus = query_bus or SimpleQueryBus()
+        
+        # Repositories (will be injected by DI container)
+        self._template_repository = template_repository
+        self._run_repository = run_repository
+        self._step_repository = step_repository
+        
+        # Register query handlers if repositories are available
+        if self._template_repository and self._run_repository and self._step_repository:
+            self._register_query_handlers()
 
     async def create_pipeline(
         self, 
@@ -709,3 +762,380 @@ class PipelineApplicationService:
             )
         
         return recommendations
+
+    # Query handler registration
+    
+    def _register_query_handlers(self) -> None:
+        """Register all query handlers with the query bus."""
+        if not (self._template_repository and self._run_repository and self._step_repository):
+            return
+        
+        # Template query handlers
+        self._query_bus.register_handler(
+            GetPipelineTemplatesQuery,
+            GetPipelineTemplatesHandler(
+                self._template_repository,
+                self._pipeline_validation
+            )
+        )
+        
+        self._query_bus.register_handler(
+            GetPipelineTemplateQuery,
+            GetPipelineTemplateHandler(
+                self._template_repository,
+                self._run_repository
+            )
+        )
+        
+        self._query_bus.register_handler(
+            SearchPipelineTemplatesQuery,
+            SearchPipelineTemplatesHandler(self._template_repository)
+        )
+        
+        # Run query handlers
+        self._query_bus.register_handler(
+            GetPipelineRunQuery,
+            GetPipelineRunHandler(
+                self._run_repository,
+                self._step_repository,
+                self._template_repository
+            )
+        )
+        
+        self._query_bus.register_handler(
+            GetPipelineRunsQuery,
+            GetPipelineRunsHandler(self._run_repository)
+        )
+        
+        # Analytics query handlers
+        self._query_bus.register_handler(
+            GetPipelineHistoryQuery,
+            GetPipelineHistoryHandler(
+                self._run_repository,
+                self._step_repository
+            )
+        )
+        
+        self._query_bus.register_handler(
+            GetPipelineMetricsQuery,
+            GetPipelineMetricsHandler(
+                self._run_repository,
+                self._template_repository
+            )
+        )
+        
+        # Step execution query handlers
+        self._query_bus.register_handler(
+            GetStepExecutionsQuery,
+            GetStepExecutionsHandler(self._step_repository)
+        )
+
+    # Query methods for application layer
+    
+    async def query_pipeline_templates(
+        self,
+        workspace_name: Optional[str] = None,
+        include_global: bool = True,
+        tags: Optional[List[str]] = None,
+        category: Optional[str] = None,
+        author: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 20,
+        sort_by: str = "name",
+        sort_direction: str = "asc"
+    ) -> GetPipelineTemplatesResult:
+        """
+        Query pipeline templates with filtering and pagination.
+        
+        Args:
+            workspace_name: Optional workspace filter
+            include_global: Whether to include global templates
+            tags: Optional tag filters
+            category: Optional category filter
+            author: Optional author filter
+            page: Page number for pagination
+            page_size: Number of items per page
+            sort_by: Field to sort by
+            sort_direction: Sort direction (asc/desc)
+            
+        Returns:
+            Query result with templates and pagination info
+        """
+        query = GetPipelineTemplatesQuery(
+            workspace_name=workspace_name,
+            include_global=include_global,
+            tags=tags or [],
+            category=category,
+            author=author,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_direction=sort_direction
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def query_pipeline_template(
+        self,
+        template_id: Union[str, PipelineId],
+        workspace_name: Optional[str] = None,
+        include_global: bool = True,
+        include_usage_stats: bool = False
+    ) -> GetPipelineTemplateResult:
+        """
+        Query a specific pipeline template.
+        
+        Args:
+            template_id: Template identifier
+            workspace_name: Optional workspace context
+            include_global: Whether to search global templates
+            include_usage_stats: Whether to include usage statistics
+            
+        Returns:
+            Query result with template details
+        """
+        query = GetPipelineTemplateQuery(
+            template_id=template_id,
+            workspace_name=workspace_name,
+            include_global=include_global,
+            include_usage_stats=include_usage_stats
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def search_pipeline_templates(
+        self,
+        search_term: str,
+        workspace_name: Optional[str] = None,
+        include_global: bool = True,
+        search_fields: Optional[List[str]] = None,
+        category_filter: Optional[str] = None,
+        tag_filter: Optional[List[str]] = None,
+        page: int = 1,
+        page_size: int = 20
+    ) -> SearchPipelineTemplatesResult:
+        """
+        Search pipeline templates by text content.
+        
+        Args:
+            search_term: Text to search for
+            workspace_name: Optional workspace filter
+            include_global: Whether to include global templates
+            search_fields: Fields to search in
+            category_filter: Optional category filter
+            tag_filter: Optional tag filters
+            page: Page number for pagination
+            page_size: Number of items per page
+            
+        Returns:
+            Search results with relevance scores
+        """
+        query = SearchPipelineTemplatesQuery(
+            search_term=search_term,
+            workspace_name=workspace_name,
+            include_global=include_global,
+            search_fields=search_fields or ["name", "description", "tags"],
+            category_filter=category_filter,
+            tag_filter=tag_filter or [],
+            page=page,
+            page_size=page_size
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def query_pipeline_run(
+        self,
+        run_id: str,
+        workspace_name: Optional[str] = None,
+        include_step_executions: bool = True,
+        include_outputs: bool = True,
+        include_metrics: bool = False
+    ) -> GetPipelineRunResult:
+        """
+        Query a specific pipeline run.
+        
+        Args:
+            run_id: Run identifier
+            workspace_name: Optional workspace filter
+            include_step_executions: Whether to include step execution details
+            include_outputs: Whether to include run outputs
+            include_metrics: Whether to include execution metrics
+            
+        Returns:
+            Query result with run details
+        """
+        query = GetPipelineRunQuery(
+            run_id=run_id,
+            workspace_name=workspace_name,
+            include_step_executions=include_step_executions,
+            include_outputs=include_outputs,
+            include_metrics=include_metrics
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def query_pipeline_runs(
+        self,
+        workspace_name: Optional[str] = None,
+        template_id: Optional[Union[str, PipelineId]] = None,
+        status_filter: Optional[List[str]] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        page: int = 1,
+        page_size: int = 20,
+        sort_by: str = "created_at",
+        sort_direction: str = "desc"
+    ) -> GetPipelineRunsResult:
+        """
+        Query pipeline runs with filtering and pagination.
+        
+        Args:
+            workspace_name: Optional workspace filter
+            template_id: Optional template filter
+            status_filter: Optional status filters
+            start_date: Optional start date filter
+            end_date: Optional end date filter
+            page: Page number for pagination
+            page_size: Number of items per page
+            sort_by: Field to sort by
+            sort_direction: Sort direction (asc/desc)
+            
+        Returns:
+            Query result with runs and statistics
+        """
+        query = GetPipelineRunsQuery(
+            workspace_name=workspace_name,
+            template_id=template_id,
+            status_filter=status_filter or [],
+            start_date=start_date,
+            end_date=end_date,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_direction=sort_direction
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def query_pipeline_history(
+        self,
+        workspace_name: Optional[str] = None,
+        template_id: Optional[Union[str, PipelineId]] = None,
+        date_range_days: int = 30,
+        include_step_breakdown: bool = False,
+        include_token_usage: bool = True,
+        include_performance_metrics: bool = True,
+        group_by_period: str = "day"
+    ) -> GetPipelineHistoryResult:
+        """
+        Query pipeline execution history and analytics.
+        
+        Args:
+            workspace_name: Optional workspace filter
+            template_id: Optional template filter
+            date_range_days: Number of days to include
+            include_step_breakdown: Whether to include step-level analytics
+            include_token_usage: Whether to include token usage trends
+            include_performance_metrics: Whether to include performance metrics
+            group_by_period: Period for grouping data
+            
+        Returns:
+            Historical analytics and trend data
+        """
+        query = GetPipelineHistoryQuery(
+            workspace_name=workspace_name,
+            template_id=template_id,
+            date_range_days=date_range_days,
+            include_step_breakdown=include_step_breakdown,
+            include_token_usage=include_token_usage,
+            include_performance_metrics=include_performance_metrics,
+            group_by_period=group_by_period
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def query_pipeline_metrics(
+        self,
+        workspace_name: Optional[str] = None,
+        template_ids: Optional[List[Union[str, PipelineId]]] = None,
+        date_range_days: int = 7,
+        include_cost_analysis: bool = True,
+        include_performance_breakdown: bool = True,
+        include_error_analysis: bool = True,
+        compare_previous_period: bool = False
+    ) -> GetPipelineMetricsResult:
+        """
+        Query pipeline performance metrics and KPIs.
+        
+        Args:
+            workspace_name: Optional workspace filter
+            template_ids: Optional template filters
+            date_range_days: Number of days to analyze
+            include_cost_analysis: Whether to include cost analysis
+            include_performance_breakdown: Whether to include performance breakdown
+            include_error_analysis: Whether to include error analysis
+            compare_previous_period: Whether to compare with previous period
+            
+        Returns:
+            Performance metrics and recommendations
+        """
+        query = GetPipelineMetricsQuery(
+            workspace_name=workspace_name,
+            template_ids=template_ids or [],
+            date_range_days=date_range_days,
+            include_cost_analysis=include_cost_analysis,
+            include_performance_breakdown=include_performance_breakdown,
+            include_error_analysis=include_error_analysis,
+            compare_previous_period=compare_previous_period
+        )
+        
+        return await self._query_bus.send(query)
+    
+    async def query_step_executions(
+        self,
+        run_id: Optional[str] = None,
+        step_id: Optional[Union[str, StepId]] = None,
+        workspace_name: Optional[str] = None,
+        status_filter: Optional[List[str]] = None,
+        date_range_days: int = 7,
+        include_outputs: bool = False,
+        include_llm_details: bool = False,
+        page: int = 1,
+        page_size: int = 20,
+        sort_by: str = "started_at",
+        sort_direction: str = "desc"
+    ) -> GetStepExecutionsResult:
+        """
+        Query step executions with filtering and pagination.
+        
+        Args:
+            run_id: Optional run filter
+            step_id: Optional step filter
+            workspace_name: Optional workspace filter
+            status_filter: Optional status filters
+            date_range_days: Number of days to include
+            include_outputs: Whether to include step outputs
+            include_llm_details: Whether to include LLM details
+            page: Page number for pagination
+            page_size: Number of items per page
+            sort_by: Field to sort by
+            sort_direction: Sort direction (asc/desc)
+            
+        Returns:
+            Query result with step executions and analytics
+        """
+        query = GetStepExecutionsQuery(
+            run_id=run_id,
+            step_id=step_id,
+            workspace_name=workspace_name,
+            status_filter=status_filter or [],
+            date_range_days=date_range_days,
+            include_outputs=include_outputs,
+            include_llm_details=include_llm_details,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_direction=sort_direction
+        )
+        
+        return await self._query_bus.send(query)

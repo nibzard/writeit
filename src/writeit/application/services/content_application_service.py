@@ -145,7 +145,7 @@ class ContentOptimizationRequest:
     content_type: str
     workspace_name: Optional[str] = None
     optimization_goal: ContentOptimizationGoal = ContentOptimizationGoal.QUALITY
-    optimization_level: ContentOptimizationLevel = ContentOptimizationLevel.MODERATE
+    optimization_level: ContentOptimizationLevel = ContentOptimizationLevel.STANDARD
 
 
 @dataclass

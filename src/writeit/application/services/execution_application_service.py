@@ -26,10 +26,7 @@ from ...domains.execution.services import (
 )
 from ...domains.execution.entities import LLMProvider, ExecutionContext
 from ...domains.execution.value_objects import (
-    ProviderId,
-    ModelId,
     TokenCount,
-    ExecutionId,
 )
 from ...domains.workspace.services import (
     WorkspaceManagementService,

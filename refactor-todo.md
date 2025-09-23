@@ -345,21 +345,29 @@
 
 ### 4.2 Implement CQRS Query Handlers
 
-- [ ] **Pipeline Queries**
-  - [ ] `GetPipelineTemplatesQuery`: List available templates
-  - [ ] `GetPipelineRunQuery`: Retrieve execution state
-  - [ ] `GetPipelineHistoryQuery`: Execution history
-  - [ ] `GetPipelineMetricsQuery`: Performance analytics
+- [x] **Pipeline Queries** - COMPLETED 2025-01-23 (pre-existing)
+  - [x] `GetPipelineTemplatesQuery`: List available templates
+  - [x] `GetPipelineRunQuery`: Retrieve execution state
+  - [x] `GetPipelineHistoryQuery`: Execution history
+  - [x] `GetPipelineMetricsQuery`: Performance analytics
 
-- [ ] **Workspace Queries**
-  - [ ] `GetWorkspacesQuery`: List all workspaces
-  - [ ] `GetActiveWorkspaceQuery`: Current workspace info
-  - [ ] `GetWorkspaceConfigQuery`: Configuration values
+- [x] **Workspace Queries** - COMPLETED 2025-01-23 (pre-existing)
+  - [x] `GetWorkspacesQuery`: List all workspaces
+  - [x] `GetActiveWorkspaceQuery`: Current workspace info
+  - [x] `GetWorkspaceConfigQuery`: Configuration values
 
-- [ ] **Content Queries**
-  - [ ] `GetTemplatesQuery`: Available templates
-  - [ ] `GetGeneratedContentQuery`: Output history
-  - [ ] `SearchTemplatesQuery`: Template search
+- [x] **Content Queries** - COMPLETED 2025-01-23 (pre-existing)
+  - [x] `GetTemplatesQuery`: Available templates
+  - [x] `GetGeneratedContentQuery`: Output history
+  - [x] `SearchTemplatesQuery`: Template search
+
+- [x] **Execution Queries** - COMPLETED 2025-01-23 20:45
+  - [x] `GetLLMProvidersQuery`: List available LLM providers
+  - [x] `GetLLMProviderHealthQuery`: Provider health status
+  - [x] `GetTokenUsageQuery`: Token consumption tracking
+  - [x] `GetCacheStatsQuery`: Cache performance metrics
+  - [x] `GetExecutionContextQuery`: Execution context details
+  - [x] `GetLLMRequestHistoryQuery`: Request history and analytics
 
 ### 4.3 Implement Application Services
 

@@ -18,10 +18,16 @@ from ..domains.pipeline.services import (
     StepDependencyService
 )
 from ..domains.workspace.services import (
+    WorkspaceManagementService,
+    WorkspaceConfigurationService,
+    WorkspaceAnalyticsService,
     WorkspaceIsolationService,
     WorkspaceTemplateService
 )
 from ..domains.content.services import (
+    TemplateManagementService,
+    StyleManagementService,
+    ContentGenerationService,
     TemplateRenderingService,
     ContentValidationService
 )
@@ -29,6 +35,14 @@ from ..domains.execution.services import (
     LLMOrchestrationService,
     CacheManagementService,
     TokenAnalyticsService
+)
+
+# Application Services
+from .services import (
+    PipelineApplicationService,
+    WorkspaceApplicationService,
+    ContentApplicationService,
+    ExecutionApplicationService
 )
 
 # Repository Interfaces
@@ -168,6 +182,24 @@ from ..application.queries.handlers.content_handlers import (
     ConcreteValidateTemplateQueryHandler,
     ConcreteCheckTemplateExistsQueryHandler,
 )
+from ..application.queries.handlers.execution_handlers import (
+    ConcreteGetLLMProvidersQueryHandler,
+    ConcreteGetLLMProviderQueryHandler,
+    ConcreteGetLLMProviderHealthQueryHandler,
+    ConcreteSearchLLMProvidersQueryHandler,
+    ConcreteGetTokenUsageQueryHandler,
+    ConcreteListTokenUsageQueryHandler,
+    ConcreteGetTokenAnalyticsQueryHandler,
+    ConcreteGetTopTokenConsumersQueryHandler,
+    ConcreteGetCacheStatsQueryHandler,
+    ConcreteGetCacheEntryQueryHandler,
+    ConcreteSearchCacheEntriesQueryHandler,
+    ConcreteGetExecutionContextQueryHandler,
+    ConcreteListExecutionContextsQueryHandler,
+    ConcreteGetActiveExecutionContextsQueryHandler,
+    ConcreteGetLLMRequestHistoryQueryHandler,
+    ConcreteGetLLMRequestPerformanceQueryHandler,
+)
 
 # Query Handler Interfaces
 from ..application.queries.pipeline_queries import (
@@ -206,6 +238,24 @@ from ..application.queries.content_queries import (
     ValidateTemplateQueryHandler,
     CheckTemplateExistsQueryHandler,
 )
+from ..application.queries.execution_queries import (
+    GetLLMProvidersQueryHandler,
+    GetLLMProviderQueryHandler,
+    GetLLMProviderHealthQueryHandler,
+    SearchLLMProvidersQueryHandler,
+    GetTokenUsageQueryHandler,
+    ListTokenUsageQueryHandler,
+    GetTokenAnalyticsQueryHandler,
+    GetTopTokenConsumersQueryHandler,
+    GetCacheStatsQueryHandler,
+    GetCacheEntryQueryHandler,
+    SearchCacheEntriesQueryHandler,
+    GetExecutionContextQueryHandler,
+    ListExecutionContextsQueryHandler,
+    GetActiveExecutionContextsQueryHandler,
+    GetLLMRequestHistoryQueryHandler,
+    GetLLMRequestPerformanceQueryHandler,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -236,6 +286,9 @@ class DIConfiguration:
         
         # Configure domain services
         container = DIConfiguration._configure_domain_services(container)
+        
+        # Configure application services
+        container = DIConfiguration._configure_application_services(container)
         
         # Configure repositories
         container = DIConfiguration._configure_repositories(container)
@@ -282,6 +335,18 @@ class DIConfiguration:
         
         # Workspace Domain Services
         container.register_scoped(
+            WorkspaceManagementService,
+            WorkspaceManagementService
+        )
+        container.register_scoped(
+            WorkspaceConfigurationService,
+            WorkspaceConfigurationService
+        )
+        container.register_scoped(
+            WorkspaceAnalyticsService,
+            WorkspaceAnalyticsService
+        )
+        container.register_scoped(
             WorkspaceIsolationService,
             WorkspaceIsolationService
         )
@@ -291,6 +356,18 @@ class DIConfiguration:
         )
         
         # Content Domain Services
+        container.register_scoped(
+            TemplateManagementService,
+            TemplateManagementService
+        )
+        container.register_scoped(
+            StyleManagementService,
+            StyleManagementService
+        )
+        container.register_scoped(
+            ContentGenerationService,
+            ContentGenerationService
+        )
         container.register_scoped(
             TemplateRenderingService,
             TemplateRenderingService
@@ -312,6 +389,36 @@ class DIConfiguration:
         container.register_scoped(
             TokenAnalyticsService,
             TokenAnalyticsService
+        )
+        
+        return container
+    
+    @staticmethod
+    def _configure_application_services(container: Container) -> Container:
+        """Configure application services."""
+        
+        # Pipeline Application Service
+        container.register_scoped(
+            PipelineApplicationService,
+            PipelineApplicationService
+        )
+        
+        # Workspace Application Service
+        container.register_scoped(
+            WorkspaceApplicationService,
+            WorkspaceApplicationService
+        )
+        
+        # Content Application Service
+        container.register_scoped(
+            ContentApplicationService,
+            ContentApplicationService
+        )
+        
+        # Execution Application Service
+        container.register_scoped(
+            ExecutionApplicationService,
+            ExecutionApplicationService
         )
         
         return container
@@ -610,6 +717,72 @@ class DIConfiguration:
             ConcreteCheckTemplateExistsQueryHandler
         )
         
+        # Execution Query Handlers
+        container.register_transient(
+            GetLLMProvidersQueryHandler,
+            ConcreteGetLLMProvidersQueryHandler
+        )
+        container.register_transient(
+            GetLLMProviderQueryHandler,
+            ConcreteGetLLMProviderQueryHandler
+        )
+        container.register_transient(
+            GetLLMProviderHealthQueryHandler,
+            ConcreteGetLLMProviderHealthQueryHandler
+        )
+        container.register_transient(
+            SearchLLMProvidersQueryHandler,
+            ConcreteSearchLLMProvidersQueryHandler
+        )
+        container.register_transient(
+            GetTokenUsageQueryHandler,
+            ConcreteGetTokenUsageQueryHandler
+        )
+        container.register_transient(
+            ListTokenUsageQueryHandler,
+            ConcreteListTokenUsageQueryHandler
+        )
+        container.register_transient(
+            GetTokenAnalyticsQueryHandler,
+            ConcreteGetTokenAnalyticsQueryHandler
+        )
+        container.register_transient(
+            GetTopTokenConsumersQueryHandler,
+            ConcreteGetTopTokenConsumersQueryHandler
+        )
+        container.register_transient(
+            GetCacheStatsQueryHandler,
+            ConcreteGetCacheStatsQueryHandler
+        )
+        container.register_transient(
+            GetCacheEntryQueryHandler,
+            ConcreteGetCacheEntryQueryHandler
+        )
+        container.register_transient(
+            SearchCacheEntriesQueryHandler,
+            ConcreteSearchCacheEntriesQueryHandler
+        )
+        container.register_transient(
+            GetExecutionContextQueryHandler,
+            ConcreteGetExecutionContextQueryHandler
+        )
+        container.register_transient(
+            ListExecutionContextsQueryHandler,
+            ConcreteListExecutionContextsQueryHandler
+        )
+        container.register_transient(
+            GetActiveExecutionContextsQueryHandler,
+            ConcreteGetActiveExecutionContextsQueryHandler
+        )
+        container.register_transient(
+            GetLLMRequestHistoryQueryHandler,
+            ConcreteGetLLMRequestHistoryQueryHandler
+        )
+        container.register_transient(
+            GetLLMRequestPerformanceQueryHandler,
+            ConcreteGetLLMRequestPerformanceQueryHandler
+        )
+        
         return container
     
     @staticmethod
@@ -644,13 +817,25 @@ class DIConfiguration:
             "pipeline_validation_service": PipelineValidationService,
             "pipeline_execution_service": PipelineExecutionService,
             "step_dependency_service": StepDependencyService,
+            "workspace_management_service": WorkspaceManagementService,
+            "workspace_configuration_service": WorkspaceConfigurationService,
+            "workspace_analytics_service": WorkspaceAnalyticsService,
             "workspace_isolation_service": WorkspaceIsolationService,
             "workspace_template_service": WorkspaceTemplateService,
+            "template_management_service": TemplateManagementService,
+            "style_management_service": StyleManagementService,
+            "content_generation_service": ContentGenerationService,
             "template_rendering_service": TemplateRenderingService,
             "content_validation_service": ContentValidationService,
             "llm_orchestration_service": LLMOrchestrationService,
             "cache_management_service": CacheManagementService,
             "token_analytics_service": TokenAnalyticsService,
+            
+            # Application Services
+            "pipeline_application_service": PipelineApplicationService,
+            "workspace_application_service": WorkspaceApplicationService,
+            "content_application_service": ContentApplicationService,
+            "execution_application_service": ExecutionApplicationService,
             
             # Repository Interfaces
             "pipeline_template_repository": PipelineTemplateRepository,
@@ -725,4 +910,22 @@ class DIConfiguration:
             "get_popular_templates_handler": GetPopularTemplatesQueryHandler,
             "validate_template_handler": ValidateTemplateQueryHandler,
             "check_template_exists_handler": CheckTemplateExistsQueryHandler,
+            
+            # Execution Query Handlers
+            "get_llm_providers_handler": GetLLMProvidersQueryHandler,
+            "get_llm_provider_handler": GetLLMProviderQueryHandler,
+            "get_llm_provider_health_handler": GetLLMProviderHealthQueryHandler,
+            "search_llm_providers_handler": SearchLLMProvidersQueryHandler,
+            "get_token_usage_handler": GetTokenUsageQueryHandler,
+            "list_token_usage_handler": ListTokenUsageQueryHandler,
+            "get_token_analytics_handler": GetTokenAnalyticsQueryHandler,
+            "get_top_token_consumers_handler": GetTopTokenConsumersQueryHandler,
+            "get_cache_stats_handler": GetCacheStatsQueryHandler,
+            "get_cache_entry_handler": GetCacheEntryQueryHandler,
+            "search_cache_entries_handler": SearchCacheEntriesQueryHandler,
+            "get_execution_context_handler": GetExecutionContextQueryHandler,
+            "list_execution_contexts_handler": ListExecutionContextsQueryHandler,
+            "get_active_execution_contexts_handler": GetActiveExecutionContextsQueryHandler,
+            "get_llm_request_history_handler": GetLLMRequestHistoryQueryHandler,
+            "get_llm_request_performance_handler": GetLLMRequestPerformanceQueryHandler,
         }

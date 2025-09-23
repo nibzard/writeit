@@ -42,6 +42,25 @@ from .content_handlers import (
     ConcreteCheckTemplateExistsQueryHandler,
 )
 
+from .execution_handlers import (
+    ConcreteGetLLMProvidersQueryHandler,
+    ConcreteGetLLMProviderQueryHandler,
+    ConcreteGetLLMProviderHealthQueryHandler,
+    ConcreteSearchLLMProvidersQueryHandler,
+    ConcreteGetTokenUsageQueryHandler,
+    ConcreteListTokenUsageQueryHandler,
+    ConcreteGetTokenAnalyticsQueryHandler,
+    ConcreteGetTopTokenConsumersQueryHandler,
+    ConcreteGetCacheStatsQueryHandler,
+    ConcreteGetCacheEntryQueryHandler,
+    ConcreteSearchCacheEntriesQueryHandler,
+    ConcreteGetExecutionContextQueryHandler,
+    ConcreteListExecutionContextsQueryHandler,
+    ConcreteGetActiveExecutionContextsQueryHandler,
+    ConcreteGetLLMRequestHistoryQueryHandler,
+    ConcreteGetLLMRequestPerformanceQueryHandler,
+)
+
 __all__ = [
     # Pipeline Query Handlers
     "ConcreteGetPipelineTemplateQueryHandler",
@@ -78,4 +97,22 @@ __all__ = [
     "ConcreteGetPopularTemplatesQueryHandler",
     "ConcreteValidateTemplateQueryHandler",
     "ConcreteCheckTemplateExistsQueryHandler",
+    
+    # Execution Query Handlers
+    "ConcreteGetLLMProvidersQueryHandler",
+    "ConcreteGetLLMProviderQueryHandler",
+    "ConcreteGetLLMProviderHealthQueryHandler",
+    "ConcreteSearchLLMProvidersQueryHandler",
+    "ConcreteGetTokenUsageQueryHandler",
+    "ConcreteListTokenUsageQueryHandler",
+    "ConcreteGetTokenAnalyticsQueryHandler",
+    "ConcreteGetTopTokenConsumersQueryHandler",
+    "ConcreteGetCacheStatsQueryHandler",
+    "ConcreteGetCacheEntryQueryHandler",
+    "ConcreteSearchCacheEntriesQueryHandler",
+    "ConcreteGetExecutionContextQueryHandler",
+    "ConcreteListExecutionContextsQueryHandler",
+    "ConcreteGetActiveExecutionContextsQueryHandler",
+    "ConcreteGetLLMRequestHistoryQueryHandler",
+    "ConcreteGetLLMRequestPerformanceQueryHandler",
 ]
