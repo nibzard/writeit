@@ -63,6 +63,8 @@ class PipelineUsageStats:
     @property
     def failure_rate(self) -> float:
         """Calculate failure rate as percentage."""
+        if self.total_runs == 0:
+            return 0.0
         return 100.0 - self.success_rate
     
     def add_run(self, success: bool, execution_time: float, tokens: int) -> Self:
