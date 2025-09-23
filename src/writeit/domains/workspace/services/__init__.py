@@ -36,6 +36,16 @@ from .workspace_analytics_service import (
     MetricType,
     HealthStatus
 )
+from .workspace_isolation_service import (
+    WorkspaceIsolationService,
+    ValidationResult,
+    ValidationIssue,
+    ValidationSeverity,
+    WorkspaceContext,
+    WorkspaceAccessError,
+    WorkspaceIsolationError,
+    IsolatedWorkspaceOperations
+)
 
 __all__ = [
     # Management Service
@@ -69,4 +79,14 @@ __all__ = [
     "AnalyticsScope",
     "MetricType",
     "HealthStatus",
+    
+    # Isolation Service
+    "WorkspaceIsolationService",
+    "ValidationResult",
+    "ValidationIssue", 
+    "ValidationSeverity",
+    "WorkspaceContext",
+    "WorkspaceAccessError",
+    "WorkspaceIsolationError",
+    "IsolatedWorkspaceOperations",
 ]
