@@ -1,16 +1,23 @@
-# ABOUTME: FastAPI server for WriteIt pipeline execution
-# ABOUTME: Provides REST API and WebSocket endpoints for TUI backend communication
+# ABOUTME: Legacy FastAPI server compatibility layer
+# ABOUTME: Provides backward compatibility while transitioning to modern infrastructure
 
-import uuid
+import warnings
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 from datetime import datetime, UTC
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 
+# Modern infrastructure imports
+from ..infrastructure.web.app import create_app
+from ..shared.dependencies.container import Container
+from ..shared.events.bus import EventBus
+
+# Legacy imports for compatibility
 from writeit.pipeline import PipelineExecutor
 from writeit.models import Pipeline, PipelineRun, PipelineStatus, StepStatus
 from writeit.workspace.workspace import Workspace
@@ -101,49 +108,78 @@ class WebSocketManager:
             self.disconnect(connection_id)
 
 
-# Global instances
-app = FastAPI(
-    title="WriteIt Pipeline API",
-    description="REST API and WebSocket endpoints for WriteIt pipeline execution",
-    version="0.1.0",
+# Deprecation warning for legacy server
+warnings.warn(
+    "The legacy server (writeit.server.app) is deprecated. "
+    "Use the modern infrastructure (writeit.infrastructure.web.app) instead.",
+    DeprecationWarning,
+    stacklevel=2
 )
 
-# Add CORS middleware for development
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Create modern app instance
+_modern_app = None
 
-# Global state
-websocket_manager = WebSocketManager()
-executors: Dict[str, PipelineExecutor] = {}  # workspace_name -> executor
-pipelines: Dict[str, Pipeline] = {}  # pipeline_id -> pipeline
+def get_modern_app() -> FastAPI:
+    """Get or create the modern FastAPI application."""
+    global _modern_app
+    if _modern_app is None:
+        container = Container()
+        event_bus = EventBus()
+        _modern_app = create_app(
+            container=container,
+            event_bus=event_bus,
+            debug=True,
+            cors_origins=["*"]
+        )
+    return _modern_app
+
+# For backward compatibility, expose the modern app as 'app'
+app = get_modern_app()
+
+# Legacy compatibility layer - these endpoints are deprecated
+# All functionality has been migrated to the modern infrastructure
+
+# Global state for legacy compatibility
+legacy_executors: Dict[str, PipelineExecutor] = {}  # workspace_name -> executor
+legacy_pipelines: Dict[str, Pipeline] = {}  # pipeline_id -> pipeline
 
 
-def get_executor(workspace_name: str = "default") -> PipelineExecutor:
-    """Get or create a pipeline executor for the workspace."""
-    if workspace_name not in executors:
+def get_legacy_executor(workspace_name: str = "default") -> PipelineExecutor:
+    """Get or create a pipeline executor for the workspace (legacy)."""
+    warnings.warn(
+        "get_legacy_executor is deprecated. Use the modern infrastructure instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    if workspace_name not in legacy_executors:
         workspace = Workspace()
         storage = StorageManager(workspace, workspace_name)
-        executors[workspace_name] = PipelineExecutor(workspace, storage, workspace_name)
-    return executors[workspace_name]
+        legacy_executors[workspace_name] = PipelineExecutor(workspace, storage, workspace_name)
+    return legacy_executors[workspace_name]
 
 
-# REST API Endpoints
+# Legacy REST API Endpoints (deprecated)
+# These endpoints are maintained for backward compatibility
+# New development should use the modern API at /api/v1/*
 
-
-@app.post("/api/pipelines", response_model=PipelineResponse)
-async def create_pipeline(request: CreatePipelineRequest):
+@app.post("/api/legacy/pipelines", response_model=PipelineResponse, deprecated=True)
+async def legacy_create_pipeline(request: CreatePipelineRequest):
     """Load and register a pipeline from a file."""
+    """Create pipeline (legacy endpoint - deprecated).
+    
+    This endpoint is deprecated. Use POST /api/v1/pipelines/templates instead.
+    """
+    warnings.warn(
+        "Legacy pipeline creation endpoint is deprecated. Use /api/v1/pipelines/templates",
+        DeprecationWarning,
+        stacklevel=2
+    )
     try:
-        executor = get_executor(request.workspace_name)
+        executor = get_legacy_executor(request.workspace_name)
         pipeline = await executor.load_pipeline(Path(request.pipeline_path))
 
         # Store pipeline
-        pipelines[pipeline.id] = pipeline
+        legacy_pipelines[pipeline.id] = pipeline
 
         return PipelineResponse(
             id=pipeline.id,
@@ -169,13 +205,21 @@ async def create_pipeline(request: CreatePipelineRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/pipelines/{pipeline_id}", response_model=PipelineResponse)
-async def get_pipeline(pipeline_id: str):
-    """Get pipeline configuration."""
-    if pipeline_id not in pipelines:
+@app.get("/api/legacy/pipelines/{pipeline_id}", response_model=PipelineResponse, deprecated=True)
+async def legacy_get_pipeline(pipeline_id: str):
+    """Get pipeline configuration (legacy endpoint - deprecated).
+    
+    This endpoint is deprecated. Use GET /api/v1/pipelines/templates instead.
+    """
+    warnings.warn(
+        "Legacy get pipeline endpoint is deprecated. Use /api/v1/pipelines/templates",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    if pipeline_id not in legacy_pipelines:
         raise HTTPException(status_code=404, detail="Pipeline not found")
 
-    pipeline = pipelines[pipeline_id]
+    pipeline = legacy_pipelines[pipeline_id]
     return PipelineResponse(
         id=pipeline.id,
         name=pipeline.name,
@@ -198,15 +242,23 @@ async def get_pipeline(pipeline_id: str):
     )
 
 
-@app.post("/api/runs", response_model=PipelineRunResponse)
-async def create_run(request: RunPipelineRequest):
-    """Create a new pipeline run."""
+@app.post("/api/legacy/runs", response_model=PipelineRunResponse, deprecated=True)
+async def legacy_create_run(request: RunPipelineRequest):
+    """Create a new pipeline run (legacy endpoint - deprecated).
+    
+    This endpoint is deprecated. Use POST /api/v1/pipelines/execute instead.
+    """
+    warnings.warn(
+        "Legacy create run endpoint is deprecated. Use /api/v1/pipelines/execute",
+        DeprecationWarning,
+        stacklevel=2
+    )
     try:
-        if request.pipeline_id not in pipelines:
+        if request.pipeline_id not in legacy_pipelines:
             raise HTTPException(status_code=404, detail="Pipeline not found")
 
-        pipeline = pipelines[request.pipeline_id]
-        executor = get_executor(request.workspace_name)
+        pipeline = legacy_pipelines[request.pipeline_id]
+        executor = get_legacy_executor(request.workspace_name)
 
         run_id = await executor.create_run(
             pipeline, request.inputs, request.workspace_name
@@ -224,79 +276,66 @@ async def create_run(request: RunPipelineRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/runs/{run_id}/execute")
-async def execute_run(run_id: str, workspace_name: str = "default"):
-    """Execute a pipeline run."""
+@app.post("/api/legacy/runs/{run_id}/execute", deprecated=True)
+async def legacy_execute_run(run_id: str, workspace_name: str = "default"):
+    """Execute a pipeline run (legacy endpoint - deprecated).
+    
+    This endpoint is deprecated. Use POST /api/v1/pipelines/execute instead.
+    """
+    warnings.warn(
+        "Legacy execute run endpoint is deprecated. Use /api/v1/pipelines/execute",
+        DeprecationWarning,
+        stacklevel=2
+    )
     try:
-        executor = get_executor(workspace_name)
+        executor = get_legacy_executor(workspace_name)
         run = await executor.get_run(run_id)
 
         if not run:
             raise HTTPException(status_code=404, detail="Run not found")
 
-        if run.pipeline_id not in pipelines:
+        if run.pipeline_id not in legacy_pipelines:
             raise HTTPException(status_code=404, detail="Pipeline not found")
 
-        pipeline = pipelines[run.pipeline_id]
+        pipeline = legacy_pipelines[run.pipeline_id]
 
-        # Define progress callback for WebSocket updates
+        # Legacy WebSocket callbacks (simplified for compatibility)
         async def progress_callback(event_type: str, data: Dict[str, Any]):
-            await websocket_manager.broadcast_to_run(
-                run_id,
-                {
-                    "type": "progress",
-                    "event": event_type,
-                    "data": data,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                },
-            )
+            # Legacy callback - no WebSocket support in compatibility mode
+            pass
 
-        # Define response callback for streaming responses
         async def response_callback(response_type: str, content: str):
-            await websocket_manager.broadcast_to_run(
-                run_id,
-                {
-                    "type": "response",
-                    "response_type": response_type,
-                    "content": content,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                },
-            )
+            # Legacy callback - no WebSocket support in compatibility mode
+            pass
 
         # Execute the run
         completed_run = await executor.execute_run(
             run_id, pipeline, progress_callback, response_callback
         )
 
-        # Send completion notification
-        await websocket_manager.broadcast_to_run(
-            run_id,
-            {
-                "type": "completed",
-                "run": _run_to_dict(completed_run),
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
+        # Legacy completion notification (no-op in compatibility mode)
+        pass
 
         return _run_to_response(completed_run)
 
     except Exception as e:
-        # Send error notification
-        await websocket_manager.broadcast_to_run(
-            run_id,
-            {
-                "type": "error",
-                "error": str(e),
-                "timestamp": datetime.now(UTC).isoformat(),
-            },
-        )
+        # Legacy error notification (no-op in compatibility mode)
+        pass
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/runs/{run_id}", response_model=PipelineRunResponse)
-async def get_run(run_id: str, workspace_name: str = "default"):
-    """Get pipeline run status."""
-    executor = get_executor(workspace_name)
+@app.get("/api/legacy/runs/{run_id}", response_model=PipelineRunResponse, deprecated=True)
+async def legacy_get_run(run_id: str, workspace_name: str = "default"):
+    """Get pipeline run status (legacy endpoint - deprecated).
+    
+    This endpoint is deprecated. Use GET /api/v1/pipelines/runs/{run_id} instead.
+    """
+    warnings.warn(
+        "Legacy get run endpoint is deprecated. Use /api/v1/pipelines/runs/{run_id}",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    executor = get_legacy_executor(workspace_name)
     run = await executor.get_run(run_id)
 
     if not run:
@@ -306,81 +345,53 @@ async def get_run(run_id: str, workspace_name: str = "default"):
 
 
 @app.get(
-    "/api/workspaces/{workspace_name}/runs", response_model=List[PipelineRunResponse]
+    "/api/legacy/workspaces/{workspace_name}/runs", response_model=List[PipelineRunResponse], deprecated=True
 )
-async def list_runs(workspace_name: str = "default", limit: int = 50):
-    """List pipeline runs for a workspace."""
-    get_executor(workspace_name)
-    # TODO: Implement run listing in executor
+async def legacy_list_runs(workspace_name: str = "default", limit: int = 50):
+    """List pipeline runs for a workspace (legacy endpoint - deprecated).
+    
+    This endpoint is deprecated. Use GET /api/v1/pipelines/runs instead.
+    """
+    warnings.warn(
+        "Legacy list runs endpoint is deprecated. Use /api/v1/pipelines/runs",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    get_legacy_executor(workspace_name)
+    # Legacy implementation - returns empty list
     return []
 
 
-# WebSocket endpoint
-@app.websocket("/ws/{run_id}")
-async def websocket_endpoint(websocket: WebSocket, run_id: str):
-    """WebSocket endpoint for real-time pipeline execution updates."""
-    connection_id = str(uuid.uuid4())
-
+# Legacy WebSocket endpoint (deprecated)
+@app.websocket("/ws/legacy/{run_id}")
+async def legacy_websocket_endpoint(websocket: WebSocket, run_id: str):
+    """Legacy WebSocket endpoint (deprecated).
+    
+    This endpoint is deprecated. Use /ws/{workspace_name} or /ws/run/{run_id} instead.
+    """
     try:
-        await websocket_manager.connect(websocket, connection_id)
-        websocket_manager.subscribe_to_run(connection_id, run_id)
-
-        # Send initial connection confirmation
-        await websocket.send_json(
-            {
-                "type": "connected",
-                "connection_id": connection_id,
-                "run_id": run_id,
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
-        )
-
-        # Keep connection alive and handle incoming messages
-        while True:
-            try:
-                data = await websocket.receive_json()
-                # Handle incoming messages (e.g., user selections, feedback)
-                await _handle_websocket_message(run_id, data)
-            except Exception as e:
-                await websocket.send_json(
-                    {
-                        "type": "error",
-                        "error": str(e),
-                        "timestamp": datetime.now(UTC).isoformat(),
-                    }
-                )
-
+        await websocket.accept()
+        
+        # Send deprecation warning
+        await websocket.send_json({
+            "type": "deprecated",
+            "message": "This WebSocket endpoint is deprecated. Use /ws/{workspace_name} or /ws/run/{run_id} instead.",
+            "timestamp": datetime.now(UTC).isoformat(),
+        })
+        
+        # Keep connection open briefly then close
+        await websocket.close(code=1000, reason="Endpoint deprecated")
+        
     except WebSocketDisconnect:
-        websocket_manager.disconnect(connection_id)
+        pass
     except Exception:
-        websocket_manager.disconnect(connection_id)
-
-
-async def _handle_websocket_message(run_id: str, message: Dict[str, Any]):
-    """Handle incoming WebSocket messages."""
-    message_type = message.get("type")
-
-    if message_type == "user_selection":
-        # Handle user selection for step responses
-        message.get("step_key")
-        message.get("selected_response")
-        # TODO: Update step execution with user selection
-
-    elif message_type == "user_feedback":
-        # Handle user feedback
-        message.get("step_key")
-        message.get("feedback", "")
-        # TODO: Update step execution with user feedback
-
-    elif message_type == "pause_run":
-        # Handle run pause request
-        # TODO: Implement run pausing
         pass
 
-    elif message_type == "resume_run":
-        # Handle run resume request
-        # TODO: Implement run resuming
-        pass
+
+async def _handle_legacy_websocket_message(run_id: str, message: Dict[str, Any]):
+    """Handle incoming WebSocket messages (legacy - deprecated)."""
+    # Legacy handler - no-op for compatibility
+    pass
 
 
 def _run_to_response(run: PipelineRun) -> PipelineRunResponse:
@@ -455,16 +466,58 @@ def _run_to_dict(run: PipelineRun) -> Dict[str, Any]:
     }
 
 
-# Health check endpoint
+# Legacy health check endpoint (superseded by modern health endpoints)
+@app.get("/legacy/health", deprecated=True)
+async def legacy_health_check():
+    """Legacy health check endpoint (deprecated).
+    
+    This endpoint is deprecated. Use /health or /api/v1/health instead.
+    """
+    warnings.warn(
+        "Legacy health endpoint is deprecated. Use /health or /api/v1/health",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return {
+        "status": "healthy", 
+        "timestamp": datetime.now(UTC).isoformat(),
+        "deprecated": True,
+        "use_instead": "/health or /api/v1/health"
+    }
+
+# Redirect root health check to modern implementation
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy", "timestamp": datetime.now(UTC).isoformat()}
+    """Health check endpoint (redirects to modern implementation)."""
+    # This will be handled by the modern app's health endpoint
+    from ..infrastructure.web.handlers import HealthHandlers
+    return await HealthHandlers.health_check()
 
+
+# Legacy compatibility notice
+def print_migration_notice():
+    """Print migration notice for legacy server usage."""
+    print("\n" + "=" * 80)
+    print("NOTICE: Legacy Server Compatibility Mode")
+    print("=" * 80)
+    print("You are using the legacy server compatibility layer.")
+    print("Consider migrating to the modern infrastructure:")
+    print("")
+    print("  Modern server: python -m writeit.infrastructure.web.app")
+    print("  Modern API:    /api/v1/* endpoints")
+    print("  Legacy API:    /api/legacy/* endpoints (deprecated)")
+    print("")
+    print("The legacy endpoints will be removed in a future version.")
+    print("=" * 80 + "\n")
 
 if __name__ == "__main__":
+    print_migration_notice()
+    
+    # Use the modern app for execution
+    modern_app = get_modern_app()
+    
     uvicorn.run(
-        "writeit.server.app:app",
+        modern_app,
         host="127.0.0.1",
         port=8000,
         reload=True,
