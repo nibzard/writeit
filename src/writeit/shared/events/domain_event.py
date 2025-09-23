@@ -9,7 +9,6 @@ from datetime import datetime
 from typing import Dict, Any
 
 
-@dataclass(frozen=True)
 class DomainEvent(ABC):
     """Base class for all domain events.
     
@@ -24,8 +23,20 @@ class DomainEvent(ABC):
     - Be serializable to dictionary
     """
     
-    event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: datetime = field(default_factory=datetime.now)
+    def __init__(self):
+        """Base initialization - subclasses must call super().__init__()"""
+        object.__setattr__(self, '_event_id', str(uuid.uuid4()))
+        object.__setattr__(self, '_timestamp', datetime.now())
+    
+    @property
+    def event_id(self) -> str:
+        """Get the event ID."""
+        return self._event_id
+    
+    @property 
+    def timestamp(self) -> datetime:
+        """Get the event timestamp.""" 
+        return self._timestamp
     
     @property
     @abstractmethod
