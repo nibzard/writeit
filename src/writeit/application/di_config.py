@@ -131,6 +131,82 @@ from ..application.commands.content_commands import (
     CreateGeneratedContentCommandHandler
 )
 
+# Query Handlers
+from ..application.queries.handlers.pipeline_handlers import (
+    ConcreteGetPipelineTemplateQueryHandler,
+    ConcreteListPipelineTemplatesQueryHandler,
+    ConcreteSearchPipelineTemplatesQueryHandler,
+    ConcreteGetPipelineRunQueryHandler,
+    ConcreteListPipelineRunsQueryHandler,
+    ConcreteGetPipelineAnalyticsQueryHandler,
+)
+from ..application.queries.handlers.workspace_handlers import (
+    ConcreteGetWorkspacesQueryHandler,
+    ConcreteGetWorkspaceQueryHandler,
+    ConcreteGetActiveWorkspaceQueryHandler,
+    ConcreteGetWorkspaceConfigQueryHandler,
+    ConcreteGetWorkspaceStatsQueryHandler,
+    ConcreteSearchWorkspacesQueryHandler,
+    ConcreteValidateWorkspaceNameQueryHandler,
+    ConcreteCheckWorkspaceExistsQueryHandler,
+    ConcreteGetWorkspaceHealthQueryHandler,
+    ConcreteGetWorkspaceTemplatesQueryHandler,
+    ConcreteGetWorkspaceTemplateQueryHandler,
+)
+from ..application.queries.handlers.content_handlers import (
+    ConcreteGetTemplatesQueryHandler,
+    ConcreteGetTemplateQueryHandler,
+    ConcreteGetTemplateByNameQueryHandler,
+    ConcreteSearchTemplatesQueryHandler,
+    ConcreteGetGeneratedContentQueryHandler,
+    ConcreteListGeneratedContentQueryHandler,
+    ConcreteSearchGeneratedContentQueryHandler,
+    ConcreteGetStylePrimersQueryHandler,
+    ConcreteGetStylePrimerQueryHandler,
+    ConcreteGetContentAnalyticsQueryHandler,
+    ConcreteGetPopularTemplatesQueryHandler,
+    ConcreteValidateTemplateQueryHandler,
+    ConcreteCheckTemplateExistsQueryHandler,
+)
+
+# Query Handler Interfaces
+from ..application.queries.pipeline_queries import (
+    GetPipelineTemplateQueryHandler,
+    ListPipelineTemplatesQueryHandler,
+    SearchPipelineTemplatesQueryHandler,
+    GetPipelineRunQueryHandler,
+    ListPipelineRunsQueryHandler,
+    GetPipelineAnalyticsQueryHandler,
+)
+from ..application.queries.workspace_queries import (
+    GetWorkspacesQueryHandler,
+    GetWorkspaceQueryHandler,
+    GetActiveWorkspaceQueryHandler,
+    GetWorkspaceConfigQueryHandler,
+    GetWorkspaceStatsQueryHandler,
+    SearchWorkspacesQueryHandler,
+    ValidateWorkspaceNameQueryHandler,
+    CheckWorkspaceExistsQueryHandler,
+    GetWorkspaceHealthQueryHandler,
+    GetWorkspaceTemplatesQueryHandler,
+    GetWorkspaceTemplateQueryHandler,
+)
+from ..application.queries.content_queries import (
+    GetTemplatesQueryHandler,
+    GetTemplateQueryHandler,
+    GetTemplateByNameQueryHandler,
+    SearchTemplatesQueryHandler,
+    GetGeneratedContentQueryHandler,
+    ListGeneratedContentQueryHandler,
+    SearchGeneratedContentQueryHandler,
+    GetStylePrimersQueryHandler,
+    GetStylePrimerQueryHandler,
+    GetContentAnalyticsQueryHandler,
+    GetPopularTemplatesQueryHandler,
+    ValidateTemplateQueryHandler,
+    CheckTemplateExistsQueryHandler,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -166,6 +242,9 @@ class DIConfiguration:
         
         # Configure command handlers
         container = DIConfiguration._configure_command_handlers(container)
+        
+        # Configure query handlers
+        container = DIConfiguration._configure_query_handlers(container)
         
         logger.info("Dependency injection configuration completed")
         return container
@@ -446,6 +525,168 @@ class DIConfiguration:
         return container
     
     @staticmethod
+    def _configure_query_handlers(container: Container) -> Container:
+        """Configure query handlers with their interfaces."""
+        
+        # Pipeline Query Handlers
+        container.register(
+            GetPipelineTemplateQueryHandler,
+            ConcreteGetPipelineTemplateQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            ListPipelineTemplatesQueryHandler,
+            ConcreteListPipelineTemplatesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            SearchPipelineTemplatesQueryHandler,
+            ConcreteSearchPipelineTemplatesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetPipelineRunQueryHandler,
+            ConcreteGetPipelineRunQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            ListPipelineRunsQueryHandler,
+            ConcreteListPipelineRunsQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetPipelineAnalyticsQueryHandler,
+            ConcreteGetPipelineAnalyticsQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        
+        # Workspace Query Handlers
+        container.register(
+            GetWorkspacesQueryHandler,
+            ConcreteGetWorkspacesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetWorkspaceQueryHandler,
+            ConcreteGetWorkspaceQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetActiveWorkspaceQueryHandler,
+            ConcreteGetActiveWorkspaceQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetWorkspaceConfigQueryHandler,
+            ConcreteGetWorkspaceConfigQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetWorkspaceStatsQueryHandler,
+            ConcreteGetWorkspaceStatsQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            SearchWorkspacesQueryHandler,
+            ConcreteSearchWorkspacesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            ValidateWorkspaceNameQueryHandler,
+            ConcreteValidateWorkspaceNameQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            CheckWorkspaceExistsQueryHandler,
+            ConcreteCheckWorkspaceExistsQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetWorkspaceHealthQueryHandler,
+            ConcreteGetWorkspaceHealthQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetWorkspaceTemplatesQueryHandler,
+            ConcreteGetWorkspaceTemplatesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetWorkspaceTemplateQueryHandler,
+            ConcreteGetWorkspaceTemplateQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        
+        # Content Query Handlers
+        container.register(
+            GetTemplatesQueryHandler,
+            ConcreteGetTemplatesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetTemplateQueryHandler,
+            ConcreteGetTemplateQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetTemplateByNameQueryHandler,
+            ConcreteGetTemplateByNameQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            SearchTemplatesQueryHandler,
+            ConcreteSearchTemplatesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetGeneratedContentQueryHandler,
+            ConcreteGetGeneratedContentQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            ListGeneratedContentQueryHandler,
+            ConcreteListGeneratedContentQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            SearchGeneratedContentQueryHandler,
+            ConcreteSearchGeneratedContentQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetStylePrimersQueryHandler,
+            ConcreteGetStylePrimersQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetStylePrimerQueryHandler,
+            ConcreteGetStylePrimerQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetContentAnalyticsQueryHandler,
+            ConcreteGetContentAnalyticsQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            GetPopularTemplatesQueryHandler,
+            ConcreteGetPopularTemplatesQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            ValidateTemplateQueryHandler,
+            ConcreteValidateTemplateQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        container.register(
+            CheckTemplateExistsQueryHandler,
+            ConcreteCheckTemplateExistsQueryHandler,
+            lifetime=ServiceLifetime.SCOPED
+        )
+        
+        return container
+    
+    @staticmethod
     def create_container(
         base_path: Path = None,
         workspace_name: str = None
@@ -522,4 +763,40 @@ class DIConfiguration:
             "validate_template_handler": ValidateTemplateCommandHandler,
             "create_style_primer_handler": CreateStylePrimerCommandHandler,
             "create_generated_content_handler": CreateGeneratedContentCommandHandler,
+            
+            # Pipeline Query Handlers
+            "get_pipeline_template_handler": GetPipelineTemplateQueryHandler,
+            "list_pipeline_templates_handler": ListPipelineTemplatesQueryHandler,
+            "search_pipeline_templates_handler": SearchPipelineTemplatesQueryHandler,
+            "get_pipeline_run_handler": GetPipelineRunQueryHandler,
+            "list_pipeline_runs_handler": ListPipelineRunsQueryHandler,
+            "get_pipeline_analytics_handler": GetPipelineAnalyticsQueryHandler,
+            
+            # Workspace Query Handlers
+            "get_workspaces_handler": GetWorkspacesQueryHandler,
+            "get_workspace_handler": GetWorkspaceQueryHandler,
+            "get_active_workspace_handler": GetActiveWorkspaceQueryHandler,
+            "get_workspace_config_handler": GetWorkspaceConfigQueryHandler,
+            "get_workspace_stats_handler": GetWorkspaceStatsQueryHandler,
+            "search_workspaces_handler": SearchWorkspacesQueryHandler,
+            "validate_workspace_name_handler": ValidateWorkspaceNameQueryHandler,
+            "check_workspace_exists_handler": CheckWorkspaceExistsQueryHandler,
+            "get_workspace_health_handler": GetWorkspaceHealthQueryHandler,
+            "get_workspace_templates_handler": GetWorkspaceTemplatesQueryHandler,
+            "get_workspace_template_handler": GetWorkspaceTemplateQueryHandler,
+            
+            # Content Query Handlers
+            "get_templates_handler": GetTemplatesQueryHandler,
+            "get_template_handler": GetTemplateQueryHandler,
+            "get_template_by_name_handler": GetTemplateByNameQueryHandler,
+            "search_templates_handler": SearchTemplatesQueryHandler,
+            "get_generated_content_handler": GetGeneratedContentQueryHandler,
+            "list_generated_content_handler": ListGeneratedContentQueryHandler,
+            "search_generated_content_handler": SearchGeneratedContentQueryHandler,
+            "get_style_primers_handler": GetStylePrimersQueryHandler,
+            "get_style_primer_handler": GetStylePrimerQueryHandler,
+            "get_content_analytics_handler": GetContentAnalyticsQueryHandler,
+            "get_popular_templates_handler": GetPopularTemplatesQueryHandler,
+            "validate_template_handler": ValidateTemplateQueryHandler,
+            "check_template_exists_handler": CheckTemplateExistsQueryHandler,
         }
