@@ -33,10 +33,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
-    "pytest-asyncio>=0.21.0",
-    "httpx>=0.25.0",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.14.0",
     "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-timeout>=2.3.1",
+    "httpx>=0.25.0",
+    "aiofiles>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.7.0",
 ]
@@ -51,8 +55,92 @@ docs = [
 ]
 dev = [
     "pytest>=8.4.2",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.14.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-timeout>=2.3.1",
     "ruff>=0.12.12",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/writeit"]
+
+[tool.pytest.ini_options]
+# Test discovery and execution
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Async test configuration
+# Note: Using explicit @pytest.mark.asyncio markers for async tests
+# Auto-detection mode has compatibility issues with current setup
+
+# Output and reporting
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config",
+    "--disable-warnings",
+    "--timeout=300",  # 5 minute timeout for long LLM operations
+    "--durations=10",  # Show 10 slowest tests
+]
+
+# Test markers
+markers = [
+    "asyncio: mark test as async test (auto-detected)",
+    "unit: mark test as unit test",
+    "integration: mark test as integration test",
+    "contract: mark test as contract/API test",
+    "slow: mark test as slow running",
+    "llm: mark test as requiring LLM API access",
+    "workspace: mark test as requiring workspace setup",
+    "storage: mark test as requiring LMDB storage",
+    "event_bus: mark test as testing event bus functionality",
+    "pipeline: mark test as testing pipeline execution",
+]
+
+# Test filtering and warnings
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore:unclosed.*:ResourceWarning",
+]
+
+# Minimum version requirements
+minversion = "8.0"
+required_plugins = ["pytest-asyncio>=0.23.0"]
+
+[tool.coverage.run]
+# Coverage configuration for async code
+source = ["src/writeit"]
+omit = [
+    "tests/*",
+    "src/writeit/cli/main.py",  # Entry point, tested via integration
+    "*/venv/*",
+    "*/.venv/*",
+]
+concurrency = ["thread", "multiprocessing"]
+parallel = true
+
+[tool.coverage.report]
+# Coverage reporting
+show_missing = true
+skip_covered = false
+skip_empty = true
+precision = 2
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstract",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
