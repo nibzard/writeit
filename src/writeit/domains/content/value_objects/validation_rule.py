@@ -33,6 +33,7 @@ class ValidationRuleType(Enum):
     JSON_SCHEMA = "json_schema"
     MARKDOWN_VALID = "markdown_valid"
     HTML_VALID = "html_valid"
+    XML_VALID = "xml_valid"
     YAML_VALID = "yaml_valid"
     
     def display_name(self) -> str:
@@ -61,6 +62,7 @@ class ValidationRuleType(Enum):
             'json_schema': 'JSON Schema',
             'markdown_valid': 'Valid Markdown',
             'html_valid': 'Valid HTML',
+            'xml_valid': 'Valid XML',
             'yaml_valid': 'Valid YAML'
         }
         return name_map.get(self.value, self.value.replace('_', ' ').title())
@@ -240,6 +242,50 @@ class ValidationRule:
             parameters={"schema": schema},
             description=description or "Content must conform to JSON schema"
         )
+    
+    @classmethod
+    def create(
+        cls, 
+        type: ValidationRuleType, 
+        value: Any, 
+        description: Optional[str] = None
+    ) -> Self:
+        """Create a generic validation rule.
+        
+        Args:
+            type: Type of validation rule
+            value: Value parameter for the rule
+            description: Optional description
+            
+        Returns:
+            New validation rule instance
+        """
+        return cls(
+            rule_type=type.value,
+            parameters={"value": value},
+            description=description
+        )
+    
+    @property
+    def type(self) -> ValidationRuleType:
+        """Get the validation rule type enum."""
+        return ValidationRuleType(self.rule_type)
+    
+    @property
+    def value(self) -> Any:
+        """Get the primary value parameter."""
+        if "value" in self.parameters:
+            return self.parameters["value"]
+        elif "min_length" in self.parameters:
+            return self.parameters["min_length"]
+        elif "max_length" in self.parameters:
+            return self.parameters["max_length"]
+        elif "min_words" in self.parameters:
+            return self.parameters["min_words"]
+        elif "max_words" in self.parameters:
+            return self.parameters["max_words"]
+        else:
+            return True  # Default for boolean rules
     
     def display_name(self) -> str:
         """Get human-readable display name."""

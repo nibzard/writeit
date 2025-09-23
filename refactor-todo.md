@@ -177,8 +177,8 @@
   - [✅] `WorkspaceTemplateService`: Template resolution across scopes - COMPLETED 2025-01-23 10:15
 
 - [*] **Content Domain Services** - IN PROGRESS 2025-01-23 10:16
-  - [*] `TemplateRenderingService`: Template variable substitution - IN PROGRESS
-  - [ ] `ContentValidationService`: Output validation
+  - [x] `TemplateRenderingService`: Template variable substitution - COMPLETED 2025-01-23 10:35
+  - [*] `ContentValidationService`: Output validation - IN PROGRESS 2025-01-23 10:36
 
 - [ ] **Execution Domain Services**
   - [ ] `LLMProviderService`: Provider selection and fallback
