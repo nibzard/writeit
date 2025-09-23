@@ -9,7 +9,7 @@ from typing import Dict, Type, Any
 from pathlib import Path
 
 from ..shared.dependencies.container import Container, ServiceLifetime
-from ..shared.events.event_bus import EventBus
+from ..shared.events.event_bus import EventBus, AsyncEventBus
 
 # Domain Services
 from ..domains.pipeline.services import (
@@ -258,7 +258,7 @@ class DIConfiguration:
         """Configure infrastructure services."""
         
         # Event Bus (singleton)
-        container.register_singleton(EventBus, lambda: EventBus())
+        container.register_singleton(EventBus, AsyncEventBus)
         
         return container
     
@@ -267,61 +267,51 @@ class DIConfiguration:
         """Configure domain services."""
         
         # Pipeline Domain Services
-        container.register(
+        container.register_scoped(
             PipelineValidationService,
-            PipelineValidationService,
-            lifetime=ServiceLifetime.SCOPED
+            PipelineValidationService
         )
-        container.register(
+        container.register_scoped(
             PipelineExecutionService,
-            PipelineExecutionService,
-            lifetime=ServiceLifetime.SCOPED
+            PipelineExecutionService
         )
-        container.register(
+        container.register_scoped(
             StepDependencyService,
-            StepDependencyService,
-            lifetime=ServiceLifetime.SCOPED
+            StepDependencyService
         )
         
         # Workspace Domain Services
-        container.register(
+        container.register_scoped(
             WorkspaceIsolationService,
-            WorkspaceIsolationService,
-            lifetime=ServiceLifetime.SCOPED
+            WorkspaceIsolationService
         )
-        container.register(
+        container.register_scoped(
             WorkspaceTemplateService,
-            WorkspaceTemplateService,
-            lifetime=ServiceLifetime.SCOPED
+            WorkspaceTemplateService
         )
         
         # Content Domain Services
-        container.register(
+        container.register_scoped(
             TemplateRenderingService,
-            TemplateRenderingService,
-            lifetime=ServiceLifetime.SCOPED
+            TemplateRenderingService
         )
-        container.register(
+        container.register_scoped(
             ContentValidationService,
-            ContentValidationService,
-            lifetime=ServiceLifetime.SCOPED
+            ContentValidationService
         )
         
         # Execution Domain Services
-        container.register(
+        container.register_scoped(
             LLMOrchestrationService,
-            LLMOrchestrationService,
-            lifetime=ServiceLifetime.SCOPED
+            LLMOrchestrationService
         )
-        container.register(
+        container.register_scoped(
             CacheManagementService,
-            CacheManagementService,
-            lifetime=ServiceLifetime.SCOPED
+            CacheManagementService
         )
-        container.register(
+        container.register_scoped(
             TokenAnalyticsService,
-            TokenAnalyticsService,
-            lifetime=ServiceLifetime.SCOPED
+            TokenAnalyticsService
         )
         
         return container
@@ -331,61 +321,51 @@ class DIConfiguration:
         """Configure repository implementations."""
         
         # Pipeline Repositories
-        container.register(
+        container.register_scoped(
             PipelineTemplateRepository,
-            LMDBPipelineTemplateRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBPipelineTemplateRepository
         )
-        container.register(
+        container.register_scoped(
             PipelineRunRepository,
-            LMDBPipelineRunRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBPipelineRunRepository
         )
-        container.register(
+        container.register_scoped(
             StepExecutionRepository,
-            LMDBStepExecutionRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBStepExecutionRepository
         )
         
         # Workspace Repositories
-        container.register(
+        container.register_scoped(
             WorkspaceRepository,
-            LMDBWorkspaceRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBWorkspaceRepository
         )
-        container.register(
+        container.register_scoped(
             WorkspaceConfigRepository,
-            LMDBWorkspaceConfigRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBWorkspaceConfigRepository
         )
         
         # Content Repositories
-        container.register(
+        container.register_scoped(
             ContentTemplateRepository,
-            LMDBContentTemplateRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBContentTemplateRepository
         )
-        container.register(
+        container.register_scoped(
             StylePrimerRepository,
-            LMDBStylePrimerRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBStylePrimerRepository
         )
-        container.register(
+        container.register_scoped(
             GeneratedContentRepository,
-            LMDBGeneratedContentRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBGeneratedContentRepository
         )
         
         # Execution Repositories
-        container.register(
+        container.register_scoped(
             LLMCacheRepository,
-            LMDBLLMCacheRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBLLMCacheRepository
         )
-        container.register(
+        container.register_scoped(
             TokenUsageRepository,
-            LMDBTokenUsageRepository,
-            lifetime=ServiceLifetime.SCOPED
+            LMDBTokenUsageRepository
         )
         
         return container
@@ -395,131 +375,107 @@ class DIConfiguration:
         """Configure command handlers with their interfaces."""
         
         # Pipeline Template Command Handlers
-        container.register(
+        container.register_transient(
             CreatePipelineTemplateCommandHandler,
-            ConcreteCreatePipelineTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCreatePipelineTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             UpdatePipelineTemplateCommandHandler,
-            ConcreteUpdatePipelineTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteUpdatePipelineTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             DeletePipelineTemplateCommandHandler,
-            ConcreteDeletePipelineTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteDeletePipelineTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             PublishPipelineTemplateCommandHandler,
-            ConcretePublishPipelineTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcretePublishPipelineTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             ValidatePipelineTemplateCommandHandler,
-            ConcreteValidatePipelineTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteValidatePipelineTemplateCommandHandler
         )
         
         # Pipeline Execution Command Handlers
-        container.register(
+        container.register_transient(
             ExecutePipelineCommandHandler,
-            ConcreteExecutePipelineCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteExecutePipelineCommandHandler
         )
-        container.register(
+        container.register_transient(
             CancelPipelineExecutionCommandHandler,
-            ConcreteCancelPipelineExecutionCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCancelPipelineExecutionCommandHandler
         )
-        container.register(
+        container.register_transient(
             RetryPipelineExecutionCommandHandler,
-            ConcreteRetryPipelineExecutionCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteRetryPipelineExecutionCommandHandler
         )
-        container.register(
+        container.register_transient(
             StreamingPipelineExecutionCommandHandler,
-            ConcreteStreamingPipelineExecutionCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteStreamingPipelineExecutionCommandHandler
         )
         
         # Workspace Command Handlers
-        container.register(
+        container.register_transient(
             CreateWorkspaceCommandHandler,
-            ConcreteCreateWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCreateWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             SwitchWorkspaceCommandHandler,
-            ConcreteSwitchWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteSwitchWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             DeleteWorkspaceCommandHandler,
-            ConcreteDeleteWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteDeleteWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             ConfigureWorkspaceCommandHandler,
-            ConcreteConfigureWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteConfigureWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             InitializeWorkspaceCommandHandler,
-            ConcreteInitializeWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteInitializeWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             ArchiveWorkspaceCommandHandler,
-            ConcreteArchiveWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteArchiveWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             RestoreWorkspaceCommandHandler,
-            ConcreteRestoreWorkspaceCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteRestoreWorkspaceCommandHandler
         )
-        container.register(
+        container.register_transient(
             CreateWorkspaceTemplateCommandHandler,
-            ConcreteCreateWorkspaceTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCreateWorkspaceTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             ApplyWorkspaceTemplateCommandHandler,
-            ConcreteApplyWorkspaceTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteApplyWorkspaceTemplateCommandHandler
         )
         
         # Content Command Handlers
-        container.register(
+        container.register_transient(
             CreateTemplateCommandHandler,
-            ConcreteCreateTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCreateTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             UpdateTemplateCommandHandler,
-            ConcreteUpdateTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteUpdateTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             DeleteTemplateCommandHandler,
-            ConcreteDeleteTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteDeleteTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             ValidateTemplateCommandHandler,
-            ConcreteValidateTemplateCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteValidateTemplateCommandHandler
         )
-        container.register(
+        container.register_transient(
             CreateStylePrimerCommandHandler,
-            ConcreteCreateStylePrimerCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCreateStylePrimerCommandHandler
         )
-        container.register(
+        container.register_transient(
             CreateGeneratedContentCommandHandler,
-            ConcreteCreateGeneratedContentCommandHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCreateGeneratedContentCommandHandler
         )
         
         return container
@@ -529,159 +485,129 @@ class DIConfiguration:
         """Configure query handlers with their interfaces."""
         
         # Pipeline Query Handlers
-        container.register(
+        container.register_transient(
             GetPipelineTemplateQueryHandler,
-            ConcreteGetPipelineTemplateQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetPipelineTemplateQueryHandler
         )
-        container.register(
+        container.register_transient(
             ListPipelineTemplatesQueryHandler,
-            ConcreteListPipelineTemplatesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteListPipelineTemplatesQueryHandler
         )
-        container.register(
+        container.register_transient(
             SearchPipelineTemplatesQueryHandler,
-            ConcreteSearchPipelineTemplatesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteSearchPipelineTemplatesQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetPipelineRunQueryHandler,
-            ConcreteGetPipelineRunQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetPipelineRunQueryHandler
         )
-        container.register(
+        container.register_transient(
             ListPipelineRunsQueryHandler,
-            ConcreteListPipelineRunsQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteListPipelineRunsQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetPipelineAnalyticsQueryHandler,
-            ConcreteGetPipelineAnalyticsQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetPipelineAnalyticsQueryHandler
         )
         
         # Workspace Query Handlers
-        container.register(
+        container.register_transient(
             GetWorkspacesQueryHandler,
-            ConcreteGetWorkspacesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspacesQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetWorkspaceQueryHandler,
-            ConcreteGetWorkspaceQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspaceQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetActiveWorkspaceQueryHandler,
-            ConcreteGetActiveWorkspaceQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetActiveWorkspaceQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetWorkspaceConfigQueryHandler,
-            ConcreteGetWorkspaceConfigQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspaceConfigQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetWorkspaceStatsQueryHandler,
-            ConcreteGetWorkspaceStatsQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspaceStatsQueryHandler
         )
-        container.register(
+        container.register_transient(
             SearchWorkspacesQueryHandler,
-            ConcreteSearchWorkspacesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteSearchWorkspacesQueryHandler
         )
-        container.register(
+        container.register_transient(
             ValidateWorkspaceNameQueryHandler,
-            ConcreteValidateWorkspaceNameQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteValidateWorkspaceNameQueryHandler
         )
-        container.register(
+        container.register_transient(
             CheckWorkspaceExistsQueryHandler,
-            ConcreteCheckWorkspaceExistsQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCheckWorkspaceExistsQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetWorkspaceHealthQueryHandler,
-            ConcreteGetWorkspaceHealthQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspaceHealthQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetWorkspaceTemplatesQueryHandler,
-            ConcreteGetWorkspaceTemplatesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspaceTemplatesQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetWorkspaceTemplateQueryHandler,
-            ConcreteGetWorkspaceTemplateQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetWorkspaceTemplateQueryHandler
         )
         
         # Content Query Handlers
-        container.register(
+        container.register_transient(
             GetTemplatesQueryHandler,
-            ConcreteGetTemplatesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetTemplatesQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetTemplateQueryHandler,
-            ConcreteGetTemplateQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetTemplateQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetTemplateByNameQueryHandler,
-            ConcreteGetTemplateByNameQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetTemplateByNameQueryHandler
         )
-        container.register(
+        container.register_transient(
             SearchTemplatesQueryHandler,
-            ConcreteSearchTemplatesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteSearchTemplatesQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetGeneratedContentQueryHandler,
-            ConcreteGetGeneratedContentQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetGeneratedContentQueryHandler
         )
-        container.register(
+        container.register_transient(
             ListGeneratedContentQueryHandler,
-            ConcreteListGeneratedContentQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteListGeneratedContentQueryHandler
         )
-        container.register(
+        container.register_transient(
             SearchGeneratedContentQueryHandler,
-            ConcreteSearchGeneratedContentQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteSearchGeneratedContentQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetStylePrimersQueryHandler,
-            ConcreteGetStylePrimersQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetStylePrimersQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetStylePrimerQueryHandler,
-            ConcreteGetStylePrimerQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetStylePrimerQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetContentAnalyticsQueryHandler,
-            ConcreteGetContentAnalyticsQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetContentAnalyticsQueryHandler
         )
-        container.register(
+        container.register_transient(
             GetPopularTemplatesQueryHandler,
-            ConcreteGetPopularTemplatesQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteGetPopularTemplatesQueryHandler
         )
-        container.register(
+        container.register_transient(
             ValidateTemplateQueryHandler,
-            ConcreteValidateTemplateQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteValidateTemplateQueryHandler
         )
-        container.register(
+        container.register_transient(
             CheckTemplateExistsQueryHandler,
-            ConcreteCheckTemplateExistsQueryHandler,
-            lifetime=ServiceLifetime.SCOPED
+            ConcreteCheckTemplateExistsQueryHandler
         )
         
         return container

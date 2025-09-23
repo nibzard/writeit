@@ -5,14 +5,14 @@ configuration, and isolation.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
 from ...shared.query import Query, QueryHandler, QueryResult, ListQuery, GetByIdQuery, SearchQuery
 from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.workspace.entities import Workspace, WorkspaceConfig
+from ...domains.workspace.entities import Workspace, WorkspaceConfiguration
 
 
 class WorkspaceStatus(str, Enum):
@@ -50,7 +50,7 @@ class GetWorkspacesQuery(ListQuery):
 class GetWorkspaceQuery(GetByIdQuery):
     """Query to get a workspace by name."""
     
-    workspace_name: WorkspaceName
+    workspace_name: WorkspaceName = field(default=None)
     include_config: bool = True
     include_stats: bool = True
     include_templates: bool = False
@@ -91,10 +91,11 @@ class SearchWorkspacesQuery(SearchQuery):
     
     scope: Optional[WorkspaceScope] = None
     status: Optional[WorkspaceStatus] = None
-    search_fields: List[str] = None  # name, description, tags, etc.
+    search_fields: List[str] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.search_fields is None:
+        # Set default search fields if empty list
+        if not self.search_fields:
             object.__setattr__(self, 'search_fields', ['name', 'description', 'tags'])
         super().__post_init__()
 
@@ -107,11 +108,10 @@ class GetWorkspaceTemplatesQuery(ListQuery):
     
     scope: Optional[WorkspaceScope] = None
     category: Optional[str] = None
-    tags: List[str] = None
+    tags: List[str] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.tags is None:
-            object.__setattr__(self, 'tags', [])
+        # Tags default is now handled by field(default_factory=list)
         super().__post_init__()
 
 
@@ -119,7 +119,7 @@ class GetWorkspaceTemplatesQuery(ListQuery):
 class GetWorkspaceTemplateQuery(GetByIdQuery):
     """Query to get a workspace template by name."""
     
-    template_name: str
+    template_name: str = ""
     
     def __post_init__(self):
         object.__setattr__(self, 'entity_id', self.template_name)
@@ -132,14 +132,14 @@ class GetWorkspaceTemplateQuery(GetByIdQuery):
 class ValidateWorkspaceNameQuery(Query):
     """Query to validate workspace name availability."""
     
-    workspace_name: WorkspaceName
+    workspace_name: WorkspaceName = field(default=None)
 
 
 @dataclass(frozen=True)
 class CheckWorkspaceExistsQuery(Query):
     """Query to check if workspace exists."""
     
-    workspace_name: WorkspaceName
+    workspace_name: WorkspaceName = field(default=None)
 
 
 @dataclass(frozen=True)
@@ -158,19 +158,16 @@ class GetWorkspaceHealthQuery(Query):
 class WorkspaceQueryResult(QueryResult):
     """Result for workspace queries."""
     
-    workspaces: List[Workspace] = None
+    workspaces: List[Workspace] = field(default_factory=list)
     workspace: Optional[Workspace] = None
-    config: Optional[WorkspaceConfig] = None
+    config: Optional[WorkspaceConfiguration] = None
     stats: Optional[Dict[str, Any]] = None
     health: Optional[Dict[str, Any]] = None
     exists: Optional[bool] = None
-    validation_errors: List[str] = None
+    validation_errors: List[str] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.workspaces is None:
-            object.__setattr__(self, 'workspaces', [])
-        if self.validation_errors is None:
-            object.__setattr__(self, 'validation_errors', [])
+        # All defaults are now handled by field(default_factory=list)
         super().__post_init__()
 
 
@@ -178,12 +175,11 @@ class WorkspaceQueryResult(QueryResult):
 class WorkspaceTemplateQueryResult(QueryResult):
     """Result for workspace template queries."""
     
-    templates: List[Dict[str, Any]] = None
+    templates: List[Dict[str, Any]] = field(default_factory=list)
     template: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
-        if self.templates is None:
-            object.__setattr__(self, 'templates', [])
+        # All defaults are now handled by field(default_factory=list)
         super().__post_init__()
 
 

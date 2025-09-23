@@ -11,11 +11,11 @@ from typing import Dict, Any
 import tempfile
 import shutil
 
-from writeit.application.commands.handlers.workspace_handlers import (
-    ConcreteCreateWorkspaceCommandHandler,
-    ConcreteSwitchWorkspaceCommandHandler,
-    ConcreteDeleteWorkspaceCommandHandler,
-    ConcreteConfigureWorkspaceCommandHandler
+from writeit.application.commands.workspace_commands import (
+    CreateWorkspaceCommandHandler,
+    SwitchWorkspaceCommandHandler,
+    DeleteWorkspaceCommandHandler,
+    ConfigureWorkspaceCommandHandler
 )
 from writeit.application.commands.workspace_commands import (
     CreateWorkspaceCommand,
@@ -56,13 +56,14 @@ class TestWorkspaceCommandHandlers:
     @pytest.fixture
     def event_bus(self):
         """Create an event bus for testing."""
-        return EventBus()
+        from writeit.shared.events.event_bus import AsyncEventBus
+        return AsyncEventBus()
     
     @pytest.mark.asyncio
     async def test_create_workspace_handler(self, container, event_bus, temp_dir):
         """Test workspace creation command handler."""
         # Get handler from container
-        handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        handler = container.resolve(CreateWorkspaceCommandHandler)
         
         # Create command
         command = CreateWorkspaceCommand(
@@ -89,7 +90,7 @@ class TestWorkspaceCommandHandlers:
     @pytest.mark.asyncio
     async def test_create_workspace_validation(self, container, event_bus):
         """Test workspace creation validation."""
-        handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        handler = container.resolve(CreateWorkspaceCommandHandler)
         
         # Test empty name
         command = CreateWorkspaceCommand(name="")
@@ -105,7 +106,7 @@ class TestWorkspaceCommandHandlers:
     async def test_switch_workspace_handler(self, container, event_bus, temp_dir):
         """Test workspace switching command handler."""
         # First create a workspace
-        create_handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        create_handler = container.resolve(CreateWorkspaceCommandHandler)
         create_command = CreateWorkspaceCommand(
             name="switch-test-workspace",
             base_path=temp_dir / "workspaces" / "switch-test"
@@ -114,7 +115,7 @@ class TestWorkspaceCommandHandlers:
         assert create_result.success
         
         # Now test switching
-        switch_handler = container.resolve(ConcreteSwitchWorkspaceCommandHandler)
+        switch_handler = container.resolve(SwitchWorkspaceCommandHandler)
         switch_command = SwitchWorkspaceCommand(
             workspace_name="switch-test-workspace",
             validate_workspace=True
@@ -130,7 +131,7 @@ class TestWorkspaceCommandHandlers:
     async def test_configure_workspace_handler(self, container, event_bus, temp_dir):
         """Test workspace configuration command handler."""
         # First create a workspace
-        create_handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        create_handler = container.resolve(CreateWorkspaceCommandHandler)
         create_command = CreateWorkspaceCommand(
             name="config-test-workspace",
             base_path=temp_dir / "workspaces" / "config-test"
@@ -160,7 +161,7 @@ class TestWorkspaceCommandHandlers:
     async def test_delete_workspace_handler(self, container, event_bus, temp_dir):
         """Test workspace deletion command handler."""
         # First create a workspace
-        create_handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        create_handler = container.resolve(CreateWorkspaceCommandHandler)
         create_command = CreateWorkspaceCommand(
             name="delete-test-workspace",
             base_path=temp_dir / "workspaces" / "delete-test"
@@ -245,7 +246,7 @@ steps:
         temp_dir
     ):
         """Test pipeline template creation command handler."""
-        handler = container.resolve(ConcreteCreatePipelineTemplateCommandHandler)
+        handler = container.resolve(CreatePipelineTemplateCommandHandler)
         
         command = CreatePipelineTemplateCommand(
             name="test-pipeline",
@@ -276,7 +277,7 @@ steps:
         template_file = temp_dir / "test-pipeline.yaml"
         template_file.write_text(sample_pipeline_content)
         
-        handler = container.resolve(ConcreteCreatePipelineTemplateCommandHandler)
+        handler = container.resolve(CreatePipelineTemplateCommandHandler)
         
         command = CreatePipelineTemplateCommand(
             name="file-pipeline",
@@ -294,7 +295,7 @@ steps:
     @pytest.mark.asyncio
     async def test_create_pipeline_template_validation(self, container):
         """Test pipeline template creation validation."""
-        handler = container.resolve(ConcreteCreatePipelineTemplateCommandHandler)
+        handler = container.resolve(CreatePipelineTemplateCommandHandler)
         
         # Test empty name
         command = CreatePipelineTemplateCommand(name="", content="test")
@@ -319,7 +320,7 @@ steps:
         temp_dir
     ):
         """Test pipeline template validation command handler."""
-        handler = container.resolve(ConcreteValidatePipelineTemplateCommandHandler)
+        handler = container.resolve(ValidatePipelineTemplateCommandHandler)
         
         # Test valid template
         command = ValidatePipelineTemplateCommand(
@@ -339,7 +340,7 @@ steps:
         container
     ):
         """Test pipeline template validation with invalid content."""
-        handler = container.resolve(ConcreteValidatePipelineTemplateCommandHandler)
+        handler = container.resolve(ValidatePipelineTemplateCommandHandler)
         
         # Test invalid template content
         invalid_content = "invalid: yaml: content: [unclosed bracket"
@@ -366,7 +367,7 @@ steps:
         template_file = temp_dir / "validate-test.yaml"
         template_file.write_text(sample_pipeline_content)
         
-        handler = container.resolve(ConcreteValidatePipelineTemplateCommandHandler)
+        handler = container.resolve(ValidatePipelineTemplateCommandHandler)
         
         command = ValidatePipelineTemplateCommand(
             template_path=template_file,
@@ -399,7 +400,7 @@ class TestCommandHandlerIntegration:
     async def test_workspace_pipeline_integration(self, container, temp_dir):
         """Test integration between workspace and pipeline command handlers."""
         # Create workspace
-        workspace_handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        workspace_handler = container.resolve(CreateWorkspaceCommandHandler)
         workspace_command = CreateWorkspaceCommand(
             name="integration-test-workspace",
             base_path=temp_dir / "integration-workspace"
@@ -431,7 +432,7 @@ steps:
     model_preference: ["{{ defaults.model }}"]
 """
         
-        pipeline_handler = container.resolve(ConcreteCreatePipelineTemplateCommandHandler)
+        pipeline_handler = container.resolve(CreatePipelineTemplateCommandHandler)
         pipeline_command = CreatePipelineTemplateCommand(
             name="integration-pipeline",
             description="Pipeline created in workspace context",
@@ -446,7 +447,7 @@ steps:
         assert pipeline_result.template_name == "integration-pipeline"
         
         # Validate the pipeline
-        validate_handler = container.resolve(ConcreteValidatePipelineTemplateCommandHandler)
+        validate_handler = container.resolve(ValidatePipelineTemplateCommandHandler)
         validate_command = ValidatePipelineTemplateCommand(
             pipeline_name="integration-pipeline",
             workspace_name="integration-test-workspace",
@@ -461,7 +462,7 @@ steps:
     @pytest.mark.asyncio
     async def test_error_handling_integration(self, container):
         """Test error handling across command handlers."""
-        workspace_handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        workspace_handler = container.resolve(CreateWorkspaceCommandHandler)
         
         # Try to create workspace with invalid name
         invalid_command = CreateWorkspaceCommand(name="invalid/workspace name")
@@ -506,7 +507,7 @@ steps:
         # For now, we'll just verify that handlers complete successfully
         # which implies events were published without errors
         
-        workspace_handler = container.resolve(ConcreteCreateWorkspaceCommandHandler)
+        workspace_handler = container.resolve(CreateWorkspaceCommandHandler)
         workspace_command = CreateWorkspaceCommand(
             name="event-test-workspace",
             base_path=temp_dir / "event-test"

@@ -314,6 +314,16 @@ class ByTagSpecification(Specification[Template]):
         return self.tag in template.tags
 
 
+class ByAuthorSpecification(Specification[Template]):
+    """Specification for filtering templates by author."""
+    
+    def __init__(self, author: str):
+        self.author = author
+    
+    def is_satisfied_by(self, template: Template) -> bool:
+        return template.author == self.author
+
+
 class GlobalTemplateSpecification(Specification[Template]):
     """Specification for filtering global templates."""
     
@@ -331,6 +341,18 @@ class UsesVariableSpecification(Specification[Template]):
         # This would need access to template content analysis
         # Implementation would check if variable is used in template
         return self.variable in template.variables
+
+
+class RecentTemplatesSpecification(Specification[Template]):
+    """Specification for filtering recently created templates."""
+    
+    def __init__(self, days: int = 7):
+        self.days = days
+        from datetime import datetime, timedelta
+        self.cutoff_date = datetime.now() - timedelta(days=days)
+    
+    def is_satisfied_by(self, template: Template) -> bool:
+        return template.created_at >= self.cutoff_date
 
 
 class PublishedTemplatesSpecification(Specification[Template]):

@@ -39,16 +39,16 @@ from ...queries.content_queries import (
     ValidateTemplateQueryHandler,
     CheckTemplateExistsQueryHandler,
 )
-from ...domains.content.repositories import (
+from ....domains.content.repositories import (
     ContentTemplateRepository,
     StylePrimerRepository,
     GeneratedContentRepository
 )
-from ...domains.content.entities import ContentTemplate, StylePrimer, GeneratedContent
-from ...domains.content.value_objects import TemplateId, ContentId
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.content.services import TemplateRenderingService, ContentValidationService
-from ...shared.errors import RepositoryError, QueryError
+from ....domains.content.entities import Template, StylePrimer, GeneratedContent
+from ....domains.content.value_objects import TemplateName, ContentId
+from ....domains.workspace.value_objects import WorkspaceName
+from ....domains.content.services import TemplateRenderingService, ContentValidationService
+from ....shared.errors import RepositoryError, QueryError
 
 logger = logging.getLogger(__name__)
 
@@ -74,112 +74,112 @@ class ConcreteGetTemplatesQueryHandler(GetTemplatesQueryHandler):
             
             # Workspace scope filter
             if query.workspace_name:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class WorkspaceSpec(Specification):
                     def __init__(self, workspace_name: str):
                         self.workspace_name = workspace_name
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return str(template.workspace_name) == self.workspace_name
                 specs.append(WorkspaceSpec(query.workspace_name))
             elif query.scope == "global":
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class GlobalSpec(Specification):
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.workspace_name == WorkspaceName("global")
                 specs.append(GlobalSpec())
             
             # Content type filter
             if query.content_type:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class ContentTypeSpec(Specification):
                     def __init__(self, content_type: str):
                         self.content_type = content_type
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.content_type == self.content_type
                 specs.append(ContentTypeSpec(query.content_type))
             
             # Status filter
             if query.status:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class StatusSpec(Specification):
                     def __init__(self, status: str):
                         self.status = status
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.status == self.status
                 specs.append(StatusSpec(query.status))
             
             # Category filter
             if query.category:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CategorySpec(Specification):
                     def __init__(self, category: str):
                         self.category = category
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.metadata.get('category') == self.category
                 specs.append(CategorySpec(query.category))
             
             # Tags filter
             if query.tags:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class TagsSpec(Specification):
                     def __init__(self, tags: List[str]):
                         self.tags = tags
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         template_tags = template.metadata.get('tags', [])
                         return all(tag in template_tags for tag in self.tags)
                 specs.append(TagsSpec(query.tags))
             
             # Author filter
             if query.author:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class AuthorSpec(Specification):
                     def __init__(self, author: str):
                         self.author = author
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.metadata.get('author') == self.author
                 specs.append(AuthorSpec(query.author))
             
             # Date filters
             if query.created_after:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedAfterSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.created_at >= self.date
                 specs.append(CreatedAfterSpec(query.created_after))
             
             if query.created_before:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedBeforeSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.created_at <= self.date
                 specs.append(CreatedBeforeSpec(query.created_before))
             
             if query.updated_after:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class UpdatedAfterSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.updated_at >= self.date
                 specs.append(UpdatedAfterSpec(query.updated_after))
             
             if query.updated_before:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class UpdatedBeforeSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.updated_at <= self.date
                 specs.append(UpdatedBeforeSpec(query.updated_before))
             
             # Combine specifications
             spec = None
             if specs:
-                from ...shared.repository import AndSpecification
+                from ....shared.repository import AndSpecification
                 spec = AndSpecification(*specs)
             
             # Get templates with pagination
@@ -310,22 +310,22 @@ class ConcreteGetTemplateByNameQueryHandler(GetTemplateByNameQueryHandler):
             
             # Workspace scope filter
             if query.workspace_name:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class WorkspaceSpec(Specification):
                     def __init__(self, workspace_name: str):
                         self.workspace_name = workspace_name
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return str(template.workspace_name) == self.workspace_name
                 specs.append(WorkspaceSpec(query.workspace_name))
             elif query.scope == "global":
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class GlobalSpec(Specification):
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.workspace_name == WorkspaceName("global")
                 specs.append(GlobalSpec())
             
             # Combine specifications
-            from ...shared.repository import AndSpecification
+            from ....shared.repository import AndSpecification
             spec = AndSpecification(*specs)
             
             # Find template
@@ -540,7 +540,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             
             # Workspace filter
             if query.workspace_name:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class WorkspaceSpec(Specification):
                     def __init__(self, workspace_name: str):
                         self.workspace_name = workspace_name
@@ -550,9 +550,9 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             
             # Template filter
             if query.template_id:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class TemplateSpec(Specification):
-                    def __init__(self, template_id: TemplateId):
+                    def __init__(self, template_id: ContentId):
                         self.template_id = template_id
                     def is_satisfied_by(self, content: GeneratedContent) -> bool:
                         return content.source_template_id == self.template_id
@@ -560,7 +560,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             
             # Pipeline run filter
             if query.pipeline_run_id:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class PipelineRunSpec(Specification):
                     def __init__(self, pipeline_run_id: str):
                         self.pipeline_run_id = pipeline_run_id
@@ -570,7 +570,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             
             # Content type filter
             if query.content_type:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class ContentTypeSpec(Specification):
                     def __init__(self, content_type: str):
                         self.content_type = content_type
@@ -580,7 +580,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             
             # Status filter
             if query.status:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class StatusSpec(Specification):
                     def __init__(self, status: str):
                         self.status = status
@@ -590,7 +590,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             
             # Date filters
             if query.created_after:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedAfterSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -599,7 +599,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
                 specs.append(CreatedAfterSpec(query.created_after))
             
             if query.created_before:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedBeforeSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -610,7 +610,7 @@ class ConcreteListGeneratedContentQueryHandler(ListGeneratedContentQueryHandler)
             # Combine specifications
             spec = None
             if specs:
-                from ...shared.repository import AndSpecification
+                from ....shared.repository import AndSpecification
                 spec = AndSpecification(*specs)
             
             # Get content with pagination
@@ -678,7 +678,7 @@ class ConcreteGetStylePrimersQueryHandler(GetStylePrimersQueryHandler):
             
             # Workspace scope filter
             if query.workspace_name:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class WorkspaceSpec(Specification):
                     def __init__(self, workspace_name: str):
                         self.workspace_name = workspace_name
@@ -686,7 +686,7 @@ class ConcreteGetStylePrimersQueryHandler(GetStylePrimersQueryHandler):
                         return str(primer.workspace_name) == self.workspace_name
                 specs.append(WorkspaceSpec(query.workspace_name))
             elif query.scope == "global":
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class GlobalSpec(Specification):
                     def is_satisfied_by(self, primer: StylePrimer) -> bool:
                         return primer.workspace_name == WorkspaceName("global")
@@ -694,7 +694,7 @@ class ConcreteGetStylePrimersQueryHandler(GetStylePrimersQueryHandler):
             
             # Category filter
             if query.category:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CategorySpec(Specification):
                     def __init__(self, category: str):
                         self.category = category
@@ -704,7 +704,7 @@ class ConcreteGetStylePrimersQueryHandler(GetStylePrimersQueryHandler):
             
             # Tags filter
             if query.tags:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class TagsSpec(Specification):
                     def __init__(self, tags: List[str]):
                         self.tags = tags
@@ -715,7 +715,7 @@ class ConcreteGetStylePrimersQueryHandler(GetStylePrimersQueryHandler):
             
             # Author filter
             if query.author:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class AuthorSpec(Specification):
                     def __init__(self, author: str):
                         self.author = author
@@ -726,7 +726,7 @@ class ConcreteGetStylePrimersQueryHandler(GetStylePrimersQueryHandler):
             # Combine specifications
             spec = None
             if specs:
-                from ...shared.repository import AndSpecification
+                from ....shared.repository import AndSpecification
                 spec = AndSpecification(*specs)
             
             # Get primers with pagination
@@ -843,7 +843,7 @@ class ConcreteGetContentAnalyticsQueryHandler(GetContentAnalyticsQueryHandler):
             specs = []
             
             if query.time_range_start:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedAfterSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -852,7 +852,7 @@ class ConcreteGetContentAnalyticsQueryHandler(GetContentAnalyticsQueryHandler):
                 specs.append(CreatedAfterSpec(query.time_range_start))
             
             if query.time_range_end:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedBeforeSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -862,7 +862,7 @@ class ConcreteGetContentAnalyticsQueryHandler(GetContentAnalyticsQueryHandler):
             
             spec = None
             if specs:
-                from ...shared.repository import AndSpecification
+                from ....shared.repository import AndSpecification
                 spec = AndSpecification(*specs)
             
             # Get content counts
@@ -989,7 +989,7 @@ class ConcreteGetPopularTemplatesQueryHandler(GetPopularTemplatesQueryHandler):
                 ]
                 
                 if query.time_range_start:
-                    from ...shared.repository import Specification
+                    from ....shared.repository import Specification
                     class CreatedAfterSpec(Specification):
                         def __init__(self, date: datetime):
                             self.date = date
@@ -998,7 +998,7 @@ class ConcreteGetPopularTemplatesQueryHandler(GetPopularTemplatesQueryHandler):
                     content_specs.append(CreatedAfterSpec(query.time_range_start))
                 
                 if query.time_range_end:
-                    from ...shared.repository import Specification
+                    from ....shared.repository import Specification
                     class CreatedBeforeSpec(Specification):
                         def __init__(self, date: datetime):
                             self.date = date
@@ -1006,7 +1006,7 @@ class ConcreteGetPopularTemplatesQueryHandler(GetPopularTemplatesQueryHandler):
                             return content.created_at <= self.date
                     content_specs.append(CreatedBeforeSpec(query.time_range_end))
                 
-                from ...shared.repository import AndSpecification
+                from ....shared.repository import AndSpecification
                 content_spec = AndSpecification(*content_specs)
                 
                 generated_content = await self.generated_content_repository.find_all(spec=content_spec)
@@ -1155,22 +1155,22 @@ class ConcreteCheckTemplateExistsQueryHandler(CheckTemplateExistsQueryHandler):
             
             # Workspace scope filter
             if query.workspace_name:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class WorkspaceSpec(Specification):
                     def __init__(self, workspace_name: str):
                         self.workspace_name = workspace_name
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return str(template.workspace_name) == self.workspace_name
                 specs.append(WorkspaceSpec(query.workspace_name))
             elif query.scope == "global":
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class GlobalSpec(Specification):
-                    def is_satisfied_by(self, template: ContentTemplate) -> bool:
+                    def is_satisfied_by(self, template: Template) -> bool:
                         return template.workspace_name == WorkspaceName("global")
                 specs.append(GlobalSpec())
             
             # Combine specifications
-            from ...shared.repository import AndSpecification
+            from ....shared.repository import AndSpecification
             spec = AndSpecification(*specs)
             
             # Check if template exists

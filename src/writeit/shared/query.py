@@ -5,7 +5,7 @@ of Command Query Responsibility Segregation (CQRS) pattern.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TypeVar, Generic, Any, Dict, List, Optional, Union
 from uuid import uuid4
@@ -19,29 +19,20 @@ class Query(ABC):
     modifying system state. They should be immutable.
     """
     
-    query_id: str = None
-    timestamp: datetime = None
+    query_id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
     correlation_id: Optional[str] = None
     user_id: Optional[str] = None
     workspace_name: Optional[str] = None
     pagination: Optional[Dict[str, Any]] = None
-    filters: Dict[str, Any] = None
+    filters: Dict[str, Any] = field(default_factory=dict)
     sorting: Optional[Dict[str, Any]] = None
-    metadata: Dict[str, Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
         """Initialize query with defaults."""
-        if self.query_id is None:
-            object.__setattr__(self, 'query_id', str(uuid4()))
-        
-        if self.timestamp is None:
-            object.__setattr__(self, 'timestamp', datetime.now())
-        
-        if self.filters is None:
-            object.__setattr__(self, 'filters', {})
-        
-        if self.metadata is None:
-            object.__setattr__(self, 'metadata', {})
+        # Field default factories handle the initialization now
+        pass
 
 
 @dataclass(frozen=True)
@@ -332,7 +323,7 @@ class ListQuery(Query):
 class GetByIdQuery(Query):
     """Base query for retrieving entity by ID."""
     
-    entity_id: str
+    entity_id: str = ""
     include_related: bool = False
 
 
@@ -340,10 +331,10 @@ class GetByIdQuery(Query):
 class SearchQuery(Query):
     """Base query for full-text search operations."""
     
-    search_term: str
+    search_term: str = ""
     page: int = 1
     page_size: int = 20
-    filters: Dict[str, Any] = None
+    filters: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
         super().__post_init__()

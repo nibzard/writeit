@@ -12,8 +12,8 @@ from enum import Enum
 
 from ...shared.query import Query, QueryHandler, QueryResult, ListQuery, GetByIdQuery, SearchQuery
 from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.content.entities import ContentTemplate, StylePrimer, GeneratedContent
-from ...domains.content.value_objects import TemplateId, ContentId
+from ...domains.content.entities import Template, StylePrimer, GeneratedContent
+from ...domains.content.value_objects import ContentId
 
 
 class ContentType(str, Enum):
@@ -66,12 +66,14 @@ class GetTemplatesQuery(ListQuery):
 class GetTemplateQuery(GetByIdQuery):
     """Query to get a content template by ID."""
     
-    template_id: TemplateId
+    template_id: Optional[ContentId] = None
     workspace_name: Optional[str] = None
     include_metadata: bool = True
     include_content: bool = True
     
     def __post_init__(self):
+        if self.template_id is None:
+            raise ValueError("template_id is required")
         object.__setattr__(self, 'entity_id', str(self.template_id))
         super().__post_init__()
 
@@ -80,10 +82,15 @@ class GetTemplateQuery(GetByIdQuery):
 class GetTemplateByNameQuery(Query):
     """Query to get a template by name."""
     
-    template_name: str
+    template_name: Optional[str] = None
     workspace_name: Optional[str] = None
     scope: ContentScope = ContentScope.WORKSPACE
     include_versions: bool = False
+    
+    def __post_init__(self):
+        if self.template_name is None:
+            raise ValueError("template_name is required")
+        super().__post_init__()
 
 
 @dataclass(frozen=True)
@@ -111,13 +118,15 @@ class SearchTemplatesQuery(SearchQuery):
 class GetGeneratedContentQuery(GetByIdQuery):
     """Query to get generated content by ID."""
     
-    content_id: ContentId
+    content_id: Optional[ContentId] = None
     workspace_name: Optional[str] = None
     include_metadata: bool = True
     include_source: bool = True
     include_metrics: bool = True
     
     def __post_init__(self):
+        if self.content_id is None:
+            raise ValueError("content_id is required")
         object.__setattr__(self, 'entity_id', str(self.content_id))
         super().__post_init__()
 
@@ -127,7 +136,7 @@ class ListGeneratedContentQuery(ListQuery):
     """Query to list generated content with filtering and pagination."""
     
     workspace_name: Optional[str] = None
-    template_id: Optional[TemplateId] = None
+    template_id: Optional[ContentId] = None
     pipeline_run_id: Optional[str] = None
     created_after: Optional[datetime] = None
     created_before: Optional[datetime] = None
@@ -141,7 +150,7 @@ class SearchGeneratedContentQuery(SearchQuery):
     """Query to search generated content by text."""
     
     workspace_name: Optional[str] = None
-    template_id: Optional[TemplateId] = None
+    template_id: Optional[ContentId] = None
     pipeline_run_id: Optional[str] = None
     search_fields: List[str] = None  # title, content, metadata, etc.
     
@@ -173,10 +182,12 @@ class GetStylePrimersQuery(ListQuery):
 class GetStylePrimerQuery(GetByIdQuery):
     """Query to get a style primer by ID."""
     
-    primer_id: str
+    primer_id: Optional[str] = None
     workspace_name: Optional[str] = None
     
     def __post_init__(self):
+        if self.primer_id is None:
+            raise ValueError("primer_id is required")
         object.__setattr__(self, 'entity_id', self.primer_id)
         super().__post_init__()
 
@@ -226,7 +237,7 @@ class GetPopularTemplatesQuery(Query):
 class ValidateTemplateQuery(Query):
     """Query to validate a template."""
     
-    template_id: Optional[TemplateId] = None
+    template_id: Optional[ContentId] = None
     template_content: Optional[str] = None
     validation_level: str = "strict"
 
@@ -235,9 +246,14 @@ class ValidateTemplateQuery(Query):
 class CheckTemplateExistsQuery(Query):
     """Query to check if template exists."""
     
-    template_name: str
+    template_name: Optional[str] = None
     workspace_name: Optional[str] = None
     scope: ContentScope = ContentScope.WORKSPACE
+    
+    def __post_init__(self):
+        if self.template_name is None:
+            raise ValueError("template_name is required")
+        super().__post_init__()
 
 
 # Query Results
@@ -246,8 +262,8 @@ class CheckTemplateExistsQuery(Query):
 class TemplateQueryResult(QueryResult):
     """Result for template queries."""
     
-    templates: List[ContentTemplate] = None
-    template: Optional[ContentTemplate] = None
+    templates: List[Template] = None
+    template: Optional[Template] = None
     versions: List[Dict[str, Any]] = None
     validation_errors: List[str] = None
     exists: Optional[bool] = None

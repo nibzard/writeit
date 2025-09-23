@@ -35,11 +35,11 @@ from ...queries.workspace_queries import (
     GetWorkspaceTemplatesQueryHandler,
     GetWorkspaceTemplateQueryHandler,
 )
-from ...domains.workspace.repositories import WorkspaceRepository, WorkspaceConfigRepository
-from ...domains.workspace.entities import Workspace, WorkspaceConfig
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.workspace.services import WorkspaceIsolationService
-from ...shared.errors import RepositoryError, QueryError
+from ....domains.workspace.repositories import WorkspaceRepository, WorkspaceConfigRepository
+from ....domains.workspace.entities import Workspace, WorkspaceConfiguration
+from ....domains.workspace.value_objects import WorkspaceName
+from ....domains.workspace.services import WorkspaceIsolationService
+from ....shared.errors import RepositoryError, QueryError
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class ConcreteGetWorkspacesQueryHandler(GetWorkspacesQueryHandler):
             
             # Scope filter
             if query.scope:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class ScopeSpec(Specification):
                     def __init__(self, scope: str):
                         self.scope = scope
@@ -79,7 +79,7 @@ class ConcreteGetWorkspacesQueryHandler(GetWorkspacesQueryHandler):
             
             # Status filter
             if query.status:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class StatusSpec(Specification):
                     def __init__(self, status: str):
                         self.status = status
@@ -89,7 +89,7 @@ class ConcreteGetWorkspacesQueryHandler(GetWorkspacesQueryHandler):
             
             # Date filters
             if query.created_after:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedAfterSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -98,7 +98,7 @@ class ConcreteGetWorkspacesQueryHandler(GetWorkspacesQueryHandler):
                 specs.append(CreatedAfterSpec(query.created_after))
             
             if query.created_before:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class CreatedBeforeSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -107,7 +107,7 @@ class ConcreteGetWorkspacesQueryHandler(GetWorkspacesQueryHandler):
                 specs.append(CreatedBeforeSpec(query.created_before))
             
             if query.last_accessed_after:
-                from ...shared.repository import Specification
+                from ....shared.repository import Specification
                 class AccessedAfterSpec(Specification):
                     def __init__(self, date: datetime):
                         self.date = date
@@ -118,7 +118,7 @@ class ConcreteGetWorkspacesQueryHandler(GetWorkspacesQueryHandler):
             # Combine specifications
             spec = None
             if specs:
-                from ...shared.repository import AndSpecification
+                from ....shared.repository import AndSpecification
                 spec = AndSpecification(*specs)
             
             # Get workspaces with pagination

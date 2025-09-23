@@ -5,7 +5,7 @@ executions, and analytics.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from enum import Enum
@@ -39,7 +39,7 @@ class TemplateScope(str, Enum):
 class GetPipelineTemplateQuery(GetByIdQuery):
     """Query to get a pipeline template by ID."""
     
-    pipeline_id: PipelineId
+    pipeline_id: PipelineId = field(default=None)
     workspace_name: Optional[str] = None
     include_steps: bool = True
     include_inputs: bool = True
@@ -54,7 +54,7 @@ class GetPipelineTemplateQuery(GetByIdQuery):
 class GetPipelineTemplateByNameQuery(Query):
     """Query to get a pipeline template by name."""
     
-    pipeline_name: str
+    pipeline_name: str = ""
     workspace_name: Optional[str] = None
     scope: TemplateScope = TemplateScope.WORKSPACE
 
@@ -66,7 +66,7 @@ class ListPipelineTemplatesQuery(ListQuery):
     workspace_name: Optional[str] = None
     scope: TemplateScope = TemplateScope.WORKSPACE
     category: Optional[str] = None
-    tags: List[str] = None
+    tags: List[str] = field(default_factory=list)
     author: Optional[str] = None
     created_after: Optional[datetime] = None
     created_before: Optional[datetime] = None
@@ -74,8 +74,6 @@ class ListPipelineTemplatesQuery(ListQuery):
     updated_before: Optional[datetime] = None
     
     def __post_init__(self):
-        if self.tags is None:
-            object.__setattr__(self, 'tags', [])
         super().__post_init__()
 
 
@@ -85,14 +83,14 @@ class SearchPipelineTemplatesQuery(SearchQuery):
     
     workspace_name: Optional[str] = None
     scope: TemplateScope = TemplateScope.WORKSPACE
-    search_fields: List[str] = None  # name, description, tags, etc.
+    search_fields: List[str] = field(default_factory=list)
     category: Optional[str] = None
-    tags: List[str] = None
+    tags: List[str] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.search_fields is None:
+        if not self.search_fields:
             object.__setattr__(self, 'search_fields', ['name', 'description', 'tags'])
-        if self.tags is None:
+        if not self.tags:
             object.__setattr__(self, 'tags', [])
         super().__post_init__()
 
@@ -101,7 +99,7 @@ class SearchPipelineTemplatesQuery(SearchQuery):
 class GetPipelineTemplateVersionsQuery(Query):
     """Query to get all versions of a pipeline template."""
     
-    pipeline_name: str
+    pipeline_name: str = ""
     workspace_name: Optional[str] = None
     include_deprecated: bool = False
 
@@ -121,7 +119,7 @@ class ValidatePipelineTemplateQuery(Query):
 class GetPipelineRunQuery(GetByIdQuery):
     """Query to get a pipeline run by ID."""
     
-    run_id: str
+    run_id: str = ""
     include_steps: bool = True
     include_outputs: bool = True
     include_metrics: bool = True
@@ -149,7 +147,7 @@ class ListPipelineRunsQuery(ListQuery):
 class GetPipelineRunStatusQuery(Query):
     """Query to get current status of a pipeline run."""
     
-    run_id: str
+    run_id: str = ""
     include_progress: bool = True
     include_current_step: bool = True
     include_step_outputs: bool = False
@@ -159,8 +157,8 @@ class GetPipelineRunStatusQuery(Query):
 class GetPipelineRunOutputsQuery(Query):
     """Query to get outputs from a pipeline run."""
     
-    run_id: str
-    step_id: Optional[StepId] = None  # Get outputs for specific step
+    run_id: str = ""
+    step_id: Optional[StepId] = field(default=None)  # Get outputs for specific step
     output_format: str = "json"
 
 
@@ -168,7 +166,7 @@ class GetPipelineRunOutputsQuery(Query):
 class GetPipelineRunMetricsQuery(Query):
     """Query to get metrics for a pipeline run."""
     
-    run_id: str
+    run_id: str = ""
     include_step_metrics: bool = True
     include_token_usage: bool = True
     include_timing: bool = True
@@ -231,8 +229,8 @@ class GetPopularPipelinesQuery(Query):
 class GetStepExecutionQuery(Query):
     """Query to get step execution details."""
     
-    run_id: str
-    step_id: StepId
+    run_id: str = ""
+    step_id: Optional[StepId] = field(default=None)
     include_inputs: bool = True
     include_outputs: bool = True
     include_metrics: bool = True
@@ -242,7 +240,7 @@ class GetStepExecutionQuery(Query):
 class ListStepExecutionsQuery(ListQuery):
     """Query to list step executions for a pipeline run."""
     
-    run_id: str
+    run_id: str = ""
     status: Optional[str] = None
     step_type: Optional[str] = None
 
@@ -253,15 +251,11 @@ class ListStepExecutionsQuery(ListQuery):
 class PipelineTemplateQueryResult(QueryResult):
     """Result for pipeline template queries."""
     
-    templates: List[PipelineTemplate] = None
+    templates: List[PipelineTemplate] = field(default_factory=list)
     template: Optional[PipelineTemplate] = None
-    validation_errors: List[str] = None
+    validation_errors: List[str] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.templates is None:
-            object.__setattr__(self, 'templates', [])
-        if self.validation_errors is None:
-            object.__setattr__(self, 'validation_errors', [])
         super().__post_init__()
 
 
@@ -269,7 +263,7 @@ class PipelineTemplateQueryResult(QueryResult):
 class PipelineRunQueryResult(QueryResult):
     """Result for pipeline run queries."""
     
-    runs: List[PipelineRun] = None
+    runs: List[PipelineRun] = field(default_factory=list)
     run: Optional[PipelineRun] = None
     status: Optional[str] = None
     progress: Optional[Dict[str, Any]] = None
@@ -277,8 +271,6 @@ class PipelineRunQueryResult(QueryResult):
     metrics: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
-        if self.runs is None:
-            object.__setattr__(self, 'runs', [])
         super().__post_init__()
 
 
@@ -286,18 +278,12 @@ class PipelineRunQueryResult(QueryResult):
 class PipelineAnalyticsQueryResult(QueryResult):
     """Result for pipeline analytics queries."""
     
-    analytics: Dict[str, Any] = None
+    analytics: Dict[str, Any] = field(default_factory=dict)
     usage_stats: Optional[Dict[str, Any]] = None
-    popular_pipelines: List[Dict[str, Any]] = None
-    time_series: List[Dict[str, Any]] = None
+    popular_pipelines: List[Dict[str, Any]] = field(default_factory=list)
+    time_series: List[Dict[str, Any]] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.analytics is None:
-            object.__setattr__(self, 'analytics', {})
-        if self.popular_pipelines is None:
-            object.__setattr__(self, 'popular_pipelines', [])
-        if self.time_series is None:
-            object.__setattr__(self, 'time_series', [])
         super().__post_init__()
 
 
