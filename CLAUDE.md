@@ -26,7 +26,9 @@ src/
 ├── server/         # FastAPI server ✅ FULLY IMPLEMENTED
 │   ├── app.py      # REST API + WebSocket endpoints
 │   └── client.py   # Client library for TUI/CLI integration
-├── tui/            # Textual UI components
+├── tui/            # Textual UI components ✅ DDD INTEGRATED
+│   ├── pipeline_runner.py      # Legacy TUI runner (external dependencies)
+│   └── modern_pipeline_runner.py  # Modern DDD-integrated TUI runner
 └── cli/            # Main entry points with workspace commands
 
 tests/
@@ -134,6 +136,40 @@ class PipelineView(Widget):
     
     def watch_responses(self) -> None:
         self.update_response_panels()
+```
+
+### Modern TUI with DDD Integration
+The modern TUI (`ModernPipelineRunnerApp`) provides a rich, interactive interface with full DDD integration:
+
+```python
+from writeit.tui import ModernPipelineRunnerApp, TUIExecutionConfig
+from pathlib import Path
+import asyncio
+
+# Configure TUI execution
+config = TUIExecutionConfig(
+    auto_save_interval=30,      # Auto-save every 30 seconds
+    max_log_entries=1000,        # Keep last 1000 log entries
+    enable_animations=True,      # Enable smooth UI animations
+    show_token_usage=True,       # Display token usage metrics
+    show_performance=True        # Show performance analytics
+)
+
+# Run pipeline with modern TUI
+async def run_pipeline():
+    await run_modern_pipeline_tui(
+        pipeline_path=Path("pipeline.yaml"),
+        workspace_name="default",
+        config=config
+    )
+
+# Key features:
+# - Real-time execution progress with DDD services
+# - Interactive step execution with feedback
+# - Token usage tracking and analytics
+# - Workspace-aware execution
+# - Comprehensive error handling
+# - Export and restart capabilities
 ```
 
 ## Package Management
