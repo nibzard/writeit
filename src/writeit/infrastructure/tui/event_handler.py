@@ -18,7 +18,7 @@ from textual.widget import Widget
 from textual.events import Key, Click, Focus, Blur
 
 from ...shared.events import DomainEvent
-from ...shared.events.bus import EventBus
+from ...shared.events import EventBus
 from .context import TUIContextManager, TUIContext, NavigationState, TUIMode
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,6 @@ class TUIEventType(str, Enum):
     PIPELINE_ACTION = "pipeline_action"
     WORKSPACE_ACTION = "workspace_action"
     UI_STATE_CHANGE = "ui_state_change"
-    ERROR_OCCURRED = "error_occurred"
     FOCUS_CHANGE = "focus_change"
     KEYBOARD_SHORTCUT = "keyboard_shortcut"
 
@@ -68,424 +67,486 @@ class TUIEvent:
 
 
 @dataclass
-class NavigationEvent(TUIEvent):
+class NavigationEvent:
     """Navigation-specific event."""
     
     from_state: NavigationState
     to_state: NavigationState
-    
-    def __post_init__(self):
-        self.event_type = TUIEventType.NAVIGATION
+    event_type: TUIEventType = TUIEventType.NAVIGATION
+    source_widget: Optional[Widget] = None
+    target_widget: Optional[Widget] = None
+    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict[str, Any] = field(default_factory=dict)
+    handled: bool = False
+    cancelled: bool = False
 
 
 @dataclass
-class PipelineActionEvent(TUIEvent):
+class PipelineActionEvent:
     """Pipeline action event."""
     
     action: str  # "start", "step_complete", "pause", "resume", "cancel"
     pipeline_id: Optional[str] = None
+    event_type: TUIEventType = TUIEventType.PIPELINE_ACTION
+    source_widget: Optional[Widget] = None
+    target_widget: Optional[Widget] = None
+    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict[str, Any] = field(default_factory=dict)
+    handled: bool = False
+    cancelled: bool = False
     step_id: Optional[str] = None
-    
-    def __post_init__(self):
-        self.event_type = TUIEventType.PIPELINE_ACTION
 
 
 @dataclass
-class WorkspaceActionEvent(TUIEvent):
+class WorkspaceActionEvent:
     """Workspace action event."""
     
     action: str  # "switch", "create", "delete", "configure"
     workspace_name: Optional[str] = None
-    
-    def __post_init__(self):
-        self.event_type = TUIEventType.WORKSPACE_ACTION
+    event_type: TUIEventType = TUIEventType.WORKSPACE_ACTION
+    source_widget: Optional[Widget] = None
+    target_widget: Optional[Widget] = None
+    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict[str, Any] = field(default_factory=dict)
+    handled: bool = False
+    cancelled: bool = False
 
 
 @dataclass
-class UserInputEvent(TUIEvent):
+class UserInputEvent:
     """User input event."""
     
     input_type: str  # "text", "selection", "confirmation"
     value: Any = None
+    event_type: TUIEventType = TUIEventType.USER_INPUT
     field_name: Optional[str] = None
-    
-    def __post_init__(self):
-        self.event_type = TUIEventType.USER_INPUT
+    source_widget: Optional[Widget] = None
+    target_widget: Optional[Widget] = None
+    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict[str, Any] = field(default_factory=dict)
+    handled: bool = False
+    cancelled: bool = False
 
 
 @dataclass
-class UIStateChangeEvent(TUIEvent):
+class UIStateChangeEvent:
     """UI state change event."""
     
     state_key: str
     old_value: Any = None
+    event_type: TUIEventType = TUIEventType.UI_STATE_CHANGE
     new_value: Any = None
-    
-    def __post_init__(self):
-        self.event_type = TUIEventType.UI_STATE_CHANGE
+    source_widget: Optional[Widget] = None
+    target_widget: Optional[Widget] = None
+    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict[str, Any] = field(default_factory=dict)
+    handled: bool = False
+    cancelled: bool = False
 
 
 @dataclass
-class KeyboardShortcutEvent(TUIEvent):
+class KeyboardShortcutEvent:
     """Keyboard shortcut event."""
     
     shortcut: str
+    event_type: TUIEventType = TUIEventType.KEYBOARD_SHORTCUT
     key_event: Optional[Key] = None
-    
-    def __post_init__(self):
-        self.event_type = TUIEventType.KEYBOARD_SHORTCUT
+    source_widget: Optional[Widget] = None
+    target_widget: Optional[Widget] = None
+    timestamp: datetime = field(default_factory=datetime.now)
+    data: Dict[str, Any] = field(default_factory=dict)
+    handled: bool = False
+    cancelled: bool = False
 
 
 class TUIEventHandler(ABC):
     """Abstract base class for TUI event handlers."""
     
     @abstractmethod
-    async def handle_event(self, event: TUIEvent, context: TUIContext) -> bool:
-        """Handle a TUI event.
-        
-        Args:
-            event: The TUI event to handle
-            context: Current TUI context
-            
-        Returns:
-            True if event was handled, False otherwise
-        """
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        """Check if this handler can handle the event."""
         pass
     
-    def can_handle(self, event: TUIEvent) -> bool:
-        """Check if this handler can handle the event."""
-        return True
+    @abstractmethod
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        """Handle the event."""
+        pass
+    
+    @property
+    @abstractmethod
+    def handler_type(self) -> str:
+        """Get the handler type for routing."""
+        pass
 
 
 class NavigationEventHandler(TUIEventHandler):
     """Handler for navigation events."""
     
-    async def handle_event(self, event: TUIEvent, context: TUIContext) -> bool:
-        """Handle navigation events."""
-        if not isinstance(event, NavigationEvent):
-            return False
-        
-        logger.debug(f"Navigation: {event.from_state} -> {event.to_state}")
-        
-        # Validate navigation
-        if not self._can_navigate(event.from_state, event.to_state, context):
-            event.cancel()
-            return True
-        
-        # Update context
-        context.push_navigation(event.to_state)
-        
-        # Set metadata
-        context.set_metadata("last_navigation", {
-            "from": event.from_state.value,
-            "to": event.to_state.value,
-            "timestamp": event.timestamp.isoformat()
-        })
-        
-        event.mark_handled()
-        return True
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        return isinstance(event, (NavigationEvent, TUIEvent)) and (
+            event.event_type == TUIEventType.NAVIGATION
+        )
     
-    def _can_navigate(self, from_state: NavigationState, to_state: NavigationState, context: TUIContext) -> bool:
-        """Check if navigation is allowed."""
-        # Prevent navigation during execution unless going to results
-        if (
-            context.is_in_execution() and 
-            to_state not in [NavigationState.RESULTS, NavigationState.HOME]
-        ):
-            return False
-        
-        return True
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        if isinstance(event, NavigationEvent):
+            context = TUIContextManager.get_current_context()
+            if context:
+                context.navigation_state = event.to_state
+                logger.info(f"Navigation changed: {event.from_state} -> {event.to_state}")
+    
+    @property
+    def handler_type(self) -> str:
+        return "navigation"
 
 
 class PipelineActionEventHandler(TUIEventHandler):
     """Handler for pipeline action events."""
     
-    async def handle_event(self, event: TUIEvent, context: TUIContext) -> bool:
-        """Handle pipeline action events."""
-        if not isinstance(event, PipelineActionEvent):
-            return False
-        
-        logger.debug(f"Pipeline action: {event.action}")
-        
-        # Update execution context based on action
-        if event.action == "start":
-            context.mode = TUIMode.PIPELINE
-            context.push_navigation(NavigationState.EXECUTION)
-            if event.pipeline_id:
-                context.pipeline_id = event.pipeline_id
-        
-        elif event.action == "step_complete":
-            if event.step_id:
-                context.current_step = event.step_id
-                context.set_metadata(f"step_{event.step_id}_completed", True)
-        
-        elif event.action in ["pause", "cancel"]:
-            context.push_navigation(NavigationState.HOME)
-        
-        elif event.action == "resume":
-            context.push_navigation(NavigationState.EXECUTION)
-        
-        # Store action in execution context
-        TUIContextManager.update_execution_context("last_action", {
-            "action": event.action,
-            "pipeline_id": event.pipeline_id,
-            "step_id": event.step_id,
-            "timestamp": event.timestamp.isoformat()
-        })
-        
-        event.mark_handled()
-        return True
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        return isinstance(event, (PipelineActionEvent, TUIEvent)) and (
+            event.event_type == TUIEventType.PIPELINE_ACTION
+        )
+    
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        if isinstance(event, PipelineActionEvent):
+            logger.info(f"Pipeline action: {event.action} for pipeline {event.pipeline_id}")
+            
+            # Route to appropriate pipeline service
+            context = TUIContextManager.get_current_context()
+            if context and context.container:
+                # This would integrate with pipeline service
+                pass
+    
+    @property
+    def handler_type(self) -> str:
+        return "pipeline_action"
 
 
 class WorkspaceActionEventHandler(TUIEventHandler):
     """Handler for workspace action events."""
     
-    async def handle_event(self, event: TUIEvent, context: TUIContext) -> bool:
-        """Handle workspace action events."""
-        if not isinstance(event, WorkspaceActionEvent):
-            return False
-        
-        logger.debug(f"Workspace action: {event.action}")
-        
-        # Handle workspace switching
-        if event.action == "switch" and event.workspace_name:
-            old_workspace = context.workspace_name
-            context.workspace_name = event.workspace_name
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        return isinstance(event, (WorkspaceActionEvent, TUIEvent)) and (
+            event.event_type == TUIEventType.WORKSPACE_ACTION
+        )
+    
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        if isinstance(event, WorkspaceActionEvent):
+            logger.info(f"Workspace action: {event.action} for workspace {event.workspace_name}")
             
-            # Clear execution context when switching workspaces
-            context.execution_context.clear()
-            context.pipeline_id = None
-            context.current_step = None
+            # Route to workspace service
+            context = TUIContextManager.get_current_context()
+            if context and context.container:
+                # This would integrate with workspace service
+                pass
+    
+    @property
+    def handler_type(self) -> str:
+        return "workspace_action"
+
+
+class UserInputEventHandler(TUIEventHandler):
+    """Handler for user input events."""
+    
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        return isinstance(event, (UserInputEvent, TUIEvent)) and (
+            event.event_type == TUIEventType.USER_INPUT
+        )
+    
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        if isinstance(event, UserInputEvent):
+            logger.info(f"User input: {event.input_type} = {event.value}")
             
-            context.set_metadata("workspace_switch", {
-                "from": old_workspace,
-                "to": event.workspace_name,
-                "timestamp": event.timestamp.isoformat()
-            })
-        
-        event.mark_handled()
-        return True
+            # Handle user input based on type
+            context = TUIContextManager.get_current_context()
+            if context:
+                # Store input in context data
+                context.user_input_data[event.field_name or "default"] = event.value
+    
+    @property
+    def handler_type(self) -> str:
+        return "user_input"
 
 
 class UIStateChangeEventHandler(TUIEventHandler):
     """Handler for UI state change events."""
     
-    async def handle_event(self, event: TUIEvent, context: TUIContext) -> bool:
-        """Handle UI state change events."""
-        if not isinstance(event, UIStateChangeEvent):
-            return False
-        
-        logger.debug(f"UI state change: {event.state_key} = {event.new_value}")
-        
-        # Update context based on state key
-        if event.state_key == "theme":
-            context.theme = str(event.new_value)
-        elif event.state_key == "dark_mode":
-            context.dark_mode = bool(event.new_value)
-        elif event.state_key == "show_debug":
-            context.show_debug = bool(event.new_value)
-        elif event.state_key == "keyboard_shortcuts_enabled":
-            context.keyboard_shortcuts_enabled = bool(event.new_value)
-        
-        # Store in metadata
-        context.set_metadata(f"ui_state_{event.state_key}", {
-            "old_value": event.old_value,
-            "new_value": event.new_value,
-            "timestamp": event.timestamp.isoformat()
-        })
-        
-        event.mark_handled()
-        return True
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        return isinstance(event, (UIStateChangeEvent, TUIEvent)) and (
+            event.event_type == TUIEventType.UI_STATE_CHANGE
+        )
+    
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        if isinstance(event, UIStateChangeEvent):
+            logger.info(f"UI state change: {event.state_key} = {event.old_value} -> {event.new_value}")
+            
+            # Update UI state in context
+            context = TUIContextManager.get_current_context()
+            if context:
+                context.ui_state[event.state_key] = event.new_value
+    
+    @property
+    def handler_type(self) -> str:
+        return "ui_state_change"
 
 
 class KeyboardShortcutEventHandler(TUIEventHandler):
     """Handler for keyboard shortcut events."""
     
-    def __init__(self):
-        self.shortcut_handlers: Dict[str, Callable[[TUIContext], None]] = {
-            "ctrl+h": self._handle_home,
-            "ctrl+b": self._handle_back,
-            "ctrl+w": self._handle_workspace_switch,
-            "ctrl+p": self._handle_pipeline_mode,
-            "ctrl+t": self._handle_template_mode,
-            "ctrl+s": self._handle_settings,
-            "f1": self._handle_help,
-            "ctrl+q": self._handle_quit,
-        }
+    def can_handle(self, event: Union[TUIEvent, DomainEvent]) -> bool:
+        return isinstance(event, (KeyboardShortcutEvent, TUIEvent)) and (
+            event.event_type == TUIEventType.KEYBOARD_SHORTCUT
+        )
     
-    async def handle_event(self, event: TUIEvent, context: TUIContext) -> bool:
-        """Handle keyboard shortcut events."""
-        if not isinstance(event, KeyboardShortcutEvent):
-            return False
-        
-        if not context.keyboard_shortcuts_enabled:
-            return False
-        
-        logger.debug(f"Keyboard shortcut: {event.shortcut}")
-        
-        handler = self.shortcut_handlers.get(event.shortcut)
-        if handler:
-            handler(context)
-            event.mark_handled()
-            return True
-        
-        return False
+    async def handle(self, event: Union[TUIEvent, DomainEvent]) -> None:
+        if isinstance(event, KeyboardShortcutEvent):
+            logger.info(f"Keyboard shortcut: {event.shortcut}")
+            
+            # Handle common shortcuts
+            if event.shortcut == "ctrl+c":
+                # Quit application
+                pass
+            elif event.shortcut == "ctrl+p":
+                # Pause/resume
+                pass
+            elif event.shortcut == "ctrl+s":
+                # Save
+                pass
     
-    def _handle_home(self, context: TUIContext) -> None:
-        """Handle home shortcut."""
-        context.push_navigation(NavigationState.HOME)
-    
-    def _handle_back(self, context: TUIContext) -> None:
-        """Handle back shortcut."""
-        context.pop_navigation()
-    
-    def _handle_workspace_switch(self, context: TUIContext) -> None:
-        """Handle workspace switch shortcut."""
-        context.mode = TUIMode.WORKSPACE
-    
-    def _handle_pipeline_mode(self, context: TUIContext) -> None:
-        """Handle pipeline mode shortcut."""
-        context.mode = TUIMode.PIPELINE
-    
-    def _handle_template_mode(self, context: TUIContext) -> None:
-        """Handle template mode shortcut."""
-        context.mode = TUIMode.TEMPLATE
-    
-    def _handle_settings(self, context: TUIContext) -> None:
-        """Handle settings shortcut."""
-        context.push_navigation(NavigationState.SETTINGS)
-    
-    def _handle_help(self, context: TUIContext) -> None:
-        """Handle help shortcut."""
-        context.push_navigation(NavigationState.HELP)
-    
-    def _handle_quit(self, context: TUIContext) -> None:
-        """Handle quit shortcut."""
-        # This would trigger app quit - implementation depends on app structure
-        context.set_metadata("quit_requested", True)
+    @property
+    def handler_type(self) -> str:
+        return "keyboard_shortcut"
 
 
 class TUIEventBus:
-    """Event bus for TUI events with domain integration."""
+    """TUI-specific event bus for handling UI events.
+    
+    Provides a specialized event bus for TUI applications with support for:
+    - UI-specific event types
+    - Event routing based on widget hierarchy
+    - Event propagation control
+    - Integration with domain events
+    """
     
     def __init__(self, domain_event_bus: Optional[EventBus] = None):
         self.domain_event_bus = domain_event_bus
-        self.handlers: List[TUIEventHandler] = []
-        self.middleware: List[Callable[[TUIEvent, TUIContext], None]] = []
+        self.handlers: Dict[str, List[TUIEventHandler]] = {}
+        self.event_log: List[TUIEvent] = []
+        self.max_log_size = 1000
         
         # Register default handlers
         self._register_default_handlers()
     
     def _register_default_handlers(self) -> None:
         """Register default TUI event handlers."""
-        self.register_handler(NavigationEventHandler())
-        self.register_handler(PipelineActionEventHandler())
-        self.register_handler(WorkspaceActionEventHandler())
-        self.register_handler(UIStateChangeEventHandler())
-        self.register_handler(KeyboardShortcutEventHandler())
+        handlers = [
+            NavigationEventHandler(),
+            PipelineActionEventHandler(),
+            WorkspaceActionEventHandler(),
+            UserInputEventHandler(),
+            UIStateChangeEventHandler(),
+            KeyboardShortcutEventHandler(),
+        ]
+        
+        for handler in handlers:
+            self.register_handler(handler)
     
     def register_handler(self, handler: TUIEventHandler) -> None:
         """Register a TUI event handler."""
-        self.handlers.append(handler)
+        handler_type = handler.handler_type
+        if handler_type not in self.handlers:
+            self.handlers[handler_type] = []
+        self.handlers[handler_type].append(handler)
     
     def unregister_handler(self, handler: TUIEventHandler) -> None:
         """Unregister a TUI event handler."""
-        if handler in self.handlers:
-            self.handlers.remove(handler)
-    
-    def add_middleware(self, middleware: Callable[[TUIEvent, TUIContext], None]) -> None:
-        """Add middleware for event processing."""
-        self.middleware.append(middleware)
-    
-    async def emit_event(self, event: TUIEvent) -> bool:
-        """Emit a TUI event to all registered handlers.
-        
-        Args:
-            event: The TUI event to emit
-            
-        Returns:
-            True if event was handled by at least one handler
-        """
-        context = TUIContextManager.get_context_or_raise()
-        
-        # Apply middleware
-        for middleware in self.middleware:
+        handler_type = handler.handler_type
+        if handler_type in self.handlers:
             try:
-                middleware(event, context)
-            except Exception as e:
-                logger.error(f"Middleware error: {e}", exc_info=True)
+                self.handlers[handler_type].remove(handler)
+            except ValueError:
+                pass
+    
+    async def publish(self, event: Union[TUIEvent, NavigationEvent, PipelineActionEvent, 
+                          WorkspaceActionEvent, UserInputEvent, UIStateChangeEvent, 
+                          KeyboardShortcutEvent]) -> None:
+        """Publish a TUI event."""
+        # Log the event
+        if isinstance(event, TUIEvent):
+            self.event_log.append(event)
+            if len(self.event_log) > self.max_log_size:
+                self.event_log.pop(0)
         
-        # Check if event was cancelled by middleware
-        if event.cancelled:
-            return False
-        
-        # Process through handlers
-        handled = False
-        for handler in self.handlers:
-            if handler.can_handle(event):
-                try:
-                    if await handler.handle_event(event, context):
-                        handled = True
-                        if event.handled:
+        # Find and execute handlers
+        for handler_type, handlers in self.handlers.items():
+            for handler in handlers:
+                if handler.can_handle(event):
+                    try:
+                        await handler.handle(event)
+                        
+                        # Stop propagation if event is cancelled
+                        if hasattr(event, 'cancelled') and event.cancelled:
                             break
-                except Exception as e:
-                    logger.error(f"Handler error: {e}", exc_info=True)
+                        
+                        # Mark as handled
+                        if hasattr(event, 'handled'):
+                            event.mark_handled()
+                            
+                    except Exception as e:
+                        logger.error(f"Error in TUI event handler {handler_type}: {e}")
         
-        # Convert to domain event if applicable
-        if handled and self.domain_event_bus:
-            domain_event = self._convert_to_domain_event(event, context)
-            if domain_event:
-                await self.domain_event_bus.publish_async(domain_event)
-        
-        return handled
+        # Forward to domain event bus if available
+        if self.domain_event_bus and isinstance(event, DomainEvent):
+            await self.domain_event_bus.publish(event)
     
-    def _convert_to_domain_event(self, tui_event: TUIEvent, context: TUIContext) -> Optional[DomainEvent]:
-        """Convert TUI event to domain event if applicable."""
-        # This would convert specific TUI events to domain events
-        # Implementation depends on specific domain event types
-        return None
+    async def publish_navigation(self, from_state: NavigationState, to_state: NavigationState,
+                               source_widget: Optional[Widget] = None) -> None:
+        """Convenience method to publish navigation event."""
+        event = NavigationEvent(
+            from_state=from_state,
+            to_state=to_state,
+            source_widget=source_widget
+        )
+        await self.publish(event)
     
-    # Convenience methods for emitting specific events
+    async def publish_pipeline_action(self, action: str, pipeline_id: Optional[str] = None,
+                                    step_id: Optional[str] = None,
+                                    source_widget: Optional[Widget] = None) -> None:
+        """Convenience method to publish pipeline action event."""
+        event = PipelineActionEvent(
+            action=action,
+            pipeline_id=pipeline_id,
+            step_id=step_id,
+            source_widget=source_widget
+        )
+        await self.publish(event)
     
-    async def emit_navigation(self, from_state: NavigationState, to_state: NavigationState) -> bool:
-        """Emit a navigation event."""
-        event = NavigationEvent(from_state=from_state, to_state=to_state)
-        return await self.emit_event(event)
+    async def publish_workspace_action(self, action: str, workspace_name: Optional[str] = None,
+                                     source_widget: Optional[Widget] = None) -> None:
+        """Convenience method to publish workspace action event."""
+        event = WorkspaceActionEvent(
+            action=action,
+            workspace_name=workspace_name,
+            source_widget=source_widget
+        )
+        await self.publish(event)
     
-    async def emit_pipeline_action(self, action: str, pipeline_id: Optional[str] = None, step_id: Optional[str] = None) -> bool:
-        """Emit a pipeline action event."""
-        event = PipelineActionEvent(action=action, pipeline_id=pipeline_id, step_id=step_id)
-        return await self.emit_event(event)
+    async def publish_user_input(self, input_type: str, value: Any, field_name: Optional[str] = None,
+                                source_widget: Optional[Widget] = None) -> None:
+        """Convenience method to publish user input event."""
+        event = UserInputEvent(
+            input_type=input_type,
+            value=value,
+            field_name=field_name,
+            source_widget=source_widget
+        )
+        await self.publish(event)
     
-    async def emit_workspace_action(self, action: str, workspace_name: Optional[str] = None) -> bool:
-        """Emit a workspace action event."""
-        event = WorkspaceActionEvent(action=action, workspace_name=workspace_name)
-        return await self.emit_event(event)
+    async def publish_ui_state_change(self, state_key: str, old_value: Any, new_value: Any,
+                                    source_widget: Optional[Widget] = None) -> None:
+        """Convenience method to publish UI state change event."""
+        event = UIStateChangeEvent(
+            state_key=state_key,
+            old_value=old_value,
+            new_value=new_value,
+            source_widget=source_widget
+        )
+        await self.publish(event)
     
-    async def emit_user_input(self, input_type: str, value: Any, field_name: Optional[str] = None) -> bool:
-        """Emit a user input event."""
-        event = UserInputEvent(input_type=input_type, value=value, field_name=field_name)
-        return await self.emit_event(event)
+    async def publish_keyboard_shortcut(self, shortcut: str, key_event: Optional[Key] = None,
+                                       source_widget: Optional[Widget] = None) -> None:
+        """Convenience method to publish keyboard shortcut event."""
+        event = KeyboardShortcutEvent(
+            shortcut=shortcut,
+            key_event=key_event,
+            source_widget=source_widget
+        )
+        await self.publish(event)
     
-    async def emit_ui_state_change(self, state_key: str, old_value: Any, new_value: Any) -> bool:
-        """Emit a UI state change event."""
-        event = UIStateChangeEvent(state_key=state_key, old_value=old_value, new_value=new_value)
-        return await self.emit_event(event)
+    def get_event_log(self, limit: Optional[int] = None) -> List[TUIEvent]:
+        """Get the event log."""
+        if limit is None:
+            return self.event_log.copy()
+        return self.event_log[-limit:]
     
-    async def emit_keyboard_shortcut(self, shortcut: str, key_event: Optional[Key] = None) -> bool:
-        """Emit a keyboard shortcut event."""
-        event = KeyboardShortcutEvent(shortcut=shortcut, key_event=key_event)
-        return await self.emit_event(event)
+    def clear_event_log(self) -> None:
+        """Clear the event log."""
+        self.event_log.clear()
+    
+    def get_handlers_by_type(self, handler_type: str) -> List[TUIEventHandler]:
+        """Get handlers by type."""
+        return self.handlers.get(handler_type, [])
+    
+    def get_all_handler_types(self) -> List[str]:
+        """Get all registered handler types."""
+        return list(self.handlers.keys())
 
 
-# Utility functions
-def create_default_tui_event_bus(domain_event_bus: Optional[EventBus] = None) -> TUIEventBus:
-    """Create a TUI event bus with default configuration."""
-    return TUIEventBus(domain_event_bus)
+# Global TUI event bus instance
+_tui_event_bus: Optional[TUIEventBus] = None
 
 
-async def emit_tui_event(event: TUIEvent) -> bool:
-    """Emit a TUI event using the current context's event bus."""
-    # This would require the event bus to be stored in context or globally
-    # Implementation depends on how the event bus is managed
-    raise NotImplementedError("TUI event bus not available in context")
+def get_tui_event_bus() -> TUIEventBus:
+    """Get the global TUI event bus instance."""
+    global _tui_event_bus
+    if _tui_event_bus is None:
+        _tui_event_bus = TUIEventBus()
+    return _tui_event_bus
+
+
+def set_tui_event_bus(bus: TUIEventBus) -> None:
+    """Set the global TUI event bus instance."""
+    global _tui_event_bus
+    _tui_event_bus = bus
+
+
+# Convenience functions
+async def publish_tui_event(event: Union[TUIEvent, NavigationEvent, PipelineActionEvent,
+                           WorkspaceActionEvent, UserInputEvent, UIStateChangeEvent,
+                           KeyboardShortcutEvent]) -> None:
+    """Publish a TUI event using the global event bus."""
+    bus = get_tui_event_bus()
+    await bus.publish(event)
+
+
+async def publish_navigation(from_state: NavigationState, to_state: NavigationState,
+                           source_widget: Optional[Widget] = None) -> None:
+    """Convenience function to publish navigation event."""
+    bus = get_tui_event_bus()
+    await bus.publish_navigation(from_state, to_state, source_widget)
+
+
+async def publish_pipeline_action(action: str, pipeline_id: Optional[str] = None,
+                                step_id: Optional[str] = None,
+                                source_widget: Optional[Widget] = None) -> None:
+    """Convenience function to publish pipeline action event."""
+    bus = get_tui_event_bus()
+    await bus.publish_pipeline_action(action, pipeline_id, step_id, source_widget)
+
+
+async def publish_workspace_action(action: str, workspace_name: Optional[str] = None,
+                                 source_widget: Optional[Widget] = None) -> None:
+    """Convenience function to publish workspace action event."""
+    bus = get_tui_event_bus()
+    await bus.publish_workspace_action(action, workspace_name, source_widget)
+
+
+async def publish_user_input(input_type: str, value: Any, field_name: Optional[str] = None,
+                            source_widget: Optional[Widget] = None) -> None:
+    """Convenience function to publish user input event."""
+    bus = get_tui_event_bus()
+    await bus.publish_user_input(input_type, value, field_name, source_widget)
+
+
+async def publish_ui_state_change(state_key: str, old_value: Any, new_value: Any,
+                               source_widget: Optional[Widget] = None) -> None:
+    """Convenience function to publish UI state change event."""
+    bus = get_tui_event_bus()
+    await bus.publish_ui_state_change(state_key, old_value, new_value, source_widget)
+
+
+async def publish_keyboard_shortcut(shortcut: str, key_event: Optional[Key] = None,
+                                   source_widget: Optional[Widget] = None) -> None:
+    """Convenience function to publish keyboard shortcut event."""
+    bus = get_tui_event_bus()
+    await bus.publish_keyboard_shortcut(shortcut, key_event, source_widget)

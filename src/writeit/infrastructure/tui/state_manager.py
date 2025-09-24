@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from copy import deepcopy
 
-from ...shared.events.bus import EventBus
+from ...shared.events import EventBus
 from .context import TUIContextManager, TUIContext
 from .event_handler import TUIEventBus, UIStateChangeEvent
 

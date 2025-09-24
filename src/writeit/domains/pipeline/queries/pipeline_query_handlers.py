@@ -8,7 +8,7 @@ import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 
-from ...shared.query import QueryHandler, QueryExecutionError
+from ....shared.query import QueryHandler, QueryExecutionError
 from ..repositories import (
     PipelineTemplateRepository,
     PipelineRunRepository,

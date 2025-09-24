@@ -12,7 +12,8 @@ from typing import Optional
 from ..infrastructure.tui.components import ModernWriteItTUI, run_modern_tui
 from ..infrastructure.tui.integration import TUIRunner, create_tui_runner
 from ..infrastructure.tui.context import TUIContext, TUIContextManager, TUIMode
-from ..shared.dependencies.container import create_container
+from ..shared.dependencies.container import Container
+from ..shared.dependencies.service_manager import create_default_container
 
 
 async def run_modern_writeit_tui(workspace_name: str = "default") -> None:
@@ -26,7 +27,7 @@ async def run_modern_writeit_tui(workspace_name: str = "default") -> None:
     """
     try:
         # Create the dependency injection container
-        container = create_container()
+        container = create_default_container()
         
         # Run the modern TUI
         await run_modern_tui(container, workspace_name)
@@ -50,7 +51,7 @@ async def run_advanced_pipeline_tui(pipeline_path: Path, workspace_name: str = "
     """
     try:
         # Create the dependency injection container
-        container = create_container()
+        container = create_default_container()
         
         # Create TUI runner
         runner = create_tui_runner(container)
@@ -82,7 +83,7 @@ class WriteItTUIApp:
         """Initialize the TUI application with all dependencies."""
         try:
             # Create the dependency injection container
-            self.container = create_container()
+            self.container = create_default_container()
             
             # Create the TUI runner
             self.runner = create_tui_runner(self.container)

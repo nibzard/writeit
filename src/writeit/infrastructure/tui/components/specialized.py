@@ -44,34 +44,35 @@ from textual.binding import Binding
 from textual.screen import Screen
 from textual.message import Message
 from textual.timer import Timer
-from textual.workers import Worker, WorkerState
+import asyncio
 
-from ...infrastructure.tui.context import (
+from ..context import (
     TUIContext,
     TUIMode,
     NavigationState,
     require_tui_context,
 )
-from ...infrastructure.tui.components.modern_tui import (
+from .modern_tui import (
     TUIComponentMessage,
     PipelineTemplateInfo,
     PipelineInputData,
     PipelineStepData,
 )
 
-from ...application.services.workspace_application_service import (
+from ....application.services.workspace_application_service import (
     WorkspaceApplicationService,
 )
-from ...application.services.content_application_service import (
+from ....application.services.content_application_service import (
     ContentApplicationService,
 )
-from ...application.services.pipeline_application_service import (
+from ....application.services.pipeline_application_service import (
     PipelineApplicationService,
 )
 
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.pipeline.value_objects import PipelineId, ExecutionStatus
-from ...shared.dependencies.container import Container
+from ....domains.workspace.value_objects import WorkspaceName
+from ....domains.pipeline.value_objects import PipelineId
+from ....domains.pipeline.value_objects.execution_status import ExecutionStatus
+from ....shared.dependencies.container import Container
 
 
 class WorkspaceManagementScreen(Screen):

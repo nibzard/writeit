@@ -21,8 +21,8 @@ from textual.screen import ModalScreen
 from textual import events
 from textual.binding import Binding
 
-from ...shared.errors.base import DomainError, ValidationError, NotFoundError, ConflictError
-from ...shared.errors.exceptions import (
+from ...shared.errors import DomainError, ValidationError, NotFoundError, ConflictError
+from ...shared.dependencies.exceptions import (
     ServiceNotFoundError,
     CircularDependencyError,
     InvalidServiceRegistrationError,
@@ -42,9 +42,9 @@ from ...domains.pipeline.errors import (
     StepExecutionError
 )
 from ...domains.content.errors import (
-    ContentNotFoundError,
+    TemplateNotFoundError,
     ContentValidationError,
-    TemplateProcessingError
+    ContentGenerationError
 )
 from .context import TUIContextManager, TUIContext
 

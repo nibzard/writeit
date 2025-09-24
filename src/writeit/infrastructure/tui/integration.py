@@ -148,10 +148,10 @@ def run_pipeline_tui_legacy(pipeline_path: Path, workspace_name: str = "default"
     """
     try:
         # Import the container factory
-        from ...shared.dependencies.container import create_container
+        from ...shared.dependencies.service_manager import create_default_container
         
         # Create the container with all services
-        container = create_container()
+        container = create_default_container()
         
         # Create and run the TUI runner
         runner = create_tui_runner(container)
@@ -174,10 +174,10 @@ def run_modern_tui_legacy(workspace_name: str = "default") -> None:
     """
     try:
         # Import the container factory
-        from ...shared.dependencies.container import create_container
+        from ...shared.dependencies.service_manager import create_default_container
         
         # Create the container with all services
-        container = create_container()
+        container = create_default_container()
         
         # Create and run the TUI runner
         runner = create_tui_runner(container)

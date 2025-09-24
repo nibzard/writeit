@@ -44,9 +44,9 @@ from textual.binding import Binding
 from textual.screen import Screen
 from textual.message import Message
 from textual.timer import Timer
-from textual.workers import Worker, WorkerState
+import asyncio
 
-from ...infrastructure.tui.context import (
+from ..context import (
     TUIContext,
     TUIContextManager,
     TUIMode,
@@ -54,27 +54,28 @@ from ...infrastructure.tui.context import (
     get_current_tui_context,
     require_tui_context,
 )
-from ...infrastructure.tui.event_handler import TUIEventHandler
-from ...infrastructure.tui.state_manager import TUIStateManager
-from ...infrastructure.tui.error_handler import TUIErrorHandler
+from ..event_handler import TUIEventHandler
+from ..state_manager import TUIStateManager
+from ..error_handler import TUIErrorHandler
 
-from ...application.services.pipeline_application_service import (
+from ....application.services.pipeline_application_service import (
     PipelineApplicationService,
     PipelineExecutionRequest,
-    PipelineExecutionResponse,
+    PipelineExecutionResult,
     PipelineExecutionMode,
     PipelineSource,
 )
-from ...application.services.workspace_application_service import (
+from ....application.services.workspace_application_service import (
     WorkspaceApplicationService,
 )
-from ...application.services.content_application_service import (
+from ....application.services.content_application_service import (
     ContentApplicationService,
 )
 
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.pipeline.value_objects import PipelineId, ExecutionStatus
-from ...shared.dependencies.container import Container
+from ....domains.workspace.value_objects import WorkspaceName
+from ....domains.pipeline.value_objects import PipelineId
+from ....domains.pipeline.value_objects.execution_status import ExecutionStatus, StepExecutionStatus
+from ....shared.dependencies.container import Container
 
 
 class TUIComponentMessage(Message):
@@ -152,7 +153,7 @@ class PipelineStepData:
     name: str
     description: str
     type: str
-    status: ExecutionStatus = ExecutionStatus.PENDING
+    status: ExecutionStatus = ExecutionStatus.step_pending()
     progress: float = 0.0
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -283,7 +284,7 @@ class ModernPipelineRunnerScreen(Screen):
         self.pipeline_inputs: Dict[str, Any] = {}
         self.execution_steps: List[PipelineStepData] = []
         self.current_execution_id: Optional[str] = None
-        self.execution_worker: Optional[Worker] = None
+        self.execution_task: Optional[asyncio.Task] = None
         
         # Bind services from container
         if context.container:
@@ -484,17 +485,13 @@ class ModernPipelineRunnerScreen(Screen):
             await self.show_execution_screen()
             
             # Execute pipeline in background
-            self.execution_worker = self.run_worker(
-                self._execute_pipeline_worker,
-                request,
-                name="pipeline_execution"
-            )
+            self.execution_task = asyncio.create_task(self._execute_pipeline_worker(request))
             
         except Exception as e:
             await self.show_error(f"Failed to start pipeline: {e}")
     
-    async def _execute_pipeline_worker(self, request: PipelineExecutionRequest) -> PipelineExecutionResponse:
-        """Worker method for pipeline execution."""
+    async def _execute_pipeline_worker(self, request: PipelineExecutionRequest) -> PipelineExecutionResult:
+        """Async task method for pipeline execution."""
         if not self.pipeline_service:
             raise RuntimeError("Pipeline service not available")
         
