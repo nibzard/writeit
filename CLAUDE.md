@@ -2,6 +2,11 @@
 
 Auto-generated from all feature plans. Last updated: 2025-01-15
 
+## ⚠️ IMPORTANT: CI/CD DISABLED DURING DEVELOPMENT
+**GitHub Actions are temporarily disabled** (workflows moved to `.github/workflows-disabled/`)  
+**DO NOT use CI/CD or GitHub Actions during active development phase**  
+This prevents interference with rapid development and testing cycles.
+
 ## Active Technologies
 - **Python 3.12+** + **FastAPI** + **Textual** + **LMDB** + **llm.datasette.io**
 - **WebSocket** + **aiohttp** + **Event Sourcing** + **LLM Caching** (Fully Implemented)

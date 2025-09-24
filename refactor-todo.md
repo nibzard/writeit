@@ -1,5 +1,9 @@
 # WriteIt Refactoring Plan - Domain-Driven Design & Quality Focus
 
+## ⚠️ IMPORTANT: CI/CD DISABLED DURING DEVELOPMENT
+**GitHub Actions are temporarily disabled** (workflows moved to `.github/workflows-disabled/`)  
+**DO NOT use CI/CD or GitHub Actions during active development phase**
+
 **Goal**: Transform WriteIt into a robust, maintainable, and extensible codebase using Domain-Driven Design principles. Breaking changes are acceptable - prioritize quality over backward compatibility.
 
 **Architecture Philosophy**: 
@@ -633,7 +637,7 @@
   - [✅] Setup and development guide - COMPLETED 2025-09-24
   - [✅] Contribution guidelines - COMPLETED 2025-09-24
   - [✅] Testing guide - COMPLETED 2025-09-24
-  - [✅] Deployment procedures - COMPLETED 2025-09-24
+  - [✅] Deployment procedures - COMPLETED 2025-09-24 [SKIP DURING DEV]
 
 ### 8.2 Migration & Cleanup
 
