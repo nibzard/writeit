@@ -140,7 +140,8 @@ class DataFormatDetector:
                         config_data = data.raw_config_data.copy()
                         if 'created_at' in config_data and hasattr(config_data['created_at'], 'isoformat'):
                             config_data['created_at'] = config_data['created_at'].isoformat()
-                        data.config = LegacyWorkspaceConfig(**config_data)
+                        # Create DDD workspace config from legacy data
+                        data.config = self._create_legacy_config_from_dict(config_data)
                         data.has_config = True
                 except (yaml.YAMLError, TypeError):
                     pass
@@ -157,7 +158,7 @@ class DataFormatDetector:
                         workspace_config_data = config_data.copy()
                         if 'created_at' in workspace_config_data and hasattr(workspace_config_data['created_at'], 'isoformat'):
                             workspace_config_data['created_at'] = workspace_config_data['created_at'].isoformat()
-                        data.config = LegacyWorkspaceConfig(**workspace_config_data)
+                        data.config = self._create_legacy_config_from_dict(workspace_config_data)
                     data.has_config = True
             except (yaml.YAMLError, TypeError):
                 pass
@@ -207,6 +208,30 @@ class DataFormatDetector:
             pass
         
         return pickle_keys
+    
+    def _create_legacy_config_from_dict(self, config_data: Dict[str, Any]) -> 'LegacyWorkspaceConfig':
+        """Create a legacy config object from dictionary data.
+        
+        Args:
+            config_data: Configuration dictionary
+            
+        Returns:
+            LegacyWorkspaceConfig instance
+        """
+        # Create a minimal LegacyWorkspaceConfig with just the fields we need
+        config = LegacyWorkspaceConfig()
+        
+        # Store the legacy data as attributes for migration
+        for key, value in config_data.items():
+            setattr(config, f"legacy_{key}", value)
+        
+        # Set some default values
+        if not hasattr(config, 'legacy_name'):
+            config.legacy_name = "Migrated Workspace"
+        if not hasattr(config, 'legacy_created_at'):
+            config.legacy_created_at = datetime.now().isoformat()
+        
+        return config
 
 
 class WorkspaceDataMigrator:

@@ -11,7 +11,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from writeit.cli.output import print_success, print_error, print_warning
-from ..migration.data_migrator import MigrationManager, MigrationResult
+from writeit.migration.data_migrator import MigrationManager, MigrationResult
 
 
 # Simple migration app
@@ -193,7 +193,7 @@ def check_pickle_data(
     console = Console()
     
     try:
-        from ..migration.data_migrator import DataFormatDetector
+        from writeit.migration.data_migrator import DataFormatDetector
         
         console.print(f"[primary]Checking for pickle data in {path}...[/primary]")
         
