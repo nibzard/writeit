@@ -19,7 +19,7 @@ from writeit.storage import StorageManager
 from writeit.workspace.workspace import Workspace
 from writeit.llm.token_usage import TokenUsageTracker
 from writeit.llm.cache import LLMCache, CachedLLMClient
-from writeit.domains.pipeline.errors import PipelineError, StepExecutionError, ValidationError
+from writeit.domains.pipeline.errors import PipelineError, StepExecutionError, PipelineValidationError as ValidationError
 
 
 @dataclass
