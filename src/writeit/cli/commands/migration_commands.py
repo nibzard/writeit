@@ -72,7 +72,7 @@ def detect_legacy(
     """Detect legacy workspaces and data formats that need migration."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = DetectLegacyWorkspacesCommand(
             search_paths=[path] if path else None,
@@ -128,7 +128,7 @@ def analyze_requirements(
     """Analyze migration requirements for workspaces."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = AnalyzeMigrationRequirementsCommand(
             workspace_name=workspace,
@@ -184,7 +184,7 @@ def start_migration(
     """Start a migration operation."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = StartMigrationCommand(
             migration_type=migration_type,
@@ -242,7 +242,7 @@ def migration_status(
     """Show migration status."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         query = GetMigrationStatusQuery(
             workspace_name=workspace,
@@ -292,7 +292,7 @@ def migration_history(
     """Show migration history."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         query = GetMigrationHistoryQuery(
             workspace_name=workspace,
@@ -339,7 +339,7 @@ def validate_migration(
     """Validate migration results."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = ValidateMigrationCommand(
             migration_id=migration_id,
@@ -383,7 +383,7 @@ def rollback_migration(
     """Rollback a migration."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = RollbackMigrationCommand(
             migration_id=migration_id,
@@ -427,7 +427,7 @@ def cleanup_migration(
     """Clean up migration artifacts."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = CleanupMigrationArtifactsCommand(
             migration_id=migration_id,
@@ -470,7 +470,7 @@ def check_migration_health(
     """Check migration system health."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = CheckMigrationHealthCommand(
             check_disk_space=check_disk,
@@ -519,7 +519,7 @@ def generate_report(
     """Generate migration report."""
     try:
         container = container_factory.create_for_workspace("default")
-        migration_service = container.get(DefaultMigrationApplicationService)
+        migration_service = container.resolve(DefaultMigrationApplicationService)
         
         command = GenerateMigrationReportCommand(
             migration_id=migration_id,

@@ -17,6 +17,7 @@ from writeit.cli.commands.style import app as style_app
 from writeit.cli.commands.docs import app as docs_app
 from writeit.cli.commands.config import app as config_app
 from writeit.cli.commands.migration_commands import migration_app
+from writeit.cli.commands.simple_migration_commands import simple_migration_app
 
 
 # Add all command modules to the main app
@@ -32,6 +33,7 @@ app.add_typer(style_app, name="style")
 app.add_typer(docs_app, name="docs")
 app.add_typer(config_app, name="config")
 app.add_typer(migration_app, name="migration")
+app.add_typer(simple_migration_app, name="migrate")
 
 app.command(name="list-pipelines")(list_pipelines)
 app.command(name="run")(run)

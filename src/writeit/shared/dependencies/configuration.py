@@ -173,6 +173,12 @@ class DIConfiguration:
                 "lifetime": "singleton"
             },
             
+            # Storage Domain Services
+            {
+                "service_type": "writeit.domains.storage.services.StorageManagementService",
+                "lifetime": "singleton"
+            },
+            
             # Workspace Domain Services
             {
                 "service_type": "writeit.domains.workspace.services.WorkspaceManagementService",
@@ -231,6 +237,14 @@ class DIConfiguration:
                 "lifetime": "singleton"
             },
             
+            # Infrastructure Services
+            {
+                "service_type": "writeit.infrastructure.persistence.backup_manager.BackupManager",
+                "implementation_type": "writeit.infrastructure.persistence.backup_manager.create_backup_manager",
+                "factory": true,
+                "lifetime": "singleton"
+            },
+            
             # Application Services
             {
                 "service_type": "writeit.application.services.PipelineApplicationService",
@@ -246,6 +260,10 @@ class DIConfiguration:
             },
             {
                 "service_type": "writeit.application.services.ExecutionApplicationService",
+                "lifetime": "singleton"
+            },
+            {
+                "service_type": "writeit.application.services.migration_application_service.DefaultMigrationApplicationService",
                 "lifetime": "singleton"
             }
         ]
