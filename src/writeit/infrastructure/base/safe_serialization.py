@@ -64,7 +64,7 @@ class SafeEntitySerializer(ABC):
 class SafeJSONEntitySerializer(SafeEntitySerializer):
     """JSON-based entity serializer with enhanced security and type safety."""
     
-    def __init__(self, schema_version: str = "1.0", enable_schema_validation: bool = True,
+    def __init__(self, schema_version: str = "1.0.0", enable_schema_validation: bool = True,
                  migration_strategy: MigrationStrategy = MigrationStrategy.BACKWARD):
         self._type_registry: Dict[str, Type] = {}
         self._value_object_types = set()
@@ -137,11 +137,11 @@ class SafeJSONEntitySerializer(SafeEntitySerializer):
         return self._entity_schemas[entity_type]
     
     def register_migration(self, migration) -> None:
-        \"\"\"Register a data migration.
+        """Register a data migration.
         
         Args:
             migration: Data migration to register
-        \"\"\"
+        """
         self._migration_manager.add_migration(migration)
     
     def serialize(self, entity: Any) -> bytes:
@@ -189,7 +189,7 @@ class SafeJSONEntitySerializer(SafeEntitySerializer):
             
             return json_str.encode('utf-8')
             
-        except json.JSONEncodeError as e:
+        except (json.JSONDecodeError, ValueError) as e:
             raise SerializationError(f"JSON encoding failed for {type(entity).__name__}: {e}") from e
         except Exception as e:
             raise SerializationError(f"Failed to serialize {type(entity).__name__}: {e}") from e
@@ -496,7 +496,7 @@ class SafeJSONEntitySerializer(SafeEntitySerializer):
 class SafeMessagePackSerializer(SafeEntitySerializer):
     """MessagePack-based entity serializer for binary efficiency."""
     
-    def __init__(self, schema_version: str = "1.0", enable_schema_validation: bool = True,
+    def __init__(self, schema_version: str = "1.0.0", enable_schema_validation: bool = True,
                  migration_strategy: MigrationStrategy = MigrationStrategy.BACKWARD):
         if not HAS_MSGPACK:
             raise SerializationError("MessagePack not available. Install with: pip install msgpack")
@@ -581,7 +581,7 @@ class SafeDomainEntitySerializer:
     
     def __init__(self, 
                  default_format: SerializationFormat = SerializationFormat.JSON,
-                 schema_version: str = "1.0",
+                 schema_version: str = "1.0.0",
                  enable_schema_validation: bool = True,
                  migration_strategy: MigrationStrategy = MigrationStrategy.BACKWARD):
         """Initialize with format preference.
@@ -640,11 +640,11 @@ class SafeDomainEntitySerializer:
             self._msgpack_serializer.register_value_object(type_class)
     
     def register_migration(self, migration) -> None:
-        \"\"\"Register a data migration.
+        """Register a data migration.
         
         Args:
             migration: Data migration to register
-        \"\"\"
+        """
         self._json_serializer.register_migration(migration)
         if self._msgpack_serializer:
             self._msgpack_serializer.register_migration(migration)
