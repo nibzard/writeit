@@ -7,8 +7,7 @@ Handles detection, analysis, execution, and validation of migrations.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Set, Union, Tuple
-from enum import Enum
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from pathlib import Path
 import logging
@@ -17,16 +16,13 @@ import os
 import shutil
 import json
 import yaml
-import tempfile
+import sqlite3
 
 from ...domains.workspace.services import (
     WorkspaceManagementService,
     WorkspaceConfigurationService,
-    WorkspaceAnalyticsService,
-    WorkspaceMigrationPlan,
-    WorkspaceBackupInfo,
 )
-from ...domains.workspace.entities import Workspace, WorkspaceConfiguration
+from ...domains.workspace.entities import Workspace
 from ...domains.workspace.value_objects import WorkspaceName
 from ...domains.content.services import (
     TemplateManagementService,
@@ -42,7 +38,6 @@ from ...domains.storage.services import StorageManagementService
 from ..commands.migration_commands import (
     MigrationType,
     MigrationStatus,
-    MigrationPriority,
     DetectLegacyWorkspacesCommand,
     AnalyzeMigrationRequirementsCommand,
     StartMigrationCommand,
@@ -67,6 +62,9 @@ from ..queries.migration_queries import (
     GetScheduledMigrationsQuery,
     GetMigrationValidationResultsQuery,
     GetMigrationImpactQuery,
+    SearchMigrationsQuery,
+    MigrationFilter,
+    MigrationSort,
 )
 
 
@@ -723,7 +721,463 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
             "metrics": migration.metrics,
         }
         
+        # Add additional information if requested
+        if query.include_logs:
+            details["logs"] = self._get_migration_logs(migration.migration_id)
+        
+        if query.include_metrics:
+            details["performance_metrics"] = self._get_migration_metrics(migration.migration_id)
+        
+        if query.include_validation_results:
+            details["validation_results"] = await self.validate_migration(
+                ValidateMigrationCommand(migration_id=migration.migration_id)
+            )
+        
         return details
+
+    async def get_migration_history(self, query: GetMigrationHistoryQuery) -> List[Dict[str, Any]]:
+        """Get migration history."""
+        # Filter migrations based on query parameters
+        migrations = self._migration_history.copy()
+        
+        if query.workspace_name:
+            migrations = [m for m in migrations if m.workspace_name == query.workspace_name]
+        
+        if query.migration_types:
+            migrations = [m for m in migrations if any(m_type in m.migration_id for m_type in query.migration_types)]
+        
+        if not query.include_failed:
+            migrations = [m for m in migrations if m.status != MigrationStatus.FAILED]
+        
+        # Apply date filtering
+        if query.start_date:
+            migrations = [m for m in migrations if self._get_migration_date(m) >= query.start_date]
+        
+        if query.end_date:
+            migrations = [m for m in migrations if self._get_migration_date(m) <= query.end_date]
+        
+        # Apply limit
+        if query.limit:
+            migrations = migrations[:query.limit]
+        
+        # Convert to dict format
+        return [
+            {
+                "migration_id": m.migration_id,
+                "status": m.status.value,
+                "message": m.message,
+                "workspace_name": m.workspace_name,
+                "items_migrated": m.items_migrated,
+                "items_failed": m.items_failed,
+                "execution_time": m.execution_time.total_seconds(),
+                "error_details": m.error_details,
+                "warnings": m.warnings,
+                "metrics": m.metrics,
+                "date": self._get_migration_date(m).isoformat(),
+            }
+            for m in migrations
+        ]
+
+    async def get_migration_stats(self, query: GetMigrationStatsQuery) -> Dict[str, Any]:
+        """Get migration statistics."""
+        migrations = self._migration_history
+        
+        if query.workspace_name:
+            migrations = [m for m in migrations if m.workspace_name == query.workspace_name]
+        elif not query.include_all_workspaces:
+            # Only include migrations from active workspace
+            try:
+                active_workspace = await self.workspace_service.get_active_workspace()
+                if active_workspace:
+                    migrations = [m for m in migrations if m.workspace_name == active_workspace.name.value]
+            except Exception:
+                pass
+        
+        # Filter by time period
+        if query.time_period and query.time_period != "all":
+            cutoff_date = self._get_date_from_period(query.time_period)
+            migrations = [m for m in migrations if self._get_migration_date(m) >= cutoff_date]
+        
+        # Calculate statistics
+        total_migrations = len(migrations)
+        successful_migrations = len([m for m in migrations if m.status == MigrationStatus.COMPLETED])
+        failed_migrations = len([m for m in migrations if m.status == MigrationStatus.FAILED])
+        total_items_migrated = sum(m.items_migrated for m in migrations)
+        total_items_failed = sum(m.items_failed for m in migrations)
+        total_execution_time = sum(m.execution_time.total_seconds() for m in migrations)
+        
+        # Calculate success rate
+        success_rate = (successful_migrations / total_migrations * 100) if total_migrations > 0 else 0
+        
+        # Group by migration type
+        migration_types = {}
+        for m in migrations:
+            for m_type in MigrationType:
+                if m_type.value in m.migration_id:
+                    if m_type.value not in migration_types:
+                        migration_types[m_type.value] = {"count": 0, "successful": 0, "failed": 0}
+                    migration_types[m_type.value]["count"] += 1
+                    if m.status == MigrationStatus.COMPLETED:
+                        migration_types[m_type.value]["successful"] += 1
+                    elif m.status == MigrationStatus.FAILED:
+                        migration_types[m_type.value]["failed"] += 1
+        
+        return {
+            "total_migrations": total_migrations,
+            "successful_migrations": successful_migrations,
+            "failed_migrations": failed_migrations,
+            "success_rate": round(success_rate, 2),
+            "total_items_migrated": total_items_migrated,
+            "total_items_failed": total_items_failed,
+            "total_execution_time": round(total_execution_time, 2),
+            "average_execution_time": round(total_execution_time / total_migrations, 2) if total_migrations > 0 else 0,
+            "migration_types": migration_types,
+            "time_period": query.time_period or "all",
+        }
+
+    async def get_legacy_workspaces(self, query: GetLegacyWorkspacesQuery) -> List[Dict[str, Any]]:
+        """Get legacy workspaces information."""
+        try:
+            from ...workspace.migration import WorkspaceMigrator
+            
+            migrator = WorkspaceMigrator(self.workspace_service)
+            search_paths = query.search_paths
+            
+            legacy_workspaces = migrator.detect_local_workspaces(search_paths)
+            
+            results = []
+            for workspace_path in legacy_workspaces:
+                if query.include_analysis:
+                    analysis = migrator.analyze_local_workspace(workspace_path)
+                    results.append(analysis)
+                else:
+                    results.append({
+                        "path": workspace_path,
+                        "writeit_dir": workspace_path / ".writeit",
+                        "has_config": (workspace_path / ".writeit" / "config.yaml").exists(),
+                        "has_pipelines": (workspace_path / ".writeit" / "pipelines").exists(),
+                        "has_articles": (workspace_path / ".writeit" / "articles").exists(),
+                        "has_lmdb": any(
+                            (workspace_path / ".writeit").glob("*.mdb") or
+                            (workspace_path / ".writeit").glob("*.lmdb")
+                        ),
+                    })
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error getting legacy workspaces: {e}")
+            return []
+
+    async def get_migration_requirements(self, query: GetMigrationRequirementsQuery) -> Dict[str, Any]:
+        """Get migration requirements analysis."""
+        try:
+            # Get workspaces to analyze
+            if query.workspace_name:
+                workspaces = [await self.workspace_service.get_workspace(WorkspaceName(query.workspace_name))]
+            else:
+                workspaces = [await self.workspace_service.get_active_workspace()]
+            
+            requirements = {
+                "workspace_name": query.workspace_name or "active",
+                "data_format_migrations": [],
+                "configuration_migrations": [],
+                "cache_migrations": [],
+                "workspace_structure_migrations": [],
+                "total_required_migrations": 0,
+                "priority": "normal",
+                "estimated_complexity": "simple",
+            }
+            
+            for workspace in workspaces:
+                if not workspace:
+                    continue
+                
+                workspace_path = Path.home() / ".writeit" / "workspaces" / workspace.name.value
+                
+                if not workspace_path.exists():
+                    continue
+                
+                # Check data formats
+                if query.check_data_formats:
+                    data_migrations = await self._check_data_formats(workspace)
+                    requirements["data_format_migrations"].extend([m.value for m in data_migrations])
+                
+                # Check configurations
+                if query.check_configurations:
+                    config_migrations = await self._check_configurations(workspace)
+                    requirements["configuration_migrations"].extend([m.value for m in config_migrations])
+                
+                # Check cache
+                if query.check_cache:
+                    cache_migrations = await self._check_cache(workspace)
+                    requirements["cache_migrations"].extend([m.value for m in cache_migrations])
+                
+                # Check workspace structure
+                if query.check_workspace_structure:
+                    structure_migrations = await self._check_workspace_structure(workspace)
+                    requirements["workspace_structure_migrations"].extend([m.value for m in structure_migrations])
+            
+            # Calculate total requirements
+            all_migrations = (
+                requirements["data_format_migrations"] +
+                requirements["configuration_migrations"] +
+                requirements["cache_migrations"] +
+                requirements["workspace_structure_migrations"]
+            )
+            
+            requirements["total_required_migrations"] = len(set(all_migrations))
+            
+            # Determine priority and complexity
+            if requirements["total_required_migrations"] == 0:
+                requirements["priority"] = "none"
+                requirements["estimated_complexity"] = "none"
+            elif requirements["total_required_migrations"] <= 2:
+                requirements["priority"] = "low"
+                requirements["estimated_complexity"] = "simple"
+            elif requirements["total_required_migrations"] <= 5:
+                requirements["priority"] = "normal"
+                requirements["estimated_complexity"] = "moderate"
+            else:
+                requirements["priority"] = "high"
+                requirements["estimated_complexity"] = "complex"
+            
+            return requirements
+            
+        except Exception as e:
+            self.logger.error(f"Error getting migration requirements: {e}")
+            return {
+                "workspace_name": query.workspace_name or "active",
+                "error": str(e),
+                "total_required_migrations": 0,
+                "priority": "error",
+                "estimated_complexity": "unknown",
+            }
+
+    async def get_migration_backups(self, query: GetMigrationBackupsQuery) -> List[Dict[str, Any]]:
+        """Get migration backup information."""
+        try:
+            from ...infrastructure.persistence.backup_manager import (
+                BackupType, create_backup_manager
+            )
+            
+            # Create backup manager
+            backup_root = Path.home() / ".writeit" / "backups"
+            backup_manager = create_backup_manager(backup_root)
+            
+            # List backups
+            backups = await backup_manager.list_backups(
+                backup_type=BackupType.LEGACY,
+                workspace_name=query.workspace_name,
+                migration_id=query.migration_id,
+            )
+            
+            results = []
+            for backup in backups:
+                backup_info = {
+                    "backup_id": backup.backup_id,
+                    "workspace_name": backup.workspace_name,
+                    "migration_id": backup.migration_id,
+                    "backup_path": str(backup.backup_path),
+                    "created_at": backup.created_at.isoformat(),
+                    "description": backup.description,
+                    "tags": backup.tags,
+                }
+                
+                if query.include_size_info:
+                    backup_info["size_bytes"] = backup.backup_path.stat().st_size if backup.backup_path.exists() else 0
+                    backup_info["size_human"] = self._format_size(backup_info["size_bytes"])
+                
+                if query.include_creation_date:
+                    backup_info["created_at"] = backup.created_at.isoformat()
+                
+                results.append(backup_info)
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error getting migration backups: {e}")
+            return []
+
+    async def get_migration_health(self, query: GetMigrationHealthQuery) -> Dict[str, Any]:
+        """Get migration system health status."""
+        try:
+            health_check = await self.check_migration_health(
+                CheckMigrationHealthCommand(
+                    check_disk_space=query.include_disk_space,
+                    check_permissions=query.include_permissions,
+                    check_dependencies=query.include_dependencies,
+                    validate_backup_system=query.include_backup_system,
+                )
+            )
+            
+            return {
+                "is_healthy": health_check.is_healthy,
+                "issues": health_check.issues,
+                "disk_space_available": health_check.disk_space_available,
+                "permissions_ok": health_check.permissions_ok,
+                "dependencies_ok": health_check.dependencies_ok,
+                "backup_system_ok": health_check.backup_system_ok,
+                "last_check": health_check.last_check.isoformat(),
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting migration health: {e}")
+            return {
+                "is_healthy": False,
+                "issues": [f"Health check failed: {str(e)}"],
+                "last_check": datetime.now().isoformat(),
+            }
+
+    async def get_scheduled_migrations(self, query: GetScheduledMigrationsQuery) -> List[Dict[str, Any]]:
+        """Get scheduled migrations."""
+        # This is a placeholder implementation
+        # In a real implementation, this would query a scheduling system
+        return []
+
+    async def get_migration_validation_results(self, query: GetMigrationValidationResultsQuery) -> Dict[str, Any]:
+        """Get migration validation results."""
+        try:
+            validation_results = await self.validate_migration(
+                ValidateMigrationCommand(
+                    migration_id=query.migration_id,
+                    workspace_name=query.workspace_name,
+                    deep_validation=query.include_detailed_issues,
+                )
+            )
+            
+            return validation_results
+            
+        except Exception as e:
+            self.logger.error(f"Error getting migration validation results: {e}")
+            return {
+                "migration_id": query.migration_id,
+                "workspace_name": query.workspace_name,
+                "is_valid": False,
+                "issues": [f"Validation failed: {str(e)}"],
+                "validation_timestamp": datetime.now().isoformat(),
+            }
+
+    async def get_migration_impact(self, query: GetMigrationImpactQuery) -> Dict[str, Any]:
+        """Estimate migration impact."""
+        try:
+            impact = {
+                "migration_type": query.migration_type,
+                "workspace_name": query.workspace_name,
+                "estimated_disk_usage": 0,
+                "estimated_time_minutes": 0,
+                "complexity": "unknown",
+                "risk_level": "medium",
+                "recommendations": [],
+            }
+            
+            # Analyze impact based on migration type
+            if query.migration_type == MigrationType.LEGACY_WORKSPACE.value:
+                if query.source_path and query.source_path.exists():
+                    # Calculate disk usage
+                    impact["estimated_disk_usage"] = self._calculate_directory_size(query.source_path)
+                    impact["estimated_time_minutes"] = max(5, impact["estimated_disk_usage"] // (1024 * 1024 * 10))  # 10MB/min
+                    impact["complexity"] = "moderate"
+                    impact["risk_level"] = "low"
+            
+            elif query.migration_type == MigrationType.DATA_FORMAT.value:
+                impact["estimated_disk_usage"] = 0  # In-place migration
+                impact["estimated_time_minutes"] = 10
+                impact["complexity"] = "simple"
+                impact["risk_level"] = "low"
+            
+            elif query.migration_type == MigrationType.CONFIGURATION.value:
+                impact["estimated_disk_usage"] = 0
+                impact["estimated_time_minutes"] = 5
+                impact["complexity"] = "simple"
+                impact["risk_level"] = "low"
+            
+            elif query.migration_type == MigrationType.CACHE_FORMAT.value:
+                impact["estimated_disk_usage"] = 0
+                impact["estimated_time_minutes"] = 15
+                impact["complexity"] = "moderate"
+                impact["risk_level"] = "medium"
+            
+            # Add recommendations
+            if impact["risk_level"] == "high":
+                impact["recommendations"].append("High risk migration - ensure backup is available")
+            if impact["estimated_disk_usage"] > 1024 * 1024 * 100:  # > 100MB
+                impact["recommendations"].append("Large migration - ensure sufficient disk space")
+            if impact["estimated_time_minutes"] > 30:
+                impact["recommendations"].append("Long migration time - schedule during maintenance window")
+            
+            return impact
+            
+        except Exception as e:
+            self.logger.error(f"Error getting migration impact: {e}")
+            return {
+                "migration_type": query.migration_type,
+                "workspace_name": query.workspace_name,
+                "error": str(e),
+                "complexity": "unknown",
+                "risk_level": "high",
+            }
+
+    async def search_migrations(self, query: SearchMigrationsQuery) -> List[Dict[str, Any]]:
+        """Search migrations by various criteria."""
+        try:
+            # Get all migrations
+            migrations = self._migration_history.copy()
+            
+            # Apply date range filter
+            if query.date_range:
+                start_date, end_date = query.date_range
+                migrations = [m for m in migrations if start_date <= self._get_migration_date(m) <= end_date]
+            
+            # Apply workspace filter
+            if query.workspace_name:
+                migrations = [m for m in migrations if m.workspace_name == query.workspace_name]
+            
+            # Apply status filter
+            if query.status_filter:
+                migrations = [m for m in migrations if m.status == query.status_filter]
+            
+            # Search in specified fields
+            search_results = []
+            search_term_lower = query.search_term.lower()
+            
+            for migration in migrations:
+                match = False
+                
+                for field in query.search_in:
+                    if field == "id" and search_term_lower in migration.migration_id.lower():
+                        match = True
+                        break
+                    elif field == "type" and any(search_term_lower in m_type.value.lower() for m_type in MigrationType if m_type.value in migration.migration_id):
+                        match = True
+                        break
+                    elif field == "status" and search_term_lower in migration.status.value.lower():
+                        match = True
+                        break
+                    elif field == "workspace" and migration.workspace_name and search_term_lower in migration.workspace_name.lower():
+                        match = True
+                        break
+                    elif field == "description" and search_term_lower in migration.message.lower():
+                        match = True
+                        break
+                
+                if match:
+                    search_results.append({
+                        "migration_id": migration.migration_id,
+                        "status": migration.status.value,
+                        "message": migration.message,
+                        "workspace_name": migration.workspace_name,
+                        "items_migrated": migration.items_migrated,
+                        "items_failed": migration.items_failed,
+                        "execution_time": migration.execution_time.total_seconds(),
+                        "date": self._get_migration_date(migration).isoformat(),
+                    })
+            
+            return search_results
+            
+        except Exception as e:
+            self.logger.error(f"Error searching migrations: {e}")
+            return []
 
     # Helper methods for specific migration types
     async def _check_data_formats(self, workspace: Workspace) -> List[MigrationType]:
@@ -780,7 +1234,7 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
         
         try:
             from ...infrastructure.persistence.backup_manager import (
-                BackupManager, BackupConfig, BackupType, CompressionType, create_backup_manager
+                BackupType, CompressionType, create_backup_manager
             )
             
             # Create backup manager
@@ -1098,7 +1552,7 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
         """Rollback from backup."""
         try:
             from ...infrastructure.persistence.backup_manager import (
-                BackupManager, RollbackStrategy, create_backup_manager
+                RollbackStrategy, create_backup_manager
             )
             
             # Create backup manager
@@ -1130,7 +1584,7 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
         """Find latest backup for migration."""
         try:
             from ...infrastructure.persistence.backup_manager import (
-                BackupManager, BackupType, create_backup_manager
+                BackupType, create_backup_manager
             )
             
             # Create backup manager
@@ -1159,7 +1613,7 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
         """Remove migration backups."""
         try:
             from ...infrastructure.persistence.backup_manager import (
-                BackupManager, BackupType, create_backup_manager
+                BackupType, create_backup_manager
             )
             
             # Create backup manager
@@ -1428,7 +1882,7 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
                         # Try to parse as datetime
                         import datetime
                         datetime.datetime.fromisoformat(config_data['created_at'].replace('Z', '+00:00'))
-                    except:
+                    except Exception:
                         issues.append("Invalid created_at field format")
                         
             except yaml.YAMLError as e:
@@ -2102,7 +2556,7 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
                     import datetime
                     timestamp = datetime.datetime.fromisoformat(updated['timestamp'].replace('Z', '+00:00'))
                     updated['timestamp'] = timestamp.isoformat()
-                except:
+                except Exception:
                     pass
             
             # Update cache version format
@@ -2168,3 +2622,318 @@ class DefaultMigrationApplicationService(MigrationApplicationService):
         # Update existing data format
         cursor.execute(f"UPDATE {table_name} SET created_at = datetime('now') WHERE created_at IS NULL")
         cursor.execute(f"UPDATE {table_name} SET updated_at = datetime('now') WHERE updated_at IS NULL")
+
+    # Additional helper methods
+    def _get_migration_date(self, migration: MigrationResult) -> datetime:
+        """Extract date from migration result."""
+        # This is a simplified implementation
+        # In practice, you'd store the migration date in the result
+        return datetime.now() - timedelta(days=len(self._migration_history) - self._migration_history.index(migration))
+
+    def _get_migration_logs(self, migration_id: str) -> List[Dict[str, Any]]:
+        """Get logs for a migration."""
+        # This is a placeholder implementation
+        # In practice, you'd store logs in a proper logging system
+        return [
+            {
+                "timestamp": datetime.now().isoformat(),
+                "level": "info",
+                "message": f"Migration {migration_id} processed",
+            }
+        ]
+
+    def _get_migration_metrics(self, migration_id: str) -> Dict[str, Any]:
+        """Get performance metrics for a migration."""
+        # This is a placeholder implementation
+        # In practice, you'd track actual metrics
+        return {
+            "cpu_usage": 0.0,
+            "memory_usage_mb": 0,
+            "disk_io_mb": 0,
+            "network_io_mb": 0,
+        }
+
+    def _get_date_from_period(self, period: str) -> datetime:
+        """Get cutoff date from time period string."""
+        now = datetime.now()
+        if period == "day":
+            return now - timedelta(days=1)
+        elif period == "week":
+            return now - timedelta(weeks=1)
+        elif period == "month":
+            return now - timedelta(days=30)
+        elif period == "year":
+            return now - timedelta(days=365)
+        else:
+            return now - timedelta(days=365)  # Default to year
+
+    def _calculate_directory_size(self, path: Path) -> int:
+        """Calculate total size of directory in bytes."""
+        total_size = 0
+        try:
+            for dirpath, dirnames, filenames in os.walk(path):
+                for filename in filenames:
+                    file_path = os.path.join(dirpath, filename)
+                    try:
+                        total_size += os.path.getsize(file_path)
+                    except OSError:
+                        continue
+        except OSError:
+            pass
+        return total_size
+
+    def _format_size(self, size_bytes: int) -> str:
+        """Format size in human-readable format."""
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if size_bytes < 1024.0:
+                return f"{size_bytes:.1f} {unit}"
+            size_bytes /= 1024.0
+        return f"{size_bytes:.1f} PB"
+
+    async def _check_workspace_structure(self, workspace: Workspace) -> List[MigrationType]:
+        """Check if workspace structure migrations are needed."""
+        migrations = []
+        
+        try:
+            workspace_path = Path.home() / ".writeit" / "workspaces" / workspace.name.value
+            
+            if not workspace_path.exists():
+                return migrations
+            
+            # Check for old directory structure
+            old_structure_indicators = []
+            
+            # Check for old workspace file layout
+            old_files = [
+                "workspace.json",  # Old workspace config format
+                "config.json",     # Old config format
+                "metadata.json",   # Old metadata format
+            ]
+            
+            for old_file in old_files:
+                if (workspace_path / old_file).exists():
+                    old_structure_indicators.append(old_file)
+            
+            # Check for missing required directories
+            required_dirs = ["pipelines", "templates", "cache"]
+            for dir_name in required_dirs:
+                if not (workspace_path / dir_name).exists():
+                    old_structure_indicators.append(f"missing_{dir_name}")
+            
+            if old_structure_indicators:
+                migrations.append(MigrationType.WORKSPACE_STRUCTURE)
+                
+            self.logger.info(f"Workspace structure check for {workspace.name.value}: {migrations}")
+            return migrations
+            
+        except Exception as e:
+            self.logger.error(f"Error checking workspace structure for {workspace.name.value}: {e}")
+            return []
+
+    async def _check_data_formats(self, workspace: Workspace) -> List[MigrationType]:
+        """Check if data format migrations are needed."""
+        migrations = []
+        
+        try:
+            workspace_path = Path.home() / ".writeit" / "workspaces" / workspace.name.value
+            
+            if not workspace_path.exists():
+                return migrations
+            
+            # Check for old data format indicators
+            data_files = [
+                "pipelines/data.json",    # Old JSON pipeline data
+                "articles/data.json",     # Old JSON article data
+                "cache/data.json",        # Old JSON cache data
+            ]
+            
+            for data_file in data_files:
+                if (workspace_path / data_file).exists():
+                    migrations.append(MigrationType.DATA_FORMAT)
+                    break
+            
+            # Check LMDB database formats
+            lmdb_files = list(workspace_path.glob("*.mdb")) + list(workspace_path.glob("*.lmdb"))
+            if lmdb_files:
+                # Check if LMDB files need migration (based on schema version)
+                # This is a simplified check - in practice, you'd validate schema
+                migrations.append(MigrationType.DATA_FORMAT)
+            
+            self.logger.info(f"Data format check for {workspace.name.value}: {migrations}")
+            return migrations
+            
+        except Exception as e:
+            self.logger.error(f"Error checking data formats for {workspace.name.value}: {e}")
+            return []
+
+    async def _check_configurations(self, workspace: Workspace) -> List[MigrationType]:
+        """Check if configuration migrations are needed."""
+        migrations = []
+        
+        try:
+            workspace_path = Path.home() / ".writeit" / "workspaces" / workspace.name.value
+            
+            if not workspace_path.exists():
+                return migrations
+            
+            # Check for old configuration formats
+            config_files = [
+                "config.json",          # Old JSON config format
+                "workspace.json",       # Old workspace config
+                "settings.json",        # Old settings format
+                "config.yaml",          # Check if config needs upgrade
+            ]
+            
+            for config_file in config_files:
+                config_path = workspace_path / config_file
+                if config_path.exists():
+                    # Check if config needs migration
+                    if self._needs_config_migration(config_path):
+                        migrations.append(MigrationType.CONFIGURATION)
+                        break
+            
+            self.logger.info(f"Configuration check for {workspace.name.value}: {migrations}")
+            return migrations
+            
+        except Exception as e:
+            self.logger.error(f"Error checking configurations for {workspace.name.value}: {e}")
+            return []
+
+    async def _check_cache(self, workspace: Workspace) -> List[MigrationType]:
+        """Check if cache migrations are needed."""
+        migrations = []
+        
+        try:
+            workspace_path = Path.home() / ".writeit" / "workspaces" / workspace.name.value
+            
+            if not workspace_path.exists():
+                return migrations
+            
+            # Check for old cache formats
+            cache_dir = workspace_path / "cache"
+            if cache_dir.exists():
+                # Check for old cache files
+                old_cache_files = list(cache_dir.glob("*.cache")) + list(cache_dir.glob("*.json"))
+                if old_cache_files:
+                    migrations.append(MigrationType.CACHE_FORMAT)
+                
+                # Check LMDB cache format
+                lmdb_cache_files = list(cache_dir.glob("*.mdb")) + list(cache_dir.glob("*.lmdb"))
+                if lmdb_cache_files:
+                    # Check if cache schema needs migration
+                    if self._needs_cache_migration(cache_dir):
+                        migrations.append(MigrationType.CACHE_FORMAT)
+            
+            self.logger.info(f"Cache check for {workspace.name.value}: {migrations}")
+            return migrations
+            
+        except Exception as e:
+            self.logger.error(f"Error checking cache for {workspace.name.value}: {e}")
+            return []
+
+    def _needs_config_migration(self, config_path: Path) -> bool:
+        """Check if a configuration file needs migration."""
+        try:
+            if config_path.suffix == '.json':
+                # JSON configs typically need migration to YAML
+                return True
+            
+            elif config_path.suffix == '.yaml' or config_path.suffix == '.yml':
+                # Check YAML config version
+                try:
+                    with open(config_path, 'r') as f:
+                        config = yaml.safe_load(f)
+                    
+                    # Check version field
+                    if isinstance(config, dict):
+                        version = config.get('version', '1.0')
+                        # Assume versions < 2.0 need migration
+                        return version.startswith('1.')
+                    
+                except (yaml.YAMLError, IOError):
+                    # If we can't parse the config, it might need migration
+                    return True
+            
+            return False
+            
+        except Exception:
+            # If we can't check, assume migration is needed
+            return True
+
+    def _needs_cache_migration(self, cache_dir: Path) -> bool:
+        """Check if cache needs migration."""
+        try:
+            # Check for cache version file
+            version_file = cache_dir / ".version"
+            if version_file.exists():
+                try:
+                    with open(version_file, 'r') as f:
+                        version = f.read().strip()
+                    # Assume versions < 2.0 need migration
+                    return version.startswith('1.')
+                except IOError:
+                    return True
+            else:
+                # No version file - assume migration needed
+                return True
+                
+        except Exception:
+            return True
+
+    async def execute_bulk_migration(self, command: BulkMigrationCommand) -> List[MigrationResult]:
+        """Execute multiple migrations in bulk."""
+        results = []
+        
+        if not command.migrations:
+            self.logger.warning("No migrations provided for bulk execution")
+            return results
+        
+        self.logger.info(f"Starting bulk migration with {len(command.migrations)} migrations")
+        
+        if command.parallel:
+            # Execute migrations in parallel
+            tasks = []
+            for migration_cmd in command.migrations:
+                task = self.start_migration(migration_cmd)
+                tasks.append(task)
+            
+            # Wait for all migrations to complete
+            migration_results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            for i, result in enumerate(migration_results):
+                if isinstance(result, Exception):
+                    self.logger.error(f"Migration {i} failed: {result}")
+                    if command.continue_on_failure:
+                        continue
+                    else:
+                        # Stop on first failure
+                        break
+                else:
+                    results.append(result)
+        else:
+            # Execute migrations sequentially
+            for migration_cmd in command.migrations:
+                try:
+                    result = await self.start_migration(migration_cmd)
+                    results.append(result)
+                    
+                    # Check if migration failed
+                    if result.status == MigrationStatus.FAILED and not command.continue_on_failure:
+                        self.logger.error(f"Migration failed, stopping bulk execution: {migration_cmd.migration_type}")
+                        break
+                        
+                except Exception as e:
+                    self.logger.error(f"Migration failed: {e}")
+                    if not command.continue_on_failure:
+                        break
+        
+        # Log bulk migration summary
+        successful = len([r for r in results if r.status == MigrationStatus.COMPLETED])
+        failed = len([r for r in results if r.status == MigrationStatus.FAILED])
+        
+        self.logger.info(f"Bulk migration completed: {successful} successful, {failed} failed")
+        
+        # Store in history
+        self._migration_history.extend(results)
+        
+        return results

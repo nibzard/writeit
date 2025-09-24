@@ -8,7 +8,6 @@ import typer
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from enum import Enum
-import yaml
 
 from writeit.cli.output import console, print_success, print_error, print_warning
 
@@ -28,15 +27,8 @@ from ...application.commands.migration_commands import (
 
 from ...application.queries.migration_queries import (
     GetMigrationStatusQuery,
-    GetMigrationDetailsQuery,
     GetMigrationHistoryQuery,
-    GetMigrationStatsQuery,
-    GetLegacyWorkspacesQuery,
-    GetMigrationRequirementsQuery,
-    GetMigrationBackupsQuery,
-    GetMigrationHealthQuery,
     MigrationFilter,
-    MigrationSort,
 )
 
 from ...application.services.migration_application_service import DefaultMigrationApplicationService
@@ -548,6 +540,105 @@ def generate_report(
         raise typer.Exit(1)
 
 
+@migration_app.command("bulk")
+def execute_bulk_migration(
+    migration_types: List[MigrationType] = typer.Argument(
+        ..., help="Migration types to execute"
+    ),
+    workspace: Optional[str] = typer.Option(
+        None, "--workspace", "-w", help="Target workspace for all migrations"
+    ),
+    source: Optional[Path] = typer.Option(
+        None, "--source", "-s", help="Source path for all migrations"
+    ),
+    parallel: bool = typer.Option(
+        False, "--parallel", help="Execute migrations in parallel"
+    ),
+    continue_on_failure: bool = typer.Option(
+        False, "--continue-on-failure", help="Continue execution even if some migrations fail"
+    ),
+    priority: MigrationPriority = typer.Option(
+        MigrationPriority.NORMAL, "--priority", "-p", help="Migration priority"
+    ),
+    backup: bool = typer.Option(
+        True, "--backup/--no-backup", help="Create backup before each migration"
+    ),
+    rollback: bool = typer.Option(
+        True, "--rollback/--no-rollback", help="Rollback on failure"
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be migrated without actually doing it"
+    ),
+):
+    """Execute multiple migrations in bulk."""
+    try:
+        container = container_factory.create_for_workspace("default")
+        migration_service = container.resolve(DefaultMigrationApplicationService)
+        
+        # Create individual migration commands
+        migration_commands = []
+        for migration_type in migration_types:
+            cmd = StartMigrationCommand(
+                migration_type=migration_type,
+                source_path=source,
+                target_workspace=workspace,
+                backup_before=backup,
+                rollback_on_failure=rollback,
+                dry_run=dry_run,
+                force=False,
+            )
+            migration_commands.append(cmd)
+        
+        command = BulkMigrationCommand(
+            migrations=migration_commands,
+            parallel=parallel,
+            continue_on_failure=continue_on_failure,
+            priority=priority,
+        )
+        
+        console.print(f"[primary]Starting bulk migration with {len(migration_types)} migration types...[/primary]")
+        
+        if dry_run:
+            console.print("[yellow]DRY RUN MODE - No actual changes will be made[/yellow]")
+        
+        if parallel:
+            console.print("[blue]Executing migrations in parallel...[/blue]")
+        else:
+            console.print("[blue]Executing migrations sequentially...[/blue]")
+        
+        with console.status("[bold green]Running bulk migration...[/bold green]"):
+            results = migration_service.execute_bulk_migration(command)
+        
+        # Display results
+        console.print("\n[bold]Bulk Migration Results:[/bold]")
+        for i, result in enumerate(results, 1):
+            status_color = "green" if result.status.value == "completed" else "red"
+            console.print(f"{i}. {result.migration_id}: [{status_color}]{result.status.value}[/{status_color}]")
+            console.print(f"   Items migrated: {result.items_migrated}, Failed: {result.items_failed}")
+            console.print(f"   Execution time: {result.execution_time.total_seconds():.1f}s")
+            if result.message:
+                console.print(f"   Message: {result.message}")
+        
+        # Summary
+        successful = len([r for r in results if r.status.value == "completed"])
+        failed = len([r for r in results if r.status.value == "failed"])
+        
+        console.print("\n[bold]Summary:[/bold]")
+        console.print(f"Successful: {successful}")
+        console.print(f"Failed: {failed}")
+        console.print(f"Total: {len(results)}")
+        
+        if failed > 0 and not continue_on_failure:
+            print_error(f"Bulk migration failed with {failed} errors")
+            raise typer.Exit(1)
+        else:
+            print_success(f"Bulk migration completed with {successful} successful and {failed} failed migrations")
+        
+    except Exception as e:
+        print_error(f"Error executing bulk migration: {e}")
+        raise typer.Exit(1)
+
+
 # Display helper functions
 def _display_legacy_workspaces_table(workspaces: List[Dict[str, Any]]) -> None:
     """Display legacy workspaces in table format."""
@@ -668,7 +759,7 @@ def _display_validation_results(results: Dict[str, Any]) -> None:
 
 def _display_health_results(health: Any) -> None:
     """Display health results."""
-    console.print(f"\n[bold]Migration System Health[/bold]")
+    console.print("\n[bold]Migration System Health[/bold]")
     
     status_color = "green" if health.is_healthy else "red"
     console.print(f"Overall Status: [{status_color}]{health.is_healthy}[/{status_color}]")
