@@ -1,7 +1,7 @@
 """Test data builders for Pipeline domain entities."""
 
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Self
+from typing import Dict, Any, List, Optional, Self, Union
 from dataclasses import replace
 
 from src.writeit.domains.pipeline.entities.pipeline_template import (
@@ -305,9 +305,12 @@ class PipelineTemplateBuilder:
         self._inputs = {inp.key: inp for inp in inputs}
         return self
     
-    def with_steps(self, steps: List[PipelineStepTemplate]) -> Self:
+    def with_steps(self, steps: Union[List[PipelineStepTemplate], Dict[str, PipelineStepTemplate]]) -> Self:
         """Set the pipeline steps."""
-        self._steps = {step.id.value: step for step in steps}
+        if isinstance(steps, list):
+            self._steps = {step.id.value: step for step in steps}
+        else:
+            self._steps = steps
         return self
     
     def with_tags(self, tags: List[str]) -> Self:

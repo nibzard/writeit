@@ -15,6 +15,24 @@ from ..value_objects.step_id import StepId
 from ..value_objects.prompt_template import PromptTemplate
 
 
+class CircularDependencyError(Exception):
+    """Raised when a circular dependency is detected in the pipeline."""
+    
+    def __init__(self, cycle: List[str]) -> None:
+        self.cycle = cycle
+        cycle_str = " -> ".join(cycle + [cycle[0]])
+        super().__init__(f"Circular dependency detected: {cycle_str}")
+
+
+class InvalidDependencyError(Exception):
+    """Raised when an invalid dependency is detected."""
+    
+    def __init__(self, step_id: str, dependency_id: str) -> None:
+        self.step_id = step_id
+        self.dependency_id = dependency_id
+        super().__init__(f"Step '{step_id}' depends on '{dependency_id}' which does not exist")
+
+
 class DependencyType(str, Enum):
     """Types of step dependencies."""
     EXPLICIT = "explicit"  # Declared in depends_on
@@ -93,28 +111,48 @@ class DependencyGraph:
         return [step_id for step_id in self.steps if not self.get_step_dependents(step_id)]
 
 
+@dataclass 
+class OptimizationAnalysis:
+    """Analysis of optimization opportunities in a pipeline."""
+    current_parallelism_factor: float
+    potential_parallelism_factor: float
+    optimization_suggestions: List['OptimizationSuggestion']
+    estimated_time_savings: float
+    bottlenecks: List[str]
+    
+
+@dataclass
+class OptimizationSuggestion:
+    """Suggestion for optimizing pipeline execution."""
+    suggestion_type: str
+    affected_steps: List[str]
+    description: str
+    potential_impact: float
+    
+
 @dataclass
 class ParallelExecutionPlan:
     """Plan for parallel execution of pipeline steps."""
     execution_groups: List[List[str]]  # Groups of steps that can run in parallel
     critical_path: List[str]  # Longest dependency chain
-    estimated_time_savings: float  # Percentage time savings from parallelization
-    bottlenecks: List[str]  # Steps that limit parallelization
-    
-    @property
-    def total_groups(self) -> int:
-        """Total number of execution groups."""
-        return len(self.execution_groups)
-    
-    @property
-    def max_parallel_steps(self) -> int:
-        """Maximum number of steps that can run in parallel."""
-        return max(len(group) for group in self.execution_groups) if self.execution_groups else 0
+    estimated_execution_time: float  # Estimated total execution time
+    parallelism_factor: float  # Degree of parallelization (0.0 to 1.0)
+    optimization_suggestions: List[OptimizationSuggestion]  # Optimization recommendations
     
     @property
     def total_steps(self) -> int:
         """Total number of steps in the plan."""
         return sum(len(group) for group in self.execution_groups)
+    
+    @property
+    def max_parallelism(self) -> int:
+        """Maximum number of steps that can run in parallel."""
+        return max(len(group) for group in self.execution_groups) if self.execution_groups else 0
+    
+    @property
+    def depth(self) -> int:
+        """Number of execution groups (depth of execution)."""
+        return len(self.execution_groups)
 
 
 @dataclass
@@ -151,8 +189,16 @@ class StepDependencyService:
         optimized = service.optimize_dependencies(graph, OptimizationLevel.MODERATE)
     """
     
-    def __init__(self) -> None:
+    def __init__(
+        self, 
+        optimization_level: OptimizationLevel = OptimizationLevel.MODERATE,
+        enable_implicit_dependencies: bool = True,
+        max_execution_groups: int = 10
+    ) -> None:
         """Initialize dependency service."""
+        self._optimization_level = optimization_level
+        self._enable_implicit_dependencies = enable_implicit_dependencies
+        self._max_execution_groups = max_execution_groups
         self._max_dependency_depth = 20
         self._parallel_efficiency_threshold = 0.1  # 10% minimum improvement
     
@@ -186,14 +232,157 @@ class StepDependencyService:
         data_deps = self._detect_data_dependencies(template)
         dependencies.update(data_deps)
         
+        # Validate dependencies
+        self._validate_dependencies(template, dependencies)
+        
         return DependencyGraph(
             steps=template.steps,
             dependencies=dependencies,
             adjacency_list=defaultdict(list),
             reverse_adjacency_list=defaultdict(list)
         )
+
+    def analyze_dependencies(self, template: PipelineTemplate) -> DependencyGraph:
+        """Analyze dependencies and return dependency graph.
+        
+        Args:
+            template: Pipeline template to analyze
+            
+        Returns:
+            Complete dependency graph
+            
+        Raises:
+            CircularDependencyError: If circular dependencies are detected
+            InvalidDependencyError: If invalid dependencies are found
+        """
+        return self.build_dependency_graph(template)
     
-    def analyze_dependencies(self, graph: DependencyGraph) -> List[DependencyIssue]:
+    def topological_sort(self, graph: DependencyGraph) -> List[str]:
+        """Perform topological sort of the dependency graph.
+        
+        Args:
+            graph: Dependency graph to sort
+            
+        Returns:
+            List of step IDs in topological order
+            
+        Raises:
+            CircularDependencyError: If cycles are detected
+        """
+        result = self._topological_sort(graph)
+        if result is None:
+            cycles = self._detect_cycles(graph)
+            if cycles:
+                raise CircularDependencyError(cycles[0])
+            else:
+                raise CircularDependencyError([])
+        return result
+    
+    def get_step_execution_order(
+        self, 
+        template: PipelineTemplate,
+        optimization_level: Optional[OptimizationLevel] = None
+    ) -> List[List[str]]:
+        """Get execution order optimized for the given level.
+        
+        Args:
+            template: Pipeline template
+            optimization_level: Level of optimization to apply
+            
+        Returns:
+            List of execution groups (steps that can run in parallel)
+        """
+        if optimization_level is None:
+            optimization_level = self._optimization_level
+            
+        graph = self.analyze_dependencies(template)
+        plan = self.create_parallel_execution_plan(graph, optimization_level)
+        return plan.execution_groups
+    
+    def analyze_optimization_opportunities(self, graph: DependencyGraph) -> OptimizationAnalysis:
+        """Analyze optimization opportunities in the dependency graph.
+        
+        Args:
+            graph: Dependency graph to analyze
+            
+        Returns:
+            Analysis of optimization opportunities
+        """
+        plan = self.create_parallel_execution_plan(graph)
+        
+        # Calculate current parallelism factor
+        current_factor = plan.parallelism_factor
+        
+        # Calculate potential parallelism factor (if all independent steps ran in parallel)
+        total_steps = len(graph.steps)
+        independent_steps = len([step for step in graph.steps.keys() 
+                               if not graph.get_step_dependencies(step)])
+        potential_factor = min(1.0, independent_steps / total_steps) if total_steps > 0 else 0.0
+        
+        # Generate optimization suggestions
+        suggestions = []
+        
+        # Find independent steps that could be parallelized
+        independent_groups = []
+        for step in graph.steps.keys():
+            deps = graph.get_step_dependencies(step)
+            if not deps:
+                independent_groups.append(step)
+        
+        if len(independent_groups) > 1:
+            suggestions.append(OptimizationSuggestion(
+                suggestion_type="PARALLELIZE_INDEPENDENT_STEPS",
+                affected_steps=independent_groups,
+                description=f"Steps {independent_groups} can run in parallel",
+                potential_impact=0.3
+            ))
+        
+        return OptimizationAnalysis(
+            current_parallelism_factor=current_factor,
+            potential_parallelism_factor=potential_factor,
+            optimization_suggestions=suggestions,
+            estimated_time_savings=max(0, potential_factor - current_factor) * 100,
+            bottlenecks=plan.critical_path
+        )
+    
+    def _find_critical_path(self, graph: DependencyGraph) -> List[str]:
+        """Find the critical path through the dependency graph.
+        
+        Args:
+            graph: Dependency graph
+            
+        Returns:
+            List of steps in the critical path
+        """
+        # Simple implementation: find the longest path
+        topological_order = self._topological_sort(graph)
+        if not topological_order:
+            return []
+        
+        # Calculate distances using dynamic programming
+        distances = {step: 0 for step in graph.steps}
+        predecessors = {step: None for step in graph.steps}
+        
+        for step in topological_order:
+            for dependent in graph.adjacency_list[step]:
+                new_distance = distances[step] + 1
+                if new_distance > distances[dependent]:
+                    distances[dependent] = new_distance
+                    predecessors[dependent] = step
+        
+        # Find the step with the maximum distance
+        end_step = max(distances.keys(), key=lambda k: distances[k])
+        
+        # Reconstruct the path
+        path = []
+        current = end_step
+        while current is not None:
+            path.append(current)
+            current = predecessors[current]
+        
+        return list(reversed(path))
+
+    def analyze_issues(self, graph: DependencyGraph) -> List[DependencyIssue]:
         """Analyze dependency graph for issues and optimization opportunities.
         
         Args:
@@ -275,19 +464,18 @@ class StepDependencyService:
         # Find critical path
         critical_path = self._find_critical_path(graph)
         
-        # Calculate time savings
-        sequential_time = len(topological_order)
-        parallel_time = len(execution_groups)
-        time_savings = (sequential_time - parallel_time) / sequential_time * 100
-        
-        # Identify bottlenecks
-        bottlenecks = self._identify_bottlenecks(graph, execution_groups)
+        # Calculate execution time and parallelism factor
+        total_steps = len(graph.steps)
+        execution_depth = len(execution_groups)
+        parallelism_factor = (total_steps - execution_depth) / total_steps if total_steps > 0 else 0.0
+        estimated_execution_time = float(execution_depth * 10)  # Assume 10 time units per execution group
         
         return ParallelExecutionPlan(
             execution_groups=execution_groups,
             critical_path=critical_path,
-            estimated_time_savings=time_savings,
-            bottlenecks=bottlenecks
+            estimated_execution_time=estimated_execution_time,
+            parallelism_factor=parallelism_factor,
+            optimization_suggestions=[]
         )
     
     def optimize_dependencies(
@@ -726,3 +914,34 @@ class StepDependencyService:
             return (levels[step], parallel_priority)
         
         return sorted(order, key=sort_key)
+    
+    def _validate_dependencies(self, template: PipelineTemplate, dependencies: Set[StepDependency]) -> None:
+        """Validate that all dependencies are valid.
+        
+        Args:
+            template: Pipeline template
+            dependencies: Set of dependencies to validate
+            
+        Raises:
+            InvalidDependencyError: If invalid dependencies are found
+            CircularDependencyError: If circular dependencies are detected
+        """
+        step_ids = set(template.steps.keys())
+        
+        # Check that all referenced steps exist
+        for step_key, step in template.steps.items():
+            for dep_id in step.depends_on:
+                if dep_id.value not in step_ids:
+                    raise InvalidDependencyError(step_key, dep_id.value)
+        
+        # Check for circular dependencies using temporary graph
+        temp_graph = DependencyGraph(
+            steps=template.steps,
+            dependencies=dependencies,
+            adjacency_list=defaultdict(list),
+            reverse_adjacency_list=defaultdict(list)
+        )
+        
+        cycles = self._detect_cycles(temp_graph)
+        if cycles:
+            raise CircularDependencyError(cycles[0])
