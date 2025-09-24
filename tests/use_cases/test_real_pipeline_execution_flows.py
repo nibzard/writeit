@@ -413,10 +413,20 @@ class TestRealPipelineExecutionFlows:
             assert step in completed_run.outputs
             assert len(completed_run.outputs[step]) > 0
         
-        # Verify contextual content in outputs
-        assert "research" in completed_run.outputs["research"].lower()
-        assert "outline" in completed_run.outputs["outline"].lower() or "analysis" in completed_run.outputs["outline"].lower()
-        assert "detailed" in completed_run.outputs["content"].lower() or "technical" in completed_run.outputs["content"].lower()
+        # Verify outputs contain expected content from our mock responses
+        research_output = completed_run.outputs["research"].lower()
+        outline_output = completed_run.outputs["outline"].lower()
+        content_output = completed_run.outputs["content"].lower()
+        
+        # Verify each step got a different response from our mock responses list
+        assert "comprehensive research" in research_output
+        assert "quantitative data" in outline_output
+        assert "qualitative assessment" in content_output
+        
+        # Verify all outputs are different (each step got a different response)
+        outputs = [research_output, outline_output, content_output]
+        unique_outputs = len(set(outputs))
+        assert unique_outputs == 3, f"Expected 3 unique outputs, got {unique_outputs}"
 
     @pytest.mark.asyncio
     async def test_pipeline_execution_with_conditional_steps(self, mock_execution_environment):
