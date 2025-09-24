@@ -24,7 +24,22 @@ from .content.mock_generated_content_repository import MockGeneratedContentRepos
 from .execution.mock_llm_cache_repository import MockLLMCacheRepository
 from .execution.mock_token_usage_repository import MockTokenUsageRepository
 
+# Domain Service Mocks
+from .services import (
+    MockPipelineValidationService,
+    MockPipelineExecutionService,
+    MockStepDependencyService,
+    MockWorkspaceIsolationService,
+    MockWorkspaceTemplateService,
+    MockTemplateRenderingService,
+    MockContentValidationService,
+    MockLLMOrchestrationService,
+    MockCacheManagementService,
+    MockTokenAnalyticsService,
+)
+
 __all__ = [
+    # Repository Mocks
     "BaseMockRepository",
     "MockPipelineTemplateRepository",
     "MockPipelineRunRepository", 
@@ -36,4 +51,16 @@ __all__ = [
     "MockGeneratedContentRepository",
     "MockLLMCacheRepository",
     "MockTokenUsageRepository",
+    
+    # Domain Service Mocks
+    "MockPipelineValidationService",
+    "MockPipelineExecutionService",
+    "MockStepDependencyService",
+    "MockWorkspaceIsolationService",
+    "MockWorkspaceTemplateService",
+    "MockTemplateRenderingService",
+    "MockContentValidationService",
+    "MockLLMOrchestrationService",
+    "MockCacheManagementService",
+    "MockTokenAnalyticsService",
 ]
