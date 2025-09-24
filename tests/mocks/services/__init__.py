@@ -18,12 +18,18 @@ from .pipeline import (
 
 from .workspace import (
     MockWorkspaceIsolationService,
-    MockWorkspaceTemplateService
+    MockWorkspaceTemplateService,
+    MockWorkspaceManagementService,
+    MockWorkspaceConfigurationService,
+    MockWorkspaceAnalyticsService
 )
 
 from .content import (
     MockTemplateRenderingService,
-    MockContentValidationService
+    MockContentValidationService,
+    MockContentGenerationService,
+    MockTemplateManagementService,
+    MockStyleManagementService
 )
 
 from .execution import (
@@ -38,8 +44,14 @@ __all__ = [
     "MockStepDependencyService",
     "MockWorkspaceIsolationService",
     "MockWorkspaceTemplateService",
+    "MockWorkspaceManagementService",
+    "MockWorkspaceConfigurationService",
+    "MockWorkspaceAnalyticsService",
     "MockTemplateRenderingService",
     "MockContentValidationService",
+    "MockContentGenerationService",
+    "MockTemplateManagementService",
+    "MockStyleManagementService",
     "MockLLMOrchestrationService",
     "MockCacheManagementService",
     "MockTokenAnalyticsService",

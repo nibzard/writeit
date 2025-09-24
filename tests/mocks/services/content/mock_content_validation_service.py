@@ -5,9 +5,9 @@ from unittest.mock import Mock
 
 from writeit.domains.content.services.content_validation_service import (
     ContentValidationService,
-    ContentValidationResult,
+    ValidationResult,
     ValidationRule,
-    ValidationMetrics
+    ValidationIssue
 )
 from writeit.domains.content.entities.generated_content import GeneratedContent
 from writeit.domains.content.entities.style_primer import StylePrimer
@@ -24,15 +24,15 @@ class MockContentValidationService(ContentValidationService):
     def __init__(self):
         """Initialize mock validation service."""
         self._mock = Mock()
-        self._validation_results: Dict[str, ContentValidationResult] = {}
+        self._validation_results: Dict[str, ValidationResult] = {}
         self._validation_rules: List[ValidationRule] = []
-        self._validation_metrics: Dict[str, ValidationMetrics] = {}
+        self._validation_metrics: Dict[str, Dict[str, Any]] = {}
         self._should_fail = False
         
     def configure_validation_result(
         self, 
         content_id: str, 
-        result: ContentValidationResult
+        result: ValidationResult
     ) -> None:
         """Configure validation result for specific content."""
         self._validation_results[content_id] = result
@@ -44,7 +44,7 @@ class MockContentValidationService(ContentValidationService):
     def configure_validation_metrics(
         self, 
         content_id: str, 
-        metrics: ValidationMetrics
+        metrics: Dict[str, Any]
     ) -> None:
         """Configure validation metrics for content."""
         self._validation_metrics[content_id] = metrics
@@ -72,7 +72,7 @@ class MockContentValidationService(ContentValidationService):
         self,
         content: GeneratedContent,
         style_primer: Optional[StylePrimer] = None
-    ) -> ContentValidationResult:
+    ) -> ValidationResult:
         """Validate generated content."""
         self._mock.validate_content(content, style_primer)
         
@@ -84,7 +84,7 @@ class MockContentValidationService(ContentValidationService):
             
         # Create mock validation result
         if self._should_fail:
-            return ContentValidationResult(
+            return ValidationResult(
                 is_valid=False,
                 score=0.3,
                 issues=[
@@ -95,26 +95,26 @@ class MockContentValidationService(ContentValidationService):
                         "location": "content"
                     }
                 ],
-                metrics=ValidationMetrics(
-                    readability_score=0.3,
-                    grammar_score=0.4,
-                    style_compliance=0.2,
-                    content_length=len(content.content or ""),
-                    word_count=len((content.content or "").split())
-                )
+                metrics={
+                    "readability_score": 0.3,
+                    "grammar_score": 0.4,
+                    "style_compliance": 0.2,
+                    "content_length": len(content.content or ""),
+                    "word_count": len((content.content or "").split())
+                }
             )
         else:
-            return ContentValidationResult(
+            return ValidationResult(
                 is_valid=True,
                 score=0.95,
                 issues=[],
-                metrics=ValidationMetrics(
-                    readability_score=0.95,
-                    grammar_score=0.98,
-                    style_compliance=0.92,
-                    content_length=len(content.content or ""),
-                    word_count=len((content.content or "").split())
-                )
+                metrics={
+                    "readability_score": 0.95,
+                    "grammar_score": 0.98,
+                    "style_compliance": 0.92,
+                    "content_length": len(content.content or ""),
+                    "word_count": len((content.content or "").split())
+                }
             )
             
     async def validate_against_style(
@@ -159,7 +159,7 @@ class MockContentValidationService(ContentValidationService):
     async def analyze_readability(
         self,
         content: GeneratedContent
-    ) -> ValidationMetrics:
+    ) -> Dict[str, Any]:
         """Analyze content readability."""
         self._mock.analyze_readability(content)
         
@@ -171,13 +171,13 @@ class MockContentValidationService(ContentValidationService):
             
         # Create mock metrics
         content_text = content.content or ""
-        return ValidationMetrics(
-            readability_score=0.85,
-            grammar_score=0.92,
-            style_compliance=0.88,
-            content_length=len(content_text),
-            word_count=len(content_text.split())
-        )
+        return {
+            "readability_score": 0.85,
+            "grammar_score": 0.92,
+            "style_compliance": 0.88,
+            "content_length": len(content_text),
+            "word_count": len(content_text.split())
+        }
         
     async def validate_content_structure(
         self,
@@ -224,7 +224,7 @@ class MockContentValidationService(ContentValidationService):
     async def get_improvement_suggestions(
         self,
         content: GeneratedContent,
-        validation_result: ContentValidationResult
+        validation_result: ValidationResult
     ) -> List[Dict[str, Any]]:
         """Get improvement suggestions for content."""
         self._mock.get_improvement_suggestions(content, validation_result)
@@ -248,7 +248,7 @@ class MockContentValidationService(ContentValidationService):
     async def create_validation_report(
         self,
         content: GeneratedContent,
-        validation_result: ContentValidationResult
+        validation_result: ValidationResult
     ) -> Dict[str, Any]:
         """Create comprehensive validation report."""
         self._mock.create_validation_report(content, validation_result)
@@ -271,7 +271,7 @@ class MockContentValidationService(ContentValidationService):
         self,
         content_list: List[GeneratedContent],
         style_primer: Optional[StylePrimer] = None
-    ) -> Dict[str, ContentValidationResult]:
+    ) -> Dict[str, ValidationResult]:
         """Validate multiple content items."""
         self._mock.batch_validate_content(content_list, style_primer)
         

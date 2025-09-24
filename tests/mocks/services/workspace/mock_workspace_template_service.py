@@ -6,8 +6,8 @@ from unittest.mock import Mock
 from writeit.domains.workspace.services.workspace_template_service import (
     WorkspaceTemplateService,
     TemplateScope,
-    TemplateResolution,
-    TemplateConflict
+    TemplateResolutionResult,
+    TemplateConflictError
 )
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
@@ -25,15 +25,15 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
     def __init__(self):
         """Initialize mock template service."""
         self._mock = Mock()
-        self._template_resolutions: Dict[str, TemplateResolution] = {}
+        self._template_resolutions: Dict[str, TemplateResolutionResult] = {}
         self._available_templates: Dict[str, List[Template]] = {}
-        self._template_conflicts: List[TemplateConflict] = []
+        self._template_conflicts: List[TemplateConflictError] = []
         self._should_fail = False
         
     def configure_template_resolution(
         self, 
         template_name: str, 
-        resolution: TemplateResolution
+        resolution: TemplateResolutionResult
     ) -> None:
         """Configure template resolution for specific template."""
         self._template_resolutions[template_name] = resolution
@@ -46,7 +46,7 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
         """Configure available templates for workspace."""
         self._available_templates[workspace] = templates
         
-    def configure_template_conflicts(self, conflicts: List[TemplateConflict]) -> None:
+    def configure_template_conflicts(self, conflicts: List[TemplateConflictError]) -> None:
         """Configure template conflicts to return."""
         self._template_conflicts = conflicts
         
@@ -74,7 +74,7 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
         template_name: TemplateName,
         workspace: Workspace,
         scope: Optional[TemplateScope] = None
-    ) -> Optional[TemplateResolution]:
+    ) -> Optional[TemplateResolutionResult]:
         """Resolve template across scopes."""
         self._mock.resolve_template(template_name, workspace, scope)
         
@@ -88,7 +88,7 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
             return self._template_resolutions[template_key]
             
         # Create mock resolution
-        return TemplateResolution(
+        return TemplateResolutionResult(
             template_name=template_name,
             resolved_scope=scope or TemplateScope.WORKSPACE,
             template_path=f"/mock/path/{template_name.value}.yaml",
@@ -115,7 +115,7 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
     async def check_template_conflicts(
         self,
         workspace: Workspace
-    ) -> List[TemplateConflict]:
+    ) -> List[TemplateConflictError]:
         """Check for template name conflicts."""
         self._mock.check_template_conflicts(workspace)
         
@@ -125,19 +125,19 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
         self,
         template_name: TemplateName,
         workspace: Workspace
-    ) -> List[TemplateResolution]:
+    ) -> List[TemplateResolutionResult]:
         """Get template inheritance chain."""
         self._mock.get_template_inheritance_chain(template_name, workspace)
         
         # Return simple mock chain
-        base_resolution = TemplateResolution(
+        base_resolution = TemplateResolutionResult(
             template_name=template_name,
             resolved_scope=TemplateScope.GLOBAL,
             template_path=f"/global/{template_name.value}.yaml",
             workspace=None
         )
         
-        workspace_resolution = TemplateResolution(
+        workspace_resolution = TemplateResolutionResult(
             template_name=template_name,
             resolved_scope=TemplateScope.WORKSPACE,
             template_path=f"/workspace/{workspace.name.value}/{template_name.value}.yaml",

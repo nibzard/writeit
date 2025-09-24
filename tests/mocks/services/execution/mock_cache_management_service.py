@@ -9,7 +9,7 @@ from writeit.domains.execution.services.cache_management_service import (
     CacheEntry,
     CacheStrategy,
     CacheStatistics,
-    CacheEvictionPolicy
+    CachePolicy
 )
 from writeit.domains.execution.value_objects.cache_key import CacheKey
 
@@ -203,7 +203,7 @@ class MockCacheManagementService(CacheManagementService):
         
     async def configure_eviction_policy(
         self,
-        policy: CacheEvictionPolicy,
+        policy: CachePolicy,
         parameters: Optional[Dict[str, Any]] = None
     ) -> None:
         """Configure cache eviction policy."""

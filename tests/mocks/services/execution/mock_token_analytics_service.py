@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 
 from writeit.domains.execution.services.token_analytics_service import (
     TokenAnalyticsService,
-    TokenUsageReport,
-    TokenTrend,
-    CostAnalysis,
+    WorkspaceUsageAnalysis,
+    TokenUsageMetrics,
+    CostOptimizationRecommendation,
     UsageAlert
 )
 from writeit.domains.execution.entities.token_usage import TokenUsage
@@ -25,21 +25,21 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
     def __init__(self):
         """Initialize mock token analytics service."""
         self._mock = Mock()
-        self._usage_reports: Dict[str, TokenUsageReport] = {}
-        self._token_trends: List[TokenTrend] = []
-        self._cost_analyses: Dict[str, CostAnalysis] = {}
+        self._usage_reports: Dict[str, WorkspaceUsageAnalysis] = {}
+        self._token_trends: List[TokenUsageMetrics] = []
+        self._cost_analyses: Dict[str, CostOptimizationRecommendation] = {}
         self._usage_alerts: List[UsageAlert] = []
         self._should_fail = False
         
-    def configure_usage_report(self, period: str, report: TokenUsageReport) -> None:
+    def configure_usage_report(self, period: str, report: WorkspaceUsageAnalysis) -> None:
         """Configure usage report for specific period."""
         self._usage_reports[period] = report
         
-    def configure_token_trends(self, trends: List[TokenTrend]) -> None:
+    def configure_token_trends(self, trends: List[TokenUsageMetrics]) -> None:
         """Configure token usage trends."""
         self._token_trends = trends
         
-    def configure_cost_analysis(self, provider: str, analysis: CostAnalysis) -> None:
+    def configure_cost_analysis(self, provider: str, analysis: CostOptimizationRecommendation) -> None:
         """Configure cost analysis for provider."""
         self._cost_analyses[provider] = analysis
         
@@ -72,7 +72,7 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
         start_date: datetime,
         end_date: datetime,
         workspace: Optional[str] = None
-    ) -> TokenUsageReport:
+    ) -> WorkspaceUsageAnalysis:
         """Generate token usage report for period."""
         self._mock.generate_usage_report(start_date, end_date, workspace)
         
@@ -86,7 +86,7 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
             return self._usage_reports[period_key]
             
         # Create mock usage report
-        return TokenUsageReport(
+        return WorkspaceUsageAnalysis(
             period_start=start_date,
             period_end=end_date,
             workspace=workspace,
@@ -104,7 +104,7 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
         self,
         time_period: timedelta,
         granularity: str = "daily"
-    ) -> List[TokenTrend]:
+    ) -> List[TokenUsageMetrics]:
         """Analyze token usage trends."""
         self._mock.analyze_token_trends(time_period, granularity)
         
@@ -121,7 +121,7 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
         
         for i in range(min(days, 7)):
             trend_date = datetime.now() - timedelta(days=i)
-            trends.append(TokenTrend(
+            trends.append(TokenUsageMetrics(
                 date=trend_date,
                 total_tokens=TokenCount(1000 + i * 100),
                 requests_count=10 + i * 2,
@@ -136,7 +136,7 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
         provider: str,
         model: Optional[str] = None,
         time_period: Optional[timedelta] = None
-    ) -> CostAnalysis:
+    ) -> CostOptimizationRecommendation:
         """Calculate cost analysis for provider/model."""
         self._mock.calculate_cost_analysis(provider, model, time_period)
         
@@ -150,7 +150,7 @@ class MockTokenAnalyticsService(TokenAnalyticsService):
             return self._cost_analyses[analysis_key]
             
         # Create mock cost analysis
-        return CostAnalysis(
+        return CostOptimizationRecommendation(
             provider=provider,
             model=model,
             period_start=datetime.now() - (time_period or timedelta(days=30)),

@@ -7,7 +7,7 @@ from writeit.domains.content.services.template_rendering_service import (
     TemplateRenderingService,
     RenderingContext,
     RenderingResult,
-    TemplateError
+    TemplateRenderingError
 )
 from writeit.domains.content.entities.template import Template
 from writeit.domains.content.value_objects.template_name import TemplateName
@@ -25,7 +25,7 @@ class MockTemplateRenderingService(TemplateRenderingService):
         self._mock = Mock()
         self._rendering_results: Dict[str, RenderingResult] = {}
         self._rendered_content: Dict[str, str] = {}
-        self._template_errors: List[TemplateError] = []
+        self._template_errors: List[TemplateRenderingError] = []
         self._should_fail = False
         
     def configure_rendering_result(
@@ -40,7 +40,7 @@ class MockTemplateRenderingService(TemplateRenderingService):
         """Configure rendered content for template."""
         self._rendered_content[template_name] = content
         
-    def configure_template_errors(self, errors: List[TemplateError]) -> None:
+    def configure_template_errors(self, errors: List[TemplateRenderingError]) -> None:
         """Configure template errors to return."""
         self._template_errors = errors
         
@@ -83,7 +83,7 @@ class MockTemplateRenderingService(TemplateRenderingService):
                 success=False,
                 content="",
                 errors=self._template_errors or [
-                    TemplateError(
+                    TemplateRenderingError(
                         message="Mock rendering error",
                         line_number=1,
                         column_number=1,
@@ -115,7 +115,7 @@ class MockTemplateRenderingService(TemplateRenderingService):
         self._mock.render_string(template_string, context)
         
         if self._should_fail:
-            raise TemplateError("Mock string rendering error")
+            raise TemplateRenderingError("Mock string rendering error")
             
         # Simple mock rendering - replace variables
         rendered = template_string
@@ -127,13 +127,13 @@ class MockTemplateRenderingService(TemplateRenderingService):
     async def validate_template_syntax(
         self,
         template: Template
-    ) -> List[TemplateError]:
+    ) -> List[TemplateRenderingError]:
         """Validate template syntax."""
         self._mock.validate_template_syntax(template)
         
         if self._should_fail:
             return self._template_errors or [
-                TemplateError(
+                TemplateRenderingError(
                     message="Mock syntax error",
                     line_number=1,
                     column_number=1,
@@ -193,7 +193,7 @@ class MockTemplateRenderingService(TemplateRenderingService):
         self._mock.render_partial(template, partial_name, context)
         
         if self._should_fail:
-            raise TemplateError(f"Mock partial rendering error: {partial_name}")
+            raise TemplateRenderingError(f"Mock partial rendering error: {partial_name}")
             
         return f"Mock rendered partial: {partial_name}"
         

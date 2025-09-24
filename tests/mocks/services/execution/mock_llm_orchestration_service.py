@@ -7,9 +7,9 @@ from datetime import datetime
 from writeit.domains.execution.services.llm_orchestration_service import (
     LLMOrchestrationService,
     ProviderSelectionStrategy,
-    LLMRequest,
+    RequestContext,
     LLMResponse,
-    ProviderHealthStatus
+    ProviderStatus
 )
 from writeit.domains.execution.entities.llm_provider import LLMProvider
 from writeit.domains.execution.value_objects.model_name import ModelName
@@ -26,7 +26,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
         """Initialize mock orchestration service."""
         self._mock = AsyncMock()
         self._llm_responses: Dict[str, LLMResponse] = {}
-        self._provider_health: Dict[str, ProviderHealthStatus] = {}
+        self._provider_health: Dict[str, ProviderStatus] = {}
         self._available_providers: List[LLMProvider] = []
         self._should_fail = False
         self._response_delay = 0.0
@@ -38,7 +38,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
     def configure_provider_health(
         self, 
         provider_name: str, 
-        status: ProviderHealthStatus
+        status: ProviderStatus
     ) -> None:
         """Configure provider health status."""
         self._provider_health[provider_name] = status
@@ -73,7 +73,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
     
     async def execute_llm_request(
         self,
-        request: LLMRequest,
+        request: RequestContext,
         strategy: Optional[ProviderSelectionStrategy] = None
     ) -> LLMResponse:
         """Execute LLM request with provider selection."""
@@ -103,7 +103,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
         
     async def stream_llm_request(
         self,
-        request: LLMRequest,
+        request: RequestContext,
         strategy: Optional[ProviderSelectionStrategy] = None
     ) -> AsyncGenerator[str, None]:
         """Stream LLM request response."""
@@ -138,7 +138,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
                 
         return None
         
-    async def check_provider_health(self, provider_name: str) -> ProviderHealthStatus:
+    async def check_provider_health(self, provider_name: str) -> ProviderStatus:
         """Check provider health status."""
         await self._mock.check_provider_health(provider_name)
         
@@ -147,13 +147,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
             return self._provider_health[provider_name]
             
         # Return mock healthy status
-        return ProviderHealthStatus(
-            provider_name=provider_name,
-            is_healthy=not self._should_fail,
-            response_time_ms=100.0 if not self._should_fail else 5000.0,
-            error_rate=0.0 if not self._should_fail else 0.5,
-            last_check=datetime.now()
-        )
+        return ProviderStatus.ACTIVE if not self._should_fail else ProviderStatus.ERROR
         
     async def get_available_models(self, provider_name: Optional[str] = None) -> List[str]:
         """Get available models from providers."""
@@ -174,7 +168,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
             
     async def estimate_request_cost(
         self,
-        request: LLMRequest,
+        request: RequestContext,
         provider_name: Optional[str] = None
     ) -> float:
         """Estimate cost for LLM request."""
@@ -215,7 +209,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
         
     async def execute_with_retry(
         self,
-        request: LLMRequest,
+        request: RequestContext,
         max_retries: int = 3,
         retry_delay: float = 1.0
     ) -> LLMResponse:
@@ -227,7 +221,7 @@ class MockLLMOrchestrationService(LLMOrchestrationService):
         
     async def batch_execute_requests(
         self,
-        requests: List[LLMRequest],
+        requests: List[RequestContext],
         strategy: Optional[ProviderSelectionStrategy] = None
     ) -> List[LLMResponse]:
         """Execute multiple requests in batch."""

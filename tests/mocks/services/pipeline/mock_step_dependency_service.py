@@ -6,8 +6,8 @@ from unittest.mock import Mock
 from writeit.domains.pipeline.services.step_dependency_service import (
     StepDependencyService,
     DependencyGraph,
-    DependencyResolution,
-    CircularDependencyError
+    DependencyIssue,
+    ParallelExecutionPlan
 )
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
 from writeit.domains.pipeline.value_objects.step_id import StepId

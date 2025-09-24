@@ -5,9 +5,9 @@ from unittest.mock import Mock
 
 from writeit.domains.workspace.services.workspace_isolation_service import (
     WorkspaceIsolationService,
-    IsolationLevel,
-    IsolationViolation,
-    AccessContext
+    WorkspaceContext,
+    WorkspaceIsolationError,
+    IsolatedWorkspaceOperations
 )
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
@@ -23,12 +23,12 @@ class MockWorkspaceIsolationService(WorkspaceIsolationService):
     def __init__(self):
         """Initialize mock isolation service."""
         self._mock = Mock()
-        self._isolation_violations: List[IsolationViolation] = []
+        self._isolation_violations: List[Dict[str, Any]] = []
         self._access_permissions: Dict[str, Set[str]] = {}
         self._should_fail = False
-        self._isolation_level = IsolationLevel.STRICT
+        self._isolation_level = "STRICT"
         
-    def configure_isolation_violations(self, violations: List[IsolationViolation]) -> None:
+    def configure_isolation_violations(self, violations: List[Dict[str, Any]]) -> None:
         """Configure isolation violations to return."""
         self._isolation_violations = violations
         
@@ -36,7 +36,7 @@ class MockWorkspaceIsolationService(WorkspaceIsolationService):
         """Configure access permissions for workspace."""
         self._access_permissions[workspace] = permissions
         
-    def configure_isolation_level(self, level: IsolationLevel) -> None:
+    def configure_isolation_level(self, level: str) -> None:
         """Configure isolation level."""
         self._isolation_level = level
         
@@ -49,7 +49,7 @@ class MockWorkspaceIsolationService(WorkspaceIsolationService):
         self._isolation_violations.clear()
         self._access_permissions.clear()
         self._should_fail = False
-        self._isolation_level = IsolationLevel.STRICT
+        self._isolation_level = "STRICT"
         self._mock.reset_mock()
         
     @property
@@ -62,19 +62,19 @@ class MockWorkspaceIsolationService(WorkspaceIsolationService):
     async def validate_workspace_isolation(
         self, 
         workspace: Workspace,
-        context: AccessContext
-    ) -> List[IsolationViolation]:
+        context: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
         """Validate workspace isolation."""
         self._mock.validate_workspace_isolation(workspace, context)
         
         if self._should_fail:
             return self._isolation_violations or [
-                IsolationViolation(
-                    workspace_name=workspace.name,
-                    violation_type="access",
-                    description="Mock isolation violation",
-                    severity="error"
-                )
+                {
+                    "workspace_name": workspace.name.value if hasattr(workspace.name, 'value') else str(workspace.name),
+                    "violation_type": "access",
+                    "description": "Mock isolation violation",
+                    "severity": "error"
+                }
             ]
             
         return self._isolation_violations
@@ -106,7 +106,7 @@ class MockWorkspaceIsolationService(WorkspaceIsolationService):
         
         return not self._should_fail
         
-    async def get_isolation_level(self, workspace: Workspace) -> IsolationLevel:
+    async def get_isolation_level(self, workspace: Workspace) -> str:
         """Get current isolation level for workspace."""
         self._mock.get_isolation_level(workspace)
         
@@ -115,7 +115,7 @@ class MockWorkspaceIsolationService(WorkspaceIsolationService):
     async def set_isolation_level(
         self,
         workspace: Workspace,
-        level: IsolationLevel
+        level: str
     ) -> None:
         """Set isolation level for workspace."""
         self._mock.set_isolation_level(workspace, level)

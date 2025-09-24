@@ -9,8 +9,8 @@ from writeit.domains.pipeline.services.pipeline_execution_service import (
     ExecutionMode,
     ExecutionContext,
     ExecutionResult,
-    StepExecutionResult,
-    ExecutionOptions
+    ExecutionEvent,
+    ExecutionEventType
 )
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
 from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
@@ -30,7 +30,7 @@ class MockPipelineExecutionService(PipelineExecutionService):
         """Initialize mock execution service."""
         self._mock = AsyncMock()
         self._execution_results: Dict[str, ExecutionResult] = {}
-        self._step_results: Dict[str, StepExecutionResult] = {}
+        self._step_results: Dict[str, ExecutionResult] = {}
         self._should_fail = False
         self._execution_delay = 0.0
         self._progress_callbacks: List[Callable] = []
@@ -39,7 +39,7 @@ class MockPipelineExecutionService(PipelineExecutionService):
         """Configure execution result for specific run."""
         self._execution_results[run_id] = result
         
-    def configure_step_result(self, step_id: str, result: StepExecutionResult) -> None:
+    def configure_step_result(self, step_id: str, result: ExecutionResult) -> None:
         """Configure step execution result."""
         self._step_results[step_id] = result
         
@@ -71,7 +71,7 @@ class MockPipelineExecutionService(PipelineExecutionService):
         self, 
         template: PipelineTemplate, 
         inputs: Dict[str, Any],
-        options: Optional[ExecutionOptions] = None
+        options: Optional[Dict[str, Any]] = None
     ) -> AsyncGenerator[ExecutionResult, None]:
         """Execute pipeline template."""
         await self._mock.execute_pipeline(template, inputs, options)
@@ -113,7 +113,7 @@ class MockPipelineExecutionService(PipelineExecutionService):
         self,
         step: StepExecution,
         context: ExecutionContext
-    ) -> StepExecutionResult:
+    ) -> ExecutionResult:
         """Execute individual step."""
         await self._mock.execute_step(step, context)
         
@@ -125,7 +125,7 @@ class MockPipelineExecutionService(PipelineExecutionService):
             
         # Create mock step result
         if self._should_fail:
-            return StepExecutionResult(
+            return ExecutionResult(
                 step_id=step.step_id,
                 status=ExecutionStatus.FAILED,
                 error="Mock step error",
@@ -134,7 +134,7 @@ class MockPipelineExecutionService(PipelineExecutionService):
                 output=None
             )
         else:
-            return StepExecutionResult(
+            return ExecutionResult(
                 step_id=step.step_id,
                 status=ExecutionStatus.COMPLETED,
                 started_at=datetime.now(),
