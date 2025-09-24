@@ -4,7 +4,7 @@
 import re
 from pathlib import Path
 from typing import Optional, Union, Dict, Any
-from writeit.errors import ValidationError
+from writeit.shared.errors import ValidationError
 
 
 class InputValidator:

@@ -22,7 +22,7 @@ from writeit.pipeline import PipelineExecutor
 from writeit.models import Pipeline, PipelineRun, PipelineStatus, StepStatus
 from writeit.workspace.workspace import Workspace
 from writeit.storage.manager import StorageManager
-from writeit.errors import ValidationError
+from writeit.shared.errors import ValidationError
 
 
 # Request/Response Models
