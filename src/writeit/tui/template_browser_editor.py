@@ -868,6 +868,14 @@ class TemplateBrowserEditorApp(App[None]):
     ) -> None:
         """Load item data into the editor."""
         try:
+            # Update editor fields first
+            name_input = editor.query_one("#content-name")
+            desc_input = editor.query_one("#content-description")
+            content_editor = editor.query_one("#content-editor")
+            
+            name_input.value = item_data.get("name", "")
+            desc_input.value = item_data.get("description", "")
+            
             # Load the full content
             content_type = item_data.get("type", self.editing_content_type.value)
             
@@ -886,15 +894,6 @@ class TemplateBrowserEditorApp(App[None]):
                     item_data.get("workspace", self.workspace_name)
                 )
                 content_editor.text = style_content
-            
-            # Update editor fields
-            name_input = editor.query_one("#content-name")
-            desc_input = editor.query_one("#content-description")
-            content_editor = editor.query_one("#content-editor")
-            
-            name_input.value = item_data.get("name", "")
-            desc_input.value = item_data.get("description", "")
-            # content_editor.text = loaded_content
             
             # Set readonly for view mode
             if self.editor_mode == TemplateEditorMode.VIEW:
