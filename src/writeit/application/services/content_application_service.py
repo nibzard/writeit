@@ -1013,3 +1013,139 @@ class ContentApplicationService:
             })
         
         return recommendations
+
+    async def get_template_content(
+        self, 
+        template_name: str, 
+        workspace_name: Optional[str] = None
+    ) -> str:
+        """
+        Get template content by name.
+        
+        Args:
+            template_name: Name of the template
+            workspace_name: Workspace name (optional)
+            
+        Returns:
+            Template content as string
+            
+        Raises:
+            ContentNotFoundError: If template not found
+        """
+        try:
+            workspace = await self._resolve_workspace(workspace_name)
+            template = await self._template_management.get_template(
+                TemplateName(template_name), workspace
+            )
+            if not template:
+                raise ContentNotFoundError(f"Template '{template_name}' not found")
+            return template.content
+            
+        except Exception as e:
+            raise ContentNotFoundError(f"Failed to get template content: {e}") from e
+
+    async def get_style_content(
+        self, 
+        style_name: str, 
+        workspace_name: Optional[str] = None
+    ) -> str:
+        """
+        Get style content by name.
+        
+        Args:
+            style_name: Name of the style
+            workspace_name: Workspace name (optional)
+            
+        Returns:
+            Style content as string
+            
+        Raises:
+            ContentNotFoundError: If style not found
+        """
+        try:
+            workspace = await self._resolve_workspace(workspace_name)
+            style = await self._style_management.get_style(
+                StyleName(style_name), workspace
+            )
+            if not style:
+                raise ContentNotFoundError(f"Style '{style_name}' not found")
+            return style.style_content
+            
+        except Exception as e:
+            raise ContentNotFoundError(f"Failed to get style content: {e}") from e
+
+    async def delete_template(
+        self, 
+        template_name: str, 
+        workspace_name: Optional[str] = None
+    ) -> bool:
+        """
+        Delete a template.
+        
+        Args:
+            template_name: Name of the template to delete
+            workspace_name: Workspace name (optional)
+            
+        Returns:
+            True if deletion was successful
+            
+        Raises:
+            ContentNotFoundError: If template not found
+        """
+        try:
+            workspace = await self._resolve_workspace(workspace_name)
+            template = await self._template_management.get_template(
+                TemplateName(template_name), workspace
+            )
+            if not template:
+                raise ContentNotFoundError(f"Template '{template_name}' not found")
+            
+            await self._template_management.delete_template(template, workspace)
+            
+            # Record deletion in analytics
+            await self._workspace_analytics.record_template_deletion(
+                workspace.name, template.name
+            )
+            
+            return True
+            
+        except Exception as e:
+            raise ContentApplicationError(f"Failed to delete template: {e}") from e
+
+    async def delete_style(
+        self, 
+        style_name: str, 
+        workspace_name: Optional[str] = None
+    ) -> bool:
+        """
+        Delete a style.
+        
+        Args:
+            style_name: Name of the style to delete
+            workspace_name: Workspace name (optional)
+            
+        Returns:
+            True if deletion was successful
+            
+        Raises:
+            ContentNotFoundError: If style not found
+        """
+        try:
+            workspace = await self._resolve_workspace(workspace_name)
+            style = await self._style_management.get_style(
+                StyleName(style_name), workspace
+            )
+            if not style:
+                raise ContentNotFoundError(f"Style '{style_name}' not found")
+            
+            await self._style_management.delete_style(style, workspace)
+            
+            # Record deletion in analytics
+            await self._workspace_analytics.record_style_deletion(
+                workspace.name, style.name
+            )
+            
+            return True
+            
+        except Exception as e:
+            raise ContentApplicationError(f"Failed to delete style: {e}") from e
