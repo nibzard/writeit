@@ -6,7 +6,7 @@ Provides safe and validated filesystem path handling for workspaces.
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self, Optional
+from typing import Self, Optional, cast
 
 
 @dataclass(frozen=True)
@@ -71,11 +71,11 @@ class WorkspacePath:
         for part in parts:
             new_path = new_path / part
             
-        return WorkspacePath(new_path)
+        return cast(Self, WorkspacePath(new_path))
     
     def parent(self) -> Self:
         """Get parent directory."""
-        return WorkspacePath(self.value.parent)
+        return cast(Self, WorkspacePath(self.value.parent))
     
     def name(self) -> str:
         """Get the final path component name."""
@@ -132,14 +132,14 @@ class WorkspacePath:
     
     def glob(self, pattern: str) -> list[Self]:
         """Find paths matching a pattern."""
-        return [WorkspacePath(p) for p in self.value.glob(pattern)]
+        return [cast(Self, WorkspacePath(p)) for p in self.value.glob(pattern)]
     
     def iterdir(self) -> list[Self]:
         """Iterate directory contents."""
         if not self.is_directory():
             raise ValueError(f"Path {self.value} is not a directory")
             
-        return [WorkspacePath(p) for p in self.value.iterdir()]
+        return [cast(Self, WorkspacePath(p)) for p in self.value.iterdir()]
     
     def __str__(self) -> str:
         """String representation."""

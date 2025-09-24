@@ -5,7 +5,7 @@ Provides strong typing and validation for pipeline step identifiers.
 
 import re
 from dataclasses import dataclass
-from typing import Self, Optional
+from typing import Self, Optional, cast
 
 
 @dataclass(frozen=True)
@@ -72,7 +72,7 @@ class StepId:
         if '.' not in self.value:
             return None
         parent_value = '.'.join(self.value.split('.')[:-1])
-        return StepId(parent_value)
+        return cast(Optional[Self], StepId(parent_value))
     
     @property
     def name(self) -> str:
@@ -92,7 +92,7 @@ class StepId:
     def create_child(self, child_name: str) -> Self:
         """Create a child step ID."""
         child_id = f"{self.value}.{child_name}"
-        return StepId(child_id)
+        return cast(Self, StepId(child_id))
     
     def __str__(self) -> str:
         """String representation."""

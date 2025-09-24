@@ -10,10 +10,10 @@ T = TypeVar('T')
 class ValidationFramework:
     """Main validation framework for coordinating validation operations."""
     
-    def __init__(self):
-        self._validators: Dict[str, List[ValidationRule]] = {}
+    def __init__(self) -> None:
+        self._validators: Dict[str, List[ValidationRule[Any]]] = {}
     
-    def register_validator(self, entity_type: str, validator: ValidationRule) -> None:
+    def register_validator(self, entity_type: str, validator: ValidationRule[Any]) -> None:
         """Register a validator for a specific entity type."""
         if entity_type not in self._validators:
             self._validators[entity_type] = []
@@ -37,7 +37,7 @@ class ValidationFramework:
         
         return overall_result
     
-    def get_validators(self, entity_type: str) -> List[ValidationRule]:
+    def get_validators(self, entity_type: str) -> List[ValidationRule[Any]]:
         """Get all validators for a specific entity type."""
         return self._validators.get(entity_type, []).copy()
 

@@ -1,7 +1,8 @@
 # ABOUTME: Comprehensive error handling for WriteIt
 # ABOUTME: Defines custom exceptions with helpful error messages and recovery suggestions
 
-from typing import Optional
+from typing import Optional, Callable, TypeVar, Any, cast
+from functools import wraps
 import sys
 
 
@@ -112,7 +113,7 @@ class PipelineNotFoundError(PipelineError):
 
 
 class InvalidPipelineError(PipelineError):
-    def __init__(self, pipeline_name: str, validation_errors: list):
+    def __init__(self, pipeline_name: str, validation_errors: list[str]):
         errors_text = "\n".join(f"    - {error}" for error in validation_errors)
         super().__init__(
             message=f"Pipeline '{pipeline_name}' is invalid",
@@ -163,7 +164,7 @@ class StorageCorruptedError(StorageError):
 
 
 class InvalidTemplateError(ValidationError):
-    def __init__(self, template_name: str, errors: list):
+    def __init__(self, template_name: str, errors: list[str]):
         errors_text = "\n".join(f"    - {error}" for error in errors)
         super().__init__(
             message=f"Template '{template_name}' is invalid",
@@ -204,10 +205,14 @@ def handle_error(error: Exception, exit_on_error: bool = True) -> None:
         sys.exit(1)
 
 
-def wrap_error(func):
+F = TypeVar('F', bound=Callable[..., Any])
+
+
+def wrap_error(func: F) -> F:
     """Decorator to wrap functions with error handling."""
 
-    def wrapper(*args, **kwargs):
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except WriteItError:
@@ -222,4 +227,4 @@ def wrap_error(func):
                 error_code="UNK001",
             ) from e
 
-    return wrapper
+    return cast(F, wrapper)

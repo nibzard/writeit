@@ -57,9 +57,9 @@ class ValidationContext:
     user_id: Optional[str] = None
     environment: str = "production"
     strict_mode: bool = False
-    custom_data: Dict[str, Any] = None
+    custom_data: Optional[Dict[str, Any]] = None
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.custom_data is None:
             self.custom_data = {}
     

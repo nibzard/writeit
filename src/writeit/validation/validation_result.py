@@ -67,7 +67,7 @@ class ValidationResult:
     metadata: Dict[str, Any]
     file_type: Optional[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Ensure is_valid reflects the actual issues."""
         self.is_valid = not self.has_errors
 

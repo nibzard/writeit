@@ -4,7 +4,7 @@ Provides LLM model selection with fallback logic and validation.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Self
+from typing import List, Optional, Self, Any, cast
 from enum import Enum
 
 
@@ -39,7 +39,7 @@ class ModelPreference:
     
     models: List[str]
     fallback_to_default: bool = True
-    required_capabilities: List[ModelCapability] = None
+    required_capabilities: Optional[List[ModelCapability]] = None
     max_tokens: Optional[int] = None
     temperature: Optional[float] = None
     
@@ -106,21 +106,21 @@ class ModelPreference:
     def create_with_fallback(self, additional_models: List[str]) -> Self:
         """Create new preference with additional fallback models."""
         combined_models = self.models + additional_models
-        return ModelPreference(
+        return cast(Self, ModelPreference(
             models=combined_models,
             fallback_to_default=self.fallback_to_default,
             required_capabilities=self.required_capabilities,
             max_tokens=self.max_tokens,
             temperature=self.temperature
-        )
+        ))
     
     @classmethod
-    def single(cls, model: str, **kwargs) -> Self:
+    def single(cls, model: str, **kwargs: Any) -> Self:
         """Create preference for a single model."""
         return cls(models=[model], **kwargs)
     
     @classmethod
-    def openai_gpt4(cls, **kwargs) -> Self:
+    def openai_gpt4(cls, **kwargs: Any) -> Self:
         """Create preference for OpenAI GPT-4 models."""
         return cls(
             models=["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
@@ -128,7 +128,7 @@ class ModelPreference:
         )
     
     @classmethod
-    def anthropic_claude(cls, **kwargs) -> Self:
+    def anthropic_claude(cls, **kwargs: Any) -> Self:
         """Create preference for Anthropic Claude models."""
         return cls(
             models=["claude-3-5-sonnet-20241022", "claude-3-sonnet-20240229"],
@@ -136,7 +136,7 @@ class ModelPreference:
         )
     
     @classmethod
-    def fast_models(cls, **kwargs) -> Self:
+    def fast_models(cls, **kwargs: Any) -> Self:
         """Create preference optimized for speed."""
         return cls(
             models=["gpt-4o-mini", "claude-3-haiku-20240307"],
@@ -144,7 +144,7 @@ class ModelPreference:
         )
     
     @classmethod
-    def powerful_models(cls, **kwargs) -> Self:
+    def powerful_models(cls, **kwargs: Any) -> Self:
         """Create preference optimized for capability."""
         return cls(
             models=["gpt-4o", "claude-3-5-sonnet-20241022"],
@@ -152,7 +152,7 @@ class ModelPreference:
         )
     
     @classmethod
-    def default(cls, **kwargs) -> Self:
+    def default(cls, **kwargs: Any) -> Self:
         """Create default model preference."""
         return cls(
             models=["gpt-4o-mini"],

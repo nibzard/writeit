@@ -6,8 +6,9 @@ detection, analysis, execution, and validation of migrations.
 
 import typer
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from enum import Enum
+import yaml
 
 from writeit.cli.output import console, print_success, print_error, print_warning
 from writeit.cli.app import app
@@ -40,8 +41,11 @@ from ...application.queries.migration_queries import (
 )
 
 from ...application.services.migration_application_service import DefaultMigrationApplicationService
-from ...application.di_config import get_container
+from ...shared.dependencies.factory import ContainerFactory
 
+
+# Container factory for dependency injection (using class methods)
+container_factory = ContainerFactory
 
 migration_app = typer.Typer(name="migration", help="Data migration commands")
 app.add_typer(migration_app)
@@ -66,10 +70,10 @@ def detect_legacy(
     format: MigrationFormat = typer.Option(
         MigrationFormat.TABLE, "--format", "-f", help="Output format"
     ),
-):
+) -> None:
     """Detect legacy workspaces and data formats that need migration."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = DetectLegacyWorkspacesCommand(
@@ -125,7 +129,7 @@ def analyze_requirements(
 ):
     """Analyze migration requirements for workspaces."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = AnalyzeMigrationRequirementsCommand(
@@ -181,7 +185,7 @@ def start_migration(
 ):
     """Start a migration operation."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = StartMigrationCommand(
@@ -239,7 +243,7 @@ def migration_status(
 ):
     """Show migration status."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         query = GetMigrationStatusQuery(
@@ -289,7 +293,7 @@ def migration_history(
 ):
     """Show migration history."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         query = GetMigrationHistoryQuery(
@@ -336,7 +340,7 @@ def validate_migration(
 ):
     """Validate migration results."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = ValidateMigrationCommand(
@@ -380,7 +384,7 @@ def rollback_migration(
 ):
     """Rollback a migration."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = RollbackMigrationCommand(
@@ -424,7 +428,7 @@ def cleanup_migration(
 ):
     """Clean up migration artifacts."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = CleanupMigrationArtifactsCommand(
@@ -467,7 +471,7 @@ def check_migration_health(
 ):
     """Check migration system health."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = CheckMigrationHealthCommand(
@@ -516,7 +520,7 @@ def generate_report(
 ):
     """Generate migration report."""
     try:
-        container = get_container()
+        container = container_factory.create_for_workspace("default")
         migration_service = container.get(DefaultMigrationApplicationService)
         
         command = GenerateMigrationReportCommand(
@@ -625,7 +629,7 @@ def _display_migrations_text(migrations: List[Dict[str, Any]]) -> None:
             console.print(f"   Error: {migration.get('error_details')}")
 
 
-def _display_migration_result(result) -> None:
+def _display_migration_result(result: Any) -> None:
     """Display migration result."""
     console.print(f"\n[bold]Migration: {result.migration_id}[/bold]")
     console.print(f"Status: {result.status.value}")
@@ -664,7 +668,7 @@ def _display_validation_results(results: Dict[str, Any]) -> None:
             console.print(f"  • {warning}")
 
 
-def _display_health_results(health) -> None:
+def _display_health_results(health: Any) -> None:
     """Display health results."""
     console.print(f"\n[bold]Migration System Health[/bold]")
     
@@ -682,7 +686,7 @@ def _display_health_results(health) -> None:
             console.print(f"  • {issue}")
 
 
-def _format_report(report, format: MigrationFormat) -> str:
+def _format_report(report: Any, format: MigrationFormat) -> str:
     """Format report according to specified format."""
     if format == MigrationFormat.JSON:
         import json

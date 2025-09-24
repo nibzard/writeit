@@ -4,7 +4,7 @@ Provides strong typing and validation for pipeline names."""
 
 import re
 from dataclasses import dataclass
-from typing import Self
+from typing import Self, Any
 
 
 @dataclass(frozen=True)
@@ -68,7 +68,7 @@ class PipelineName:
         return cls(normalized)
     
     @classmethod
-    def from_template(cls, template: str, **kwargs) -> Self:
+    def from_template(cls, template: str, **kwargs: Any) -> Self:
         """Create pipeline name from template with substitution.
         
         Args:

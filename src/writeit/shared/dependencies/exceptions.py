@@ -1,6 +1,6 @@
 """Dependency injection exceptions."""
 
-from typing import Any, Type, List
+from typing import Any, Type, List, Optional
 
 
 class DIError(Exception):
@@ -11,7 +11,7 @@ class DIError(Exception):
 class ServiceNotFoundError(DIError):
     """Raised when a requested service is not registered."""
     
-    def __init__(self, service_type: Type[Any], message: str = None) -> None:
+    def __init__(self, service_type: Type[Any], message: Optional[str] = None) -> None:
         self.service_type = service_type
         if message is None:
             message = f"Service of type '{service_type.__name__}' is not registered"

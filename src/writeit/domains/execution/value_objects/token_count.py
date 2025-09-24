@@ -4,7 +4,7 @@ Value object representing token usage metrics with validation.
 """
 
 from dataclasses import dataclass
-from typing import Self, Optional
+from typing import Self, Optional, cast
 
 
 @dataclass(frozen=True, eq=True)
@@ -151,7 +151,7 @@ class TokenCount:
         Returns:
             Sum of token counts
         """
-        return TokenCount.from_int(self.value + other.value)
+        return cast(Self, TokenCount.from_int(self.value + other.value))
     
     def subtract(self, other: 'TokenCount') -> Self:
         """Subtract token counts.
@@ -168,7 +168,7 @@ class TokenCount:
         result = self.value - other.value
         if result < 0:
             raise ValueError(f"Cannot subtract {other.value} from {self.value} (would be negative)")
-        return TokenCount.from_int(result)
+        return cast(Self, TokenCount.from_int(result))
     
     def multiply(self, factor: float) -> Self:
         """Multiply token count by factor.
@@ -180,7 +180,7 @@ class TokenCount:
             Multiplied token count
         """
         result = int(self.value * factor)
-        return TokenCount.from_int(result)
+        return cast(Self, TokenCount.from_int(result))
     
     def min(self, other: 'TokenCount') -> Self:
         """Get minimum of two token counts.
@@ -191,7 +191,7 @@ class TokenCount:
         Returns:
             Minimum token count
         """
-        return TokenCount.from_int(min(self.value, other.value))
+        return cast(Self, TokenCount.from_int(min(self.value, other.value)))
     
     def max(self, other: 'TokenCount') -> Self:
         """Get maximum of two token counts.
@@ -202,7 +202,7 @@ class TokenCount:
         Returns:
             Maximum token count
         """
-        return TokenCount.from_int(max(self.value, other.value))
+        return cast(Self, TokenCount.from_int(max(self.value, other.value)))
     
     def to_human_readable(self) -> str:
         """Convert to human-readable format.
