@@ -500,7 +500,11 @@
     - **Implementation**: `src/writeit/tui/modern_pipeline_runner.py`
     - **Features**: Full DDD integration, real-time execution, workspace awareness, token tracking
     - **Architecture**: Uses dependency injection container, application services, and domain entities
-  - [ ] Template browser and editor
+  - [✅] **Template browser and editor** - COMPLETED 2025-09-24
+    - **Implementation**: `src/writeit/tui/template_browser_editor.py`
+    - **Features**: Full DDD integration, real-time editing, workspace awareness, validation
+    - **Architecture**: Uses dependency injection container, application services, and domain entities
+    - **CLI Integration**: Available via `writeit template browse` command
   - [ ] Workspace switcher
   - [ ] Configuration interface
 
