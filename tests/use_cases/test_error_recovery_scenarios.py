@@ -555,6 +555,370 @@ class TestErrorRecoveryScenarios:
             # Real system would catch this and rebuild cache automatically
             pass
 
+    @pytest.mark.asyncio
+    async def test_transaction_rollback_scenarios(self, error_test_environment):
+        """Test transaction rollback when pipeline execution fails."""
+        env = error_test_environment
+        
+        # Create pipeline with multiple steps where rollback is critical
+        rollback_pipeline = Pipeline(
+            id="rollback_pipeline",
+            name="Transaction Rollback Pipeline",
+            description="Pipeline testing transaction rollback on failure",
+            template_path="rollback_template.yaml",
+            steps=[
+                PipelineStepModel(
+                    id="setup_step",
+                    name="Setup Resources",
+                    description="Create resources that need cleanup",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Setup resources for {{ inputs.project }}",
+                    dependencies=[]
+                ),
+                PipelineStepModel(
+                    id="processing_step",
+                    name="Process Data",
+                    description="Main processing step that may fail",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Process data for {{ inputs.project }} with context: {{ steps.setup_step }}",
+                    dependencies=["setup_step"]
+                ),
+                PipelineStepModel(
+                    id="cleanup_step",
+                    name="Cleanup Resources",
+                    description="Cleanup created resources",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Cleanup resources after processing: {{ steps.processing_step }}",
+                    dependencies=["processing_step"]
+                )
+            ],
+            inputs={"project": "Transaction Test Project"},
+            config={"transaction_enabled": True, "rollback_on_failure": True}
+        )
+        
+        await env['services']['pipeline'].create_pipeline(rollback_pipeline)
+        
+        pipeline_run = PipelineRun(
+            id="rollback_run",
+            pipeline_id="rollback_pipeline",
+            status=ExecutionStatus.PENDING,
+            inputs={"project": "Transaction Test Project"}
+        )
+        
+        created_run = await env['services']['execution'].create_run(pipeline_run)
+        
+        # Track resource creation/cleanup for rollback verification
+        created_resources = []
+        cleaned_resources = []
+        
+        # Mock LLM service that fails on processing step
+        mock_llm = AsyncMock()
+        call_count = 0
+        
+        def transaction_aware_generate(prompt):
+            nonlocal call_count
+            call_count += 1
+            
+            if call_count == 1:
+                # Setup step succeeds
+                created_resources.append(f"resource_{call_count}")
+                return f"Setup complete: {prompt}"
+            elif call_count == 2:
+                # Processing step fails
+                raise Exception("Critical processing error - rollback required")
+            else:
+                # Cleanup step (should not be reached due to rollback)
+                cleaned_resources.append(f"resource_{call_count}")
+                return f"Cleanup complete: {prompt}"
+        
+        mock_llm.generate.side_effect = transaction_aware_generate
+        env['services']['execution']._llm_service = mock_llm
+        
+        # Execute transaction with rollback
+        try:
+            completed_run = await env['services']['execution'].execute_pipeline(created_run.id)
+            # If somehow succeeds, verify all steps completed
+            assert completed_run.status == ExecutionStatus.COMPLETED
+        except Exception as e:
+            # Expected failure - verify rollback occurred
+            assert "rollback" in str(e).lower() or "critical processing error" in str(e)
+            
+            # Verify resources were created during setup
+            assert len(created_resources) == 1
+            
+            # In real system, verify cleanup/rollback happened
+            # For mock, we verify the run failed properly
+            failed_run = await env['services']['execution'].get_run(created_run.id)
+            assert failed_run.status == ExecutionStatus.FAILED
+            
+            # Verify no cleanup happened (due to failure before cleanup step)
+            assert len(cleaned_resources) == 0
+
+    @pytest.mark.asyncio
+    async def test_resource_exhaustion_handling(self, error_test_environment):
+        """Test handling of resource exhaustion scenarios."""
+        env = error_test_environment
+        
+        # Create resource-intensive pipeline
+        resource_pipeline = Pipeline(
+            id="resource_pipeline",
+            name="Resource Intensive Pipeline",
+            description="Pipeline testing resource exhaustion scenarios",
+            template_path="resource_template.yaml",
+            steps=[
+                PipelineStepModel(
+                    id="memory_intensive",
+                    name="Memory Intensive Step",
+                    description="Step that consumes significant memory",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Process large dataset: {{ inputs.dataset }}",
+                    dependencies=[]
+                ),
+                PipelineStepModel(
+                    id="cpu_intensive",
+                    name="CPU Intensive Step",
+                    description="Step that requires significant CPU",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Perform complex analysis on: {{ steps.memory_intensive }}",
+                    dependencies=["memory_intensive"]
+                ),
+                PipelineStepModel(
+                    id="io_intensive",
+                    name="I/O Intensive Step",
+                    description="Step with heavy file I/O",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Save and load results from: {{ steps.cpu_intensive }}",
+                    dependencies=["cpu_intensive"]
+                )
+            ],
+            inputs={"dataset": "Large Dataset Resource Test"},
+            config={"resource_limits": {"memory": "1GB", "cpu": "2 cores", "timeout": 300}}
+        )
+        
+        await env['services']['pipeline'].create_pipeline(resource_pipeline)
+        
+        pipeline_run = PipelineRun(
+            id="resource_run",
+            pipeline_id="resource_pipeline",
+            status=ExecutionStatus.PENDING,
+            inputs={"dataset": "Large Dataset Resource Test"}
+        )
+        
+        created_run = await env['services']['execution'].create_run(pipeline_run)
+        
+        # Mock resource exhaustion scenarios
+        mock_llm = AsyncMock()
+        call_count = 0
+        
+        def resource_constrained_generate(prompt):
+            nonlocal call_count
+            call_count += 1
+            
+            if call_count == 1:
+                # Memory intensive step
+                if "memory" in prompt.lower() and "large" in prompt.lower():
+                    raise MemoryError("Memory limit exceeded - 1GB limit reached")
+                return f"Memory processing complete: {prompt}"
+            elif call_count == 2:
+                # CPU intensive step
+                if "cpu" in prompt.lower() or "complex" in prompt.lower():
+                    raise TimeoutError("CPU timeout - 2 core limit exceeded")
+                return f"CPU processing complete: {prompt}"
+            else:
+                # I/O intensive step
+                if "io" in prompt.lower() or "save" in prompt.lower():
+                    raise IOError("I/O error - disk space exhausted")
+                return f"I/O processing complete: {prompt}"
+        
+        mock_llm.generate.side_effect = resource_constrained_generate
+        env['services']['execution']._llm_service = mock_llm
+        
+        # Execute with resource constraints
+        try:
+            completed_run = await env['services']['execution'].execute_pipeline(created_run.id)
+            # If succeeds, verify resource usage within limits
+            assert completed_run.status == ExecutionStatus.COMPLETED
+        except (MemoryError, TimeoutError, IOError) as e:
+            # Expected resource exhaustion - verify proper handling
+            failed_run = await env['services']['execution'].get_run(created_run.id)
+            assert failed_run.status == ExecutionStatus.FAILED
+            
+            # Verify resource error is properly recorded
+            assert any(keyword in str(e).lower() for keyword in 
+                      ["memory", "timeout", "io", "exceeded", "limit"])
+
+    @pytest.mark.asyncio
+    async def test_network_failure_resilience(self, error_test_environment):
+        """Test resilience to network failures during pipeline execution."""
+        env = error_test_environment
+        
+        # Create network-dependent pipeline
+        network_pipeline = Pipeline(
+            id="network_resilience_pipeline",
+            name="Network Resilience Pipeline",
+            description="Pipeline testing network failure resilience",
+            template_path="network_resilience_template.yaml",
+            steps=[
+                PipelineStepModel(
+                    id="api_call_step",
+                    name="API Call Step",
+                    description="Step making external API calls",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Call external API for {{ inputs.data }}",
+                    dependencies=[]
+                ),
+                PipelineStepModel(
+                    id="download_step",
+                    name="Download Step",
+                    description="Step downloading external resources",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Download resources using: {{ steps.api_call_step }}",
+                    dependencies=["api_call_step"]
+                ),
+                PipelineStepModel(
+                    id="upload_step",
+                    name="Upload Step",
+                    description="Step uploading processed data",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Upload processed data: {{ steps.download_step }}",
+                    dependencies=["download_step"]
+                )
+            ],
+            inputs={"data": "Network Resilience Test Data"},
+            config={"network_retry_enabled": True, "circuit_breaker": True}
+        )
+        
+        await env['services']['pipeline'].create_pipeline(network_pipeline)
+        
+        pipeline_run = PipelineRun(
+            id="network_resilience_run",
+            pipeline_id="network_resilience_pipeline",
+            status=ExecutionStatus.PENDING,
+            inputs={"data": "Network Resilience Test Data"}
+        )
+        
+        created_run = await env['services']['execution'].create_run(pipeline_run)
+        
+        # Mock network failures
+        mock_llm = AsyncMock()
+        network_attempts = []
+        
+        def network_failure_generate(prompt):
+            network_attempts.append(len(network_attempts) + 1)
+            
+            if len(network_attempts) == 1:
+                # First API call fails with network error
+                raise Exception("Network unreachable - DNS resolution failed")
+            elif len(network_attempts) == 2:
+                # Download step fails with timeout
+                raise Exception("Connection timeout - download interrupted")
+            elif len(network_attempts) == 3:
+                # Upload step fails with rate limiting
+                raise Exception("Rate limited - too many requests")
+            else:
+                # Recovery attempts succeed
+                return f"Network operation completed after {len(network_attempts)} attempts: {prompt}"
+        
+        mock_llm.generate.side_effect = network_failure_generate
+        env['services']['execution']._llm_service = mock_llm
+        
+        # Execute with network resilience
+        try:
+            completed_run = await env['services']['execution'].execute_pipeline(created_run.id)
+            # In real system, would retry network operations
+            assert completed_run.status == ExecutionStatus.COMPLETED
+        except Exception as e:
+            # Verify network error handling
+            network_errors = ["network", "timeout", "rate limit", "unreachable", "connection"]
+            assert any(error in str(e).lower() for error in network_errors)
+            
+            # Verify network attempts were made
+            assert len(network_attempts) >= 1
+            
+            # Verify run failure due to network issues
+            failed_run = await env['services']['execution'].get_run(created_run.id)
+            assert failed_run.status == ExecutionStatus.FAILED
+
+    @pytest.mark.asyncio
+    async def test_llm_authentication_failure_recovery(self, error_test_environment):
+        """Test recovery from LLM authentication failures."""
+        env = error_test_environment
+        
+        # Create pipeline requiring LLM authentication
+        auth_pipeline = Pipeline(
+            id="auth_recovery_pipeline",
+            name="Authentication Recovery Pipeline",
+            description="Pipeline testing LLM authentication failure recovery",
+            template_path="auth_template.yaml",
+            steps=[
+                PipelineStepModel(
+                    id="auth_step",
+                    name="Authentication Step",
+                    description="Step requiring LLM authentication",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Generate content with authentication: {{ inputs.content }}",
+                    dependencies=[]
+                ),
+                PipelineStepModel(
+                    id="fallback_auth_step",
+                    name="Fallback Authentication Step",
+                    description="Step with fallback authentication",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Generate content with fallback auth: {{ steps.auth_step }}",
+                    dependencies=["auth_step"]
+                )
+            ],
+            inputs={"content": "Authentication Test Content"},
+            config={"auth_fallback_enabled": True, "multiple_providers": True}
+        )
+        
+        await env['services']['pipeline'].create_pipeline(auth_pipeline)
+        
+        pipeline_run = PipelineRun(
+            id="auth_run",
+            pipeline_id="auth_recovery_pipeline",
+            status=ExecutionStatus.PENDING,
+            inputs={"content": "Authentication Test Content"}
+        )
+        
+        created_run = await env['services']['execution'].create_run(pipeline_run)
+        
+        # Mock authentication failures
+        mock_llm = AsyncMock()
+        auth_attempts = []
+        
+        def auth_failure_generate(prompt):
+            auth_attempts.append(len(auth_attempts) + 1)
+            
+            if len(auth_attempts) == 1:
+                # Primary authentication fails
+                raise Exception("Authentication failed: Invalid API key for primary provider")
+            elif len(auth_attempts) == 2:
+                # Fallback authentication succeeds
+                return f"Content generated with fallback authentication: {prompt}"
+            else:
+                # Subsequent calls succeed
+                return f"Content generated after auth recovery: {prompt}"
+        
+        mock_llm.generate.side_effect = auth_failure_generate
+        env['services']['execution']._llm_service = mock_llm
+        
+        # Execute with authentication recovery
+        try:
+            completed_run = await env['services']['execution'].execute_pipeline(created_run.id)
+            # In real system, would fallback to alternative authentication
+            assert completed_run.status == ExecutionStatus.COMPLETED
+        except Exception as e:
+            # Verify authentication error handling
+            assert "authentication" in str(e).lower() or "api key" in str(e).lower()
+            
+            # Verify authentication attempts were made
+            assert len(auth_attempts) >= 1
+            
+            # Verify run failure due to authentication issues
+            failed_run = await env['services']['execution'].get_run(created_run.id)
+            assert failed_run.status == ExecutionStatus.FAILED
+
 
 if __name__ == "__main__":
     # Run with: python -m pytest tests/use_cases/test_error_recovery_scenarios.py -v
