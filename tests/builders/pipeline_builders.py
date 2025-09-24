@@ -9,11 +9,12 @@ from src.writeit.domains.pipeline.entities.pipeline_template import (
 )
 from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
 from src.writeit.domains.pipeline.entities.pipeline_step import StepExecution
+from src.writeit.domains.pipeline.value_objects.step_name import StepName
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 from src.writeit.domains.pipeline.value_objects.model_preference import ModelPreference
-from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
+from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus, PipelineExecutionStatus, StepExecutionStatus
 
 
 class PipelineInputBuilder:
@@ -401,10 +402,10 @@ class PipelineRunBuilder:
     
     def __init__(self) -> None:
         self._id = "test_run_id"
-        self._pipeline_template_id = PipelineId.from_name("test_pipeline")
+        self._pipeline_id = PipelineId.from_name("test_pipeline")
         self._workspace_name = "test_workspace"
         self._inputs = {}
-        self._status = ExecutionStatus.PENDING
+        self._status = ExecutionStatus.created()
         self._current_step = None
         self._step_executions = {}
         self._execution_plan = []
@@ -421,11 +422,11 @@ class PipelineRunBuilder:
         self._id = run_id
         return self
     
-    def with_pipeline_template_id(self, template_id: str | PipelineId) -> Self:
-        """Set the pipeline template ID."""
-        if isinstance(template_id, str):
-            template_id = PipelineId.from_name(template_id)
-        self._pipeline_template_id = template_id
+    def with_pipeline_id(self, pipeline_id: str | PipelineId) -> Self:
+        """Set the pipeline ID."""
+        if isinstance(pipeline_id, str):
+            pipeline_id = PipelineId.from_name(pipeline_id)
+        self._pipeline_id = pipeline_id
         return self
     
     def with_workspace(self, workspace_name: str) -> Self:
@@ -470,19 +471,19 @@ class PipelineRunBuilder:
     
     def running(self) -> Self:
         """Set the run as running."""
-        self._status = ExecutionStatus.RUNNING
+        self._status = ExecutionStatus.running()
         self._started_at = datetime.now()
         return self
     
     def completed(self) -> Self:
         """Set the run as completed."""
-        self._status = ExecutionStatus.COMPLETED
+        self._status = ExecutionStatus.completed()
         self._completed_at = datetime.now()
         return self
     
     def failed(self, error: str = "Test error") -> Self:
         """Set the run as failed."""
-        self._status = ExecutionStatus.FAILED
+        self._status = ExecutionStatus.failed(error)
         self._error = error
         return self
     
@@ -490,41 +491,49 @@ class PipelineRunBuilder:
         """Build the PipelineRun."""
         return PipelineRun(
             id=self._id,
-            pipeline_template_id=self._pipeline_template_id,
+            pipeline_id=self._pipeline_id,
             workspace_name=self._workspace_name,
-            inputs=self._inputs,
             status=self._status,
-            current_step=self._current_step,
-            step_executions=self._step_executions,
-            execution_plan=self._execution_plan,
-            results=self._results,
-            error=self._error,
-            metadata=self._metadata,
+            inputs=self._inputs,
+            outputs=self._results,
             created_at=self._created_at,
-            updated_at=self._updated_at,
             started_at=self._started_at,
-            completed_at=self._completed_at
+            completed_at=self._completed_at,
+            error=self._error,
+            metadata=self._metadata
         )
     
     @classmethod
     def pending(cls, run_id: str = "pending_run") -> Self:
         """Create a pending run builder."""
-        return cls().with_id(run_id).with_status(ExecutionStatus.PENDING)
+        return cls().with_id(run_id).with_status(ExecutionStatus.created())
     
     @classmethod
     def running(cls, run_id: str = "running_run") -> Self:
         """Create a running run builder."""
-        return cls().with_id(run_id).running()
+        builder = cls().with_id(run_id)
+        builder._status = ExecutionStatus.running()
+        builder._started_at = datetime.now()
+        return builder
     
     @classmethod
     def completed(cls, run_id: str = "completed_run") -> Self:
         """Create a completed run builder."""
-        return cls().with_id(run_id).completed()
+        now = datetime.now()
+        builder = cls().with_id(run_id)
+        builder._status = ExecutionStatus.completed()
+        builder._completed_at = now
+        return builder
     
     @classmethod
     def failed(cls, run_id: str = "failed_run", error: str = "Test error") -> Self:
         """Create a failed run builder."""
-        return cls().with_id(run_id).failed(error)
+        now = datetime.now()
+        builder = cls().with_id(run_id)
+        builder._status = ExecutionStatus.failed(error)
+        builder._error = error
+        builder._completed_at = now  # Failed is also terminal state
+        return builder
 
 
 class StepExecutionBuilder:
@@ -532,18 +541,18 @@ class StepExecutionBuilder:
     
     def __init__(self) -> None:
         self._step_id = StepId("test_step")
-        self._status = ExecutionStatus.PENDING
-        self._responses = []
-        self._selected_response = None
-        self._feedback = None
-        self._context = {}
-        self._retry_count = 0
-        self._error = None
-        self._metadata = {}
-        self._created_at = datetime.now()
-        self._updated_at = datetime.now()
+        self._step_name = StepName("Test Step")
+        self._status = ExecutionStatus.step_pending()
+        self._inputs = {}
+        self._outputs = {}
+        self._error_message = None
         self._started_at = None
         self._completed_at = None
+        self._execution_time = 0.0
+        self._tokens_used = {}
+        self._metadata = {}
+        self._retry_count = 0
+        self._max_retries = 3
     
     def with_step_id(self, step_id: str | StepId) -> Self:
         """Set the step ID."""
@@ -552,29 +561,41 @@ class StepExecutionBuilder:
         self._step_id = step_id
         return self
     
+    def with_step_name(self, name: str | StepName) -> Self:
+        """Set the step name."""
+        if isinstance(name, str):
+            name = StepName(name)
+        self._step_name = name
+        return self
+    
     def with_status(self, status: ExecutionStatus) -> Self:
         """Set the execution status."""
         self._status = status
         return self
     
-    def with_responses(self, responses: List[str]) -> Self:
-        """Set the responses."""
-        self._responses = responses
+    def with_inputs(self, inputs: Dict[str, Any]) -> Self:
+        """Set the inputs."""
+        self._inputs = inputs
         return self
     
-    def with_selected_response(self, response: str) -> Self:
-        """Set the selected response."""
-        self._selected_response = response
+    def with_outputs(self, outputs: Dict[str, Any]) -> Self:
+        """Set the outputs."""
+        self._outputs = outputs
         return self
     
-    def with_feedback(self, feedback: str) -> Self:
-        """Set the feedback."""
-        self._feedback = feedback
+    def with_error_message(self, error_message: str) -> Self:
+        """Set the error message."""
+        self._error_message = error_message
         return self
     
-    def with_context(self, context: Dict[str, Any]) -> Self:
-        """Set the execution context."""
-        self._context = context
+    def with_execution_time(self, execution_time: float) -> Self:
+        """Set the execution time."""
+        self._execution_time = execution_time
+        return self
+    
+    def with_tokens_used(self, tokens_used: Dict[str, int]) -> Self:
+        """Set the tokens used."""
+        self._tokens_used = tokens_used
         return self
     
     def with_retry_count(self, count: int) -> Self:
@@ -582,60 +603,69 @@ class StepExecutionBuilder:
         self._retry_count = count
         return self
     
-    def with_error(self, error: str) -> Self:
-        """Set the error message."""
-        self._error = error
+    def with_max_retries(self, max_retries: int) -> Self:
+        """Set the max retries."""
+        self._max_retries = max_retries
         return self
     
     def running(self) -> Self:
         """Set the execution as running."""
-        self._status = ExecutionStatus.RUNNING
+        self._status = ExecutionStatus(StepExecutionStatus.RUNNING, datetime.now())
         self._started_at = datetime.now()
         return self
     
-    def completed(self, response: str = "Test response") -> Self:
+    def completed(self, output: str = "Test response") -> Self:
         """Set the execution as completed."""
-        self._status = ExecutionStatus.COMPLETED
-        self._responses = [response]
-        self._selected_response = response
+        self._status = ExecutionStatus(StepExecutionStatus.COMPLETED, datetime.now())
+        self._outputs = {"result": output}
         self._completed_at = datetime.now()
         return self
     
     def failed(self, error: str = "Test error") -> Self:
         """Set the execution as failed."""
-        self._status = ExecutionStatus.FAILED
-        self._error = error
+        self._status = ExecutionStatus(StepExecutionStatus.FAILED, datetime.now(), error_message=error)
+        self._error_message = error
         return self
     
     def build(self) -> StepExecution:
         """Build the StepExecution."""
         return StepExecution(
             step_id=self._step_id,
+            step_name=self._step_name,
             status=self._status,
-            responses=self._responses,
-            selected_response=self._selected_response,
-            feedback=self._feedback,
-            context=self._context,
-            retry_count=self._retry_count,
-            error=self._error,
-            metadata=self._metadata,
-            created_at=self._created_at,
-            updated_at=self._updated_at,
+            inputs=self._inputs,
+            outputs=self._outputs,
+            error_message=self._error_message,
             started_at=self._started_at,
-            completed_at=self._completed_at
+            completed_at=self._completed_at,
+            execution_time=self._execution_time,
+            tokens_used=self._tokens_used,
+            metadata=self._metadata,
+            retry_count=self._retry_count,
+            max_retries=self._max_retries
         )
     
     @classmethod
     def pending(cls, step_id: str = "pending_step") -> Self:
         """Create a pending execution builder."""
-        return cls().with_step_id(step_id)
+        return cls().with_step_id(step_id).with_step_name(f"{step_id.title()} Step")
     
     @classmethod
-    def completed(cls, step_id: str = "completed_step", response: str = "Test response") -> Self:
+    def completed(cls, step_id: str = "completed_step", output: str = "Test response") -> Self:
         """Create a completed execution builder."""
-        return cls().with_step_id(step_id).completed(response)
+        now = datetime.now()
+        builder = cls().with_step_id(step_id).with_step_name(f"{step_id.title()} Step")
+        builder._status = ExecutionStatus(StepExecutionStatus.COMPLETED, now)
+        builder._outputs = {"result": output}
+        builder._completed_at = now
+        return builder
     
     @classmethod
     def failed(cls, step_id: str = "failed_step", error: str = "Test error") -> Self:
         """Create a failed execution builder."""
-        return cls().with_step_id(step_id).failed(error)
+        now = datetime.now()
+        builder = cls().with_step_id(step_id).with_step_name(f"{step_id.title()} Step")
+        builder._status = ExecutionStatus(StepExecutionStatus.FAILED, now, error_message=error)
+        builder._error_message = error
+        builder._completed_at = now  # Failed is also terminal state
+        return builder
