@@ -1,6 +1,7 @@
 # ABOUTME: Template management commands for WriteIt CLI
 # ABOUTME: Handle creation, listing, and copying of pipeline templates
 
+import asyncio
 import typer
 from typing import Optional
 from datetime import datetime
@@ -21,6 +22,10 @@ from writeit.cli.output import (
 )
 from writeit.cli.completion import complete_template_name, complete_workspace_name
 from writeit.cli.app import get_workspace_override
+from writeit.tui import (
+    run_template_browser_editor,
+    TemplateEditorConfig
+)
 
 
 app = typer.Typer(
@@ -467,4 +472,86 @@ def copy(
         raise typer.Exit(1)
     except Exception as e:
         print_error(f"Error copying template: {e}")
+        raise typer.Exit(1)
+
+
+@app.command(name="browse")
+def browse_templates(
+    workspace: Optional[str] = typer.Option(
+        None,
+        "--workspace",
+        "-w",
+        autocompletion=complete_workspace_name,
+        help="Target workspace (defaults to active workspace)",
+    ),
+    auto_save: int = typer.Option(
+        60,
+        "--auto-save",
+        help="Auto-save interval in seconds (default: 60)",
+    ),
+    line_numbers: bool = typer.Option(
+        True,
+        "--line-numbers/--no-line-numbers",
+        help="Show line numbers in editor",
+    ),
+    syntax_highlighting: bool = typer.Option(
+        True,
+        "--syntax/--no-syntax",
+        help="Enable syntax highlighting",
+    ),
+):
+    """
+    Launch interactive template browser and editor TUI.
+
+    Provides a rich terminal interface for browsing, creating, and editing
+    templates and style primers with real-time validation and preview.
+
+    [bold cyan]Examples:[/bold cyan]
+
+    Browse templates in active workspace:
+      [dim]$ writeit template browse[/dim]
+
+    Browse templates in specific workspace:
+      [dim]$ writeit template browse --workspace myproject[/dim]
+
+    Browse with custom auto-save interval:
+      [dim]$ writeit template browse --auto-save 30[/dim]
+
+    Disable line numbers for larger screens:
+      [dim]$ writeit template browse --no-line-numbers[/dim]
+    """
+    try:
+        # Get workspace manager and ensure WriteIt is initialized
+        workspace_manager = get_workspace_manager()
+
+        # Determine target workspace
+        workspace_override = get_workspace_override()
+        target_workspace = workspace or workspace_override
+
+        if target_workspace is None:
+            target_workspace = get_active_workspace()
+
+        # Create editor configuration
+        editor_config = TemplateEditorConfig(
+            auto_save_interval=auto_save,
+            show_line_numbers=line_numbers,
+            syntax_highlighting=syntax_highlighting,
+        )
+
+        # Launch TUI
+        console.print("[primary]Launching Template Browser & Editor...[/primary]")
+        console.print(f"[secondary]Workspace: {target_workspace}[/secondary]")
+        console.print("[secondary]Press Ctrl+C to exit[/secondary]")
+        console.print()
+
+        try:
+            asyncio.run(run_template_browser_editor(target_workspace, editor_config))
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Template browser closed by user[/yellow]")
+        except Exception as e:
+            print_error(f"Template browser error: {e}")
+            raise typer.Exit(1)
+
+    except Exception as e:
+        print_error(f"Error launching template browser: {e}")
         raise typer.Exit(1)
