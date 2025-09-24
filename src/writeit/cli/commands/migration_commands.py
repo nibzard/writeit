@@ -11,7 +11,6 @@ from enum import Enum
 import yaml
 
 from writeit.cli.output import console, print_success, print_error, print_warning
-from writeit.cli.app import app
 
 from ...application.commands.migration_commands import (
     MigrationType,
@@ -48,7 +47,6 @@ from ...shared.dependencies.factory import ContainerFactory
 container_factory = ContainerFactory
 
 migration_app = typer.Typer(name="migration", help="Data migration commands")
-app.add_typer(migration_app)
 
 
 class MigrationFormat(str, Enum):
