@@ -368,7 +368,7 @@ WriteIt includes sophisticated LLM response caching:
 
 ```python
 from writeit.llm.cache import LLMCache
-from writeit.storage.manager import StorageManager
+from writeit.storage import StorageManager  # Now aliases LMDBStorageManager
 
 # Create cache instance
 cache = LLMCache(storage_manager, workspace_name="my-blog")

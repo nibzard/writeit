@@ -9,7 +9,7 @@ import os
 
 from writeit.workspace.workspace import Workspace
 from writeit.workspace.migration import WorkspaceMigrator
-from writeit.storage.manager import StorageManager
+from writeit.infrastructure.base.storage_manager import LMDBStorageManager
 
 
 class TestWorkspaceIntegration:
@@ -43,14 +43,14 @@ class TestWorkspaceIntegration:
         assert workspace_manager.get_active_workspace() == "project1"
 
         # 4. Create storage in new workspace
-        storage = StorageManager(workspace_manager, "project1")
+        storage = LMDBStorageManager(workspace_manager, "project1")
         storage.store_json("test_data", {"project": "project1", "data": "test"})
 
         # 5. Create another workspace
         workspace_manager.create_workspace("project2")
 
         # 6. Verify workspace isolation
-        storage2 = StorageManager(workspace_manager, "project2")
+        storage2 = LMDBStorageManager(workspace_manager, "project2")
         storage2.store_json("test_data", {"project": "project2", "data": "different"})
 
         # Data should be isolated
@@ -205,8 +205,8 @@ class TestWorkspaceIntegration:
         workspace_manager.create_workspace("storage_test2")
 
         # Create storage managers for each workspace
-        storage1 = StorageManager(workspace_manager, "storage_test1")
-        storage2 = StorageManager(workspace_manager, "storage_test2")
+        storage1 = LMDBStorageManager(workspace_manager, "storage_test1")
+        storage2 = LMDBStorageManager(workspace_manager, "storage_test2")
 
         # Store data in each workspace
         test_data1 = {
@@ -331,7 +331,7 @@ As AI continues to evolve, the future of content creation looks promising...
             f.write(sample_article)
 
         # Store pipeline execution history in storage
-        storage = StorageManager(workspace_manager, "blog_project")
+        storage = LMDBStorageManager(workspace_manager, "blog_project")
 
         pipeline_run = {
             "pipeline_id": "blog-post-001",

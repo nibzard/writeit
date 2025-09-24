@@ -17,7 +17,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.events import Key, Click, Focus, Blur
 
-from ...shared.events.base import DomainEvent
+from ...shared.events import DomainEvent
 from ...shared.events.bus import EventBus
 from .context import TUIContextManager, TUIContext, NavigationState, TUIMode
 

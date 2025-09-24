@@ -14,7 +14,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.base.storage_manager import LMDBStorageManager
-from writeit.storage.manager import StorageManager
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 
 
@@ -37,7 +36,7 @@ async def test_basic_storage_operations():
         print("Testing basic LMDB storage operations...")
         
         # Create storage manager
-        storage = StorageManager(
+        storage = LMDBStorageManager(
             workspace_manager=workspace_manager,
             workspace_name="test",
             map_size_mb=50,
@@ -107,8 +106,8 @@ async def test_workspace_isolation_basic():
         print("Testing workspace isolation...")
         
         # Create storage for different workspaces
-        storage1 = StorageManager(workspace_manager, "workspace1", map_size_mb=50)
-        storage2 = StorageManager(workspace_manager, "workspace2", map_size_mb=50)
+        storage1 = LMDBStorageManager(workspace_manager, "workspace1", map_size_mb=50)
+        storage2 = LMDBStorageManager(workspace_manager, "workspace2", map_size_mb=50)
         
         # Store data in each workspace
         data1 = {"id": "1", "workspace": "workspace1", "value": "data1"}
@@ -146,7 +145,7 @@ async def test_transaction_behavior():
                 return self.base_path / "workspaces" / workspace_name
         
         workspace_manager = MockWorkspaceManager(temp_db_path)
-        storage = StorageManager(workspace_manager, "test", map_size_mb=50)
+        storage = LMDBStorageManager(workspace_manager, "test", map_size_mb=50)
         
         print("Testing transaction behavior...")
         
@@ -192,7 +191,7 @@ async def test_concurrent_access():
         # Create multiple storage instances (simulating concurrent access)
         storages = []
         for i in range(3):
-            storage = StorageManager(workspace_manager, "concurrent_test", map_size_mb=50)
+            storage = LMDBStorageManager(workspace_manager, "concurrent_test", map_size_mb=50)
             storages.append(storage)
         
         # Concurrent writes
@@ -206,7 +205,7 @@ async def test_concurrent_access():
         results = await asyncio.gather(*tasks)
         
         # Verify all data was written
-        verification_storage = StorageManager(workspace_manager, "concurrent_test", map_size_mb=50)
+        verification_storage = LMDBStorageManager(workspace_manager, "concurrent_test", map_size_mb=50)
         
         all_keys = verification_storage.list_keys("test_db")
         for expected_key in results:
@@ -242,7 +241,7 @@ async def test_database_recovery():
         print("Testing database recovery...")
         
         # Create and populate database
-        storage1 = StorageManager(workspace_manager, "recovery_test", map_size_mb=50)
+        storage1 = LMDBStorageManager(workspace_manager, "recovery_test", map_size_mb=50)
         
         recovery_data = {
             "id": "recovery_test",
@@ -260,7 +259,7 @@ async def test_database_recovery():
         storage1.close()
         
         # Reopen database and verify data persists
-        storage2 = StorageManager(workspace_manager, "recovery_test", map_size_mb=50)
+        storage2 = LMDBStorageManager(workspace_manager, "recovery_test", map_size_mb=50)
         
         recovered_data = storage2.load_json("recovery_key", "recovery_db")
         assert recovered_data is not None, "Data should be recovered"

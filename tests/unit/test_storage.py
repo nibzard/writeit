@@ -6,12 +6,12 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock
 
-from writeit.storage.manager import StorageManager, create_storage_manager
+from writeit.infrastructure.base.storage_manager import LMDBStorageManager
 from writeit.workspace.workspace import Workspace
 
 
 class TestStorageManager:
-    """Test suite for StorageManager class."""
+    """Test suite for LMDBStorageManager class."""
 
     @pytest.fixture
     def temp_home(self):
@@ -30,11 +30,11 @@ class TestStorageManager:
 
     @pytest.fixture
     def storage_manager(self, workspace_manager):
-        """Create StorageManager instance."""
-        return StorageManager(workspace_manager, "test_workspace")
+        """Create LMDBStorageManager instance."""
+        return LMDBStorageManager(workspace_manager, "test_workspace")
 
     def test_storage_manager_initialization(self, storage_manager, workspace_manager):
-        """Test StorageManager initialization."""
+        """Test LMDBStorageManager initialization."""
         assert storage_manager.workspace_manager == workspace_manager
         assert storage_manager.workspace_name == "test_workspace"
         assert storage_manager._connections == {}
@@ -48,7 +48,7 @@ class TestStorageManager:
 
     def test_storage_path_fallback_without_workspace_manager(self):
         """Test storage path fallback when no workspace manager."""
-        storage = StorageManager()
+        storage = LMDBStorageManager()
         assert storage.storage_path == Path.cwd() / ".writeit"
 
     def test_get_db_path(self, storage_manager):
@@ -265,8 +265,8 @@ class TestStorageManager:
         workspace_manager.create_workspace("workspace2")
 
         # Create storage managers for different workspaces
-        storage1 = StorageManager(workspace_manager, "test_workspace")
-        storage2 = StorageManager(workspace_manager, "workspace2")
+        storage1 = LMDBStorageManager(workspace_manager, "test_workspace")
+        storage2 = LMDBStorageManager(workspace_manager, "workspace2")
 
         # Store data in each workspace
         storage1.store_json("shared_key", "workspace1_value")
@@ -280,21 +280,20 @@ class TestStorageManager:
         assert value2 == "workspace2_value"
 
 
-class TestStorageManagerFactory:
+class TestLMDBStorageManagerFactory:
     """Test suite for storage manager factory function."""
 
     def test_create_storage_manager_no_args(self):
         """Test creating storage manager with no arguments."""
-        storage = create_storage_manager()
+        storage = LMDBStorageManager()
 
-        assert isinstance(storage, StorageManager)
         assert storage.workspace_manager is None
         assert storage.workspace_name is None
 
     def test_create_storage_manager_with_workspace_manager(self):
         """Test creating storage manager with workspace manager."""
         mock_workspace = Mock()
-        storage = create_storage_manager(workspace_manager=mock_workspace)
+        storage = LMDBStorageManager(workspace_manager=mock_workspace)
 
         assert storage.workspace_manager == mock_workspace
         assert storage.workspace_name is None
@@ -302,7 +301,7 @@ class TestStorageManagerFactory:
     def test_create_storage_manager_with_workspace_name(self):
         """Test creating storage manager with workspace name."""
         mock_workspace = Mock()
-        storage = create_storage_manager(
+        storage = LMDBStorageManager(
             workspace_manager=mock_workspace, workspace_name="test_workspace"
         )
 

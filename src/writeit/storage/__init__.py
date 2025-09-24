@@ -1,6 +1,10 @@
 # ABOUTME: WriteIt LMDB storage library
 # ABOUTME: Handles persistent state management and data storage
 
-from .manager import StorageManager
+# Export the new infrastructure storage manager for backward compatibility
+from ..infrastructure.base.storage_manager import LMDBStorageManager
 
-__all__ = ["StorageManager"]
+# Alias LMDBStorageManager as StorageManager for backward compatibility
+StorageManager = LMDBStorageManager
+
+__all__ = ["StorageManager", "LMDBStorageManager"]

@@ -10,7 +10,7 @@ import uuid
 
 from writeit.pipeline import PipelineExecutor
 from writeit.workspace.workspace import Workspace
-from writeit.storage.manager import StorageManager
+from writeit.infrastructure.base.storage_manager import LMDBStorageManager
 from writeit.models import PipelineStatus
 
 
@@ -24,7 +24,7 @@ async def workspace_setup():
     workspace.create_workspace(workspace_name)
 
     # Create storage manager
-    storage = StorageManager(workspace, workspace_name)
+    storage = LMDBStorageManager(workspace, workspace_name)
 
     yield workspace, storage, workspace_name
 

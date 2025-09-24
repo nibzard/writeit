@@ -601,7 +601,7 @@ def test_pipeline_step_dependency_resolution(sample_pipeline):
 import pytest
 import asyncio
 from writeit.application.services import PipelineApplicationService
-from writeit.infrastructure.persistence.lmdb_storage import LMDBStorageManager
+from writeit.infrastructure.base.storage_manager import LMDBStorageManager
 
 @pytest.mark.asyncio
 async def test_complete_pipeline_execution(tmp_path):
@@ -1135,7 +1135,7 @@ class PipelineRepository(ABC):
 # src/writeit/infrastructure/repositories/pipeline_repository_impl.py
 import asyncio
 from typing import List, Optional, Dict, Any
-from writeit.infrastructure.persistence.lmdb_storage import LMDBStorageManager
+from writeit.infrastructure.base.storage_manager import LMDBStorageManager
 from writeit.domains.pipeline.repositories import PipelineRepository
 from writeit.domains.pipeline.entities import PipelineTemplate, PipelineRun
 from writeit.domains.pipeline.value_objects import PipelineId

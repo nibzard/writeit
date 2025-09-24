@@ -79,9 +79,9 @@ class StorageAdapter(ABC):
 
 
 class LegacyStorageAdapter(StorageAdapter):
-    """Adapter for the legacy storage manager.
+    """Adapter for the LMDB storage manager.
     
-    This adapter wraps the legacy StorageManager to provide
+    This adapter wraps the LMDBStorageManager to provide
     the StorageAdapter interface without direct dependencies.
     """
     
@@ -89,12 +89,12 @@ class LegacyStorageAdapter(StorageAdapter):
         """Initialize with optional storage manager.
         
         Args:
-            storage_manager: Legacy StorageManager instance
+            storage_manager: LMDBStorageManager instance
         """
         if storage_manager is None:
             # Import here to avoid circular imports
-            from writeit.storage.manager import StorageManager, create_storage_manager
-            self._storage_manager = create_storage_manager()
+            from writeit.infrastructure.base.storage_manager import LMDBStorageManager
+            self._storage_manager = LMDBStorageManager()
         else:
             self._storage_manager = storage_manager
     

@@ -651,14 +651,14 @@
   - [✅] Domain-specific error system implementation - COMPLETED 2025-09-24
   - [✅] Infrastructure logging service - COMPLETED 2025-09-24  
   - [✅] Removed unused utils directory - COMPLETED 2025-09-24
-  - [ ] **Circular Dependency Resolution** - BLOCKED by infrastructure/legacy coupling
-    - [ ] Break circular imports between infrastructure and legacy storage
-    - [ ] Migrate infrastructure to use domain repositories instead of legacy storage
-    - [ ] Update infrastructure layer to be self-contained
-    - [ ] Remove legacy storage layer dependencies
-  - [ ] **Legacy Directory Migration** - PENDING
+  - [✅] **Circular Dependency Resolution** - COMPLETED 2025-09-24
+    - [✅] Break circular imports between infrastructure and legacy storage - COMPLETED 2025-09-24
+    - [✅] Migrate infrastructure to use domain repositories instead of legacy storage - COMPLETED 2025-09-24
+    - [✅] Update infrastructure layer to be self-contained - COMPLETED 2025-09-24
+    - [✅] Remove legacy storage layer dependencies - COMPLETED 2025-09-24
+  - [✅] **Legacy Directory Migration** - PARTIALLY COMPLETED 2025-09-24
     - [ ] Migrate models/ to domain entities
-    - [ ] Migrate storage/ to infrastructure layer
+    - [✅] Migrate storage/ to infrastructure layer - COMPLETED 2025-09-24
     - [ ] Migrate workspace/ to domain workspace
     - [ ] Migrate pipeline/ to domain pipeline  
     - [ ] Migrate validation/ to shared validation
