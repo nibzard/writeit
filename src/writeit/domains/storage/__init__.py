@@ -32,6 +32,7 @@ and workspace-aware storage management.
 - **TransactionManagementService**: Transaction lifecycle management
 - **StorageMigrationService**: Schema versioning and migration
 - **StorageOptimizationService**: Performance tuning and cleanup
+- **StorageManagementService**: File system operations and workspace management
 
 ## Domain Events
 
@@ -57,3 +58,27 @@ This domain does NOT own:
 - File content validation (Content Domain)
 - Workspace business rules (Workspace Domain)
 """
+
+from .services.storage_management_service import (
+    StorageManagementService,
+    StorageManagerInterface,
+    StorageOperation,
+    StorageError,
+    StoragePermissionError,
+    StorageSpaceError,
+    StorageConcurrencyError,
+    StorageOperationResult,
+    StorageInfo,
+)
+
+__all__ = [
+    "StorageManagementService",
+    "StorageManagerInterface", 
+    "StorageOperation",
+    "StorageError",
+    "StoragePermissionError",
+    "StorageSpaceError",
+    "StorageConcurrencyError",
+    "StorageOperationResult",
+    "StorageInfo",
+]

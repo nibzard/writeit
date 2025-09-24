@@ -36,14 +36,17 @@ from ..domains.execution.services import (
     CacheManagementService,
     TokenAnalyticsService
 )
+from ..domains.storage.services import StorageManagementService
 
 # Application Services
 from .services import (
     PipelineApplicationService,
     WorkspaceApplicationService,
     ContentApplicationService,
-    ExecutionApplicationService
+    ExecutionApplicationService,
+    MigrationApplicationService
 )
+from .services.migration_application_service import DefaultMigrationApplicationService
 
 # Repository Interfaces
 from ..domains.pipeline.repositories import (
@@ -391,6 +394,12 @@ class DIConfiguration:
             TokenAnalyticsService
         )
         
+        # Storage Domain Services
+        container.register_scoped(
+            StorageManagementService,
+            StorageManagementService
+        )
+        
         return container
     
     @staticmethod
@@ -419,6 +428,12 @@ class DIConfiguration:
         container.register_scoped(
             ExecutionApplicationService,
             ExecutionApplicationService
+        )
+        
+        # Migration Application Service
+        container.register_scoped(
+            MigrationApplicationService,
+            DefaultMigrationApplicationService
         )
         
         return container
@@ -830,12 +845,14 @@ class DIConfiguration:
             "llm_orchestration_service": LLMOrchestrationService,
             "cache_management_service": CacheManagementService,
             "token_analytics_service": TokenAnalyticsService,
+            "storage_management_service": StorageManagementService,
             
             # Application Services
             "pipeline_application_service": PipelineApplicationService,
             "workspace_application_service": WorkspaceApplicationService,
             "content_application_service": ContentApplicationService,
             "execution_application_service": ExecutionApplicationService,
+            "migration_application_service": MigrationApplicationService,
             
             # Repository Interfaces
             "pipeline_template_repository": PipelineTemplateRepository,
