@@ -18,6 +18,9 @@ import pytest
 import pytest_asyncio
 from uuid import uuid4
 
+# Import mock repository fixtures
+pytest_plugins = ["tests.fixtures.mock_repositories"]
+
 
 # ============================================================================
 # Async Test Environment Configuration
