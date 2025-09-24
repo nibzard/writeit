@@ -560,7 +560,7 @@
 
 ### 7.3 Application Testing
 
-- [ ] **Use Case Tests**
+- [*] **Use Case Tests** - IN PROGRESS 2025-01-24
   - [ ] Complete pipeline execution flows
   - [ ] Workspace management scenarios
   - [ ] Template operations
