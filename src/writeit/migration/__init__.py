@@ -27,6 +27,24 @@ from .rollback_manager import (
     MigrationBackup
 )
 
+from .data_migration import (
+    DataMigrator,
+    DataMigrationError
+)
+
+from .legacy_format_converter import (
+    LegacyFormatConverter
+)
+
+from .migration_runner import (
+    MigrationRunner
+)
+
+from .integrated_migration import (
+    IntegratedMigration,
+    IntegratedMigrationError
+)
+
 __all__ = [
     "MigrationManager",
     "MigrationResult",
@@ -41,5 +59,11 @@ __all__ = [
     "CacheAnalysis",
     "MigrationRollbackManager",
     "RollbackResult",
-    "MigrationBackup"
+    "MigrationBackup",
+    "DataMigrator",
+    "DataMigrationError",
+    "LegacyFormatConverter",
+    "MigrationRunner",
+    "IntegratedMigration",
+    "IntegratedMigrationError"
 ]
