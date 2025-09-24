@@ -498,6 +498,213 @@ class TestLMDBRepositoryIntegration:
         # Clean up
         storage2.close()
 
+    async def test_data_serialization_integrity(self, pipeline_repository, sample_pipeline_template):
+        """Test data serialization and deserialization integrity."""
+        # Test with complex template structure
+        complex_template = PipelineTemplate(
+            id=PipelineId(str(uuid4())),
+            name=PipelineName("complex_serialization_test"),
+            description="Template with complex nested structures for serialization testing",
+            version="2.1.0",
+            inputs={
+                "text_input": PipelineInput(
+                    key="text_input",
+                    type="text",
+                    label="Text Input",
+                    required=True,
+                    placeholder="Enter text...",
+                    default="default value"
+                ),
+                "choice_input": PipelineInput(
+                    key="choice_input",
+                    type="choice",
+                    label="Choice Input",
+                    required=False,
+                    options=[("value1", "Label 1"), ("value2", "Label 2")],
+                    default="value1"
+                )
+            },
+            steps={
+                "step1": PipelineStepTemplate(
+                    id=StepId("step1"),
+                    name="First Step",
+                    description="First processing step",
+                    type="llm_generate",
+                    prompt_template=PromptTemplate("Process {{ inputs.text_input }} with style {{ inputs.choice_input }}"),
+                    model_preference=ModelPreference(["gpt-4", "gpt-3.5-turbo"]),
+                    depends_on=[]
+                ),
+                "step2": PipelineStepTemplate(
+                    id=StepId("step2"),
+                    name="Second Step",
+                    description="Second processing step that depends on first",
+                    type="llm_refine",
+                    prompt_template=PromptTemplate("Refine {{ steps.step1 }} based on requirements"),
+                    model_preference=ModelPreference(["gpt-4"]),
+                    depends_on=["step1"]
+                )
+            },
+            tags=["complex", "serialization", "test", "nested-structures"],
+            author="serialization_test_author"
+        )
+        
+        # Save complex template
+        await pipeline_repository.save(complex_template)
+        
+        # Retrieve and verify all fields preserved
+        retrieved = await pipeline_repository.find_by_id(complex_template.id)
+        assert retrieved is not None
+        
+        # Verify basic fields
+        assert retrieved.id == complex_template.id
+        assert retrieved.name == complex_template.name
+        assert retrieved.description == complex_template.description
+        assert retrieved.version == complex_template.version
+        assert retrieved.author == complex_template.author
+        assert retrieved.tags == complex_template.tags
+        
+        # Verify complex nested structures - inputs
+        assert len(retrieved.inputs) == 2
+        assert "text_input" in retrieved.inputs
+        assert "choice_input" in retrieved.inputs
+        
+        text_input = retrieved.inputs["text_input"]
+        assert text_input.key == "text_input"
+        assert text_input.type == "text"
+        assert text_input.required is True
+        assert text_input.default == "default value"
+        
+        choice_input = retrieved.inputs["choice_input"]
+        assert choice_input.key == "choice_input"
+        assert choice_input.type == "choice"
+        assert choice_input.required is False
+        assert choice_input.options == [("value1", "Label 1"), ("value2", "Label 2")]
+        
+        # Verify complex nested structures - steps
+        assert len(retrieved.steps) == 2
+        assert "step1" in retrieved.steps
+        assert "step2" in retrieved.steps
+        
+        step1 = retrieved.steps["step1"]
+        assert step1.id == StepId("step1")
+        assert step1.name == "First Step"
+        assert step1.type == "llm_generate"
+        assert step1.model_preference == ModelPreference(["gpt-4", "gpt-3.5-turbo"])
+        assert step1.depends_on == []
+        
+        step2 = retrieved.steps["step2"]
+        assert step2.id == StepId("step2")
+        assert step2.depends_on == ["step1"]
+
+    async def test_large_data_persistence(self, pipeline_repository):
+        """Test persistence of large data structures."""
+        # Create template with large content
+        large_description = "X" * 10000  # 10KB description
+        large_prompt = "Process this large content: " + ("Y" * 5000)  # 5KB prompt
+        
+        large_template = PipelineTemplate(
+            id=PipelineId(str(uuid4())),
+            name=PipelineName("large_data_test"),
+            description=large_description,
+            version="1.0.0",
+            inputs={
+                f"input_{i}": PipelineInput(
+                    key=f"input_{i}",
+                    type="text",
+                    label=f"Input {i}",
+                    required=True,
+                    placeholder=f"Large placeholder text {i}: " + ("Z" * 100)
+                )
+                for i in range(50)  # 50 inputs
+            },
+            steps={
+                f"step_{i}": PipelineStepTemplate(
+                    id=StepId(f"step_{i}"),
+                    name=f"Step {i}",
+                    description=f"Processing step {i} with large content",
+                    type="llm_generate",
+                    prompt_template=PromptTemplate(large_prompt + f" for step {i}"),
+                    model_preference=ModelPreference(["gpt-4"])
+                )
+                for i in range(20)  # 20 steps
+            },
+            tags=[f"tag_{i}" for i in range(100)],  # 100 tags
+            author="large_data_test_author"
+        )
+        
+        # Save large template
+        await pipeline_repository.save(large_template)
+        
+        # Retrieve and verify
+        retrieved = await pipeline_repository.find_by_id(large_template.id)
+        assert retrieved is not None
+        assert retrieved.description == large_description
+        assert len(retrieved.inputs) == 50
+        assert len(retrieved.steps) == 20
+        assert len(retrieved.tags) == 100
+        
+        # Verify specific content integrity
+        assert retrieved.steps["step_10"].prompt_template.value.startswith(large_prompt)
+        assert retrieved.inputs["input_25"].placeholder.endswith("Z" * 100)
+
+    async def test_unicode_and_special_characters(self, pipeline_repository):
+        """Test persistence of unicode and special characters."""
+        # Test various unicode and special characters
+        unicode_template = PipelineTemplate(
+            id=PipelineId(str(uuid4())),
+            name=PipelineName("unicode_test_🚀"),
+            description="Template with unicode: 你好世界 🌍 ñáéíóú çğş αβγ δεζ ηθι κλμ",
+            version="1.0.0-β",
+            inputs={
+                "emoji_input": PipelineInput(
+                    key="emoji_input",
+                    type="text",
+                    label="Emoji Test 🎉",
+                    required=True,
+                    placeholder="Enter emoji: 💻🔥⚡"
+                ),
+                "unicode_input": PipelineInput(
+                    key="unicode_input", 
+                    type="text",
+                    label="Unicode: 中文测试",
+                    required=False,
+                    default="Ελληνικά κείμενο"
+                )
+            },
+            steps={
+                "unicode_step": PipelineStepTemplate(
+                    id=StepId("unicode_step"),
+                    name="Unicode Processing 🔤",
+                    description="Process unicode content: العربية, עברית, हिन्दी",
+                    type="llm_generate",
+                    prompt_template=PromptTemplate("Process: {{ inputs.emoji_input }} with 특수문자 & symbols: @#$%^&*()+={}[]|\\:;\"'<>,.?/~`"),
+                    model_preference=ModelPreference(["gpt-4"])
+                )
+            },
+            tags=["unicode", "特殊字符", "🏷️", "тест"],
+            author="unicode_test_作者"
+        )
+        
+        # Save and retrieve
+        await pipeline_repository.save(unicode_template)
+        retrieved = await pipeline_repository.find_by_id(unicode_template.id)
+        
+        assert retrieved is not None
+        assert retrieved.name.value == "unicode_test_🚀"
+        assert "你好世界 🌍" in retrieved.description
+        assert retrieved.author == "unicode_test_作者"
+        assert "特殊字符" in retrieved.tags
+        assert "🏷️" in retrieved.tags
+        
+        # Verify specific unicode content
+        emoji_input = retrieved.inputs["emoji_input"]
+        assert emoji_input.label == "Emoji Test 🎉"
+        assert "💻🔥⚡" in emoji_input.placeholder
+        
+        unicode_step = retrieved.steps["unicode_step"]
+        assert "Unicode Processing 🔤" == unicode_step.name
+        assert "العربية, עברית, हिन्दी" in unicode_step.description
+
 
 if __name__ == "__main__":
     # Run tests manually for debugging
