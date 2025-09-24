@@ -282,3 +282,48 @@ def info(
     except Exception as e:
         print_error(f"Unexpected error: {e}")
         raise typer.Exit(1)
+
+
+
+@app.command()
+def browse():
+    """
+    Browse and manage workspaces using the interactive TUI.
+    
+    [bold cyan]Features:[/bold cyan]
+    
+    • Interactive workspace list with real-time status
+    • Create, delete, and switch workspaces
+    • View workspace details and analytics
+    • Activity log with workspace operations
+    • Keyboard shortcuts for quick actions
+    
+    [bold cyan]Keyboard Shortcuts:[/bold cyan]
+    
+    • [bold]Ctrl+Q[/bold] - Quit
+    • [bold]Ctrl+R[/bold] - Refresh
+    • [bold]Ctrl+N[/bold] - New workspace
+    • [bold]Ctrl+D[/bold] - Delete workspace
+    • [bold]Ctrl+I[/bold] - Show info
+    • [bold]Ctrl+S[/bold] - Switch workspace
+    • [bold]↑/↓[/bold] - Navigate
+    
+    [bold cyan]Examples:[/bold cyan]
+    
+      [dim]$ writeit workspace browse[/dim]
+    
+    """
+    try:
+        import asyncio
+        from writeit.tui import run_workspace_switcher
+        
+        print_success("Starting Workspace Browser TUI...")
+        asyncio.run(run_workspace_switcher())
+        
+    except ImportError as e:
+        print_error(f"TUI dependencies not available: {e}")
+        print_error("Please install required dependencies: pip install textual")
+        raise typer.Exit(1)
+    except Exception as e:
+        print_error(f"Error starting TUI: {e}")
+        raise typer.Exit(1)

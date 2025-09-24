@@ -7,8 +7,8 @@ the new Domain-Driven Design architecture for robust, scalable pipeline operatio
 import asyncio
 import uuid
 from pathlib import Path
-from typing import Dict, Any, List, Optional, AsyncGenerator
-from dataclasses import dataclass, field
+from typing import Dict, Any, List, Optional
+from dataclasses import dataclass
 from datetime import datetime
 
 import yaml
@@ -29,16 +29,11 @@ from textual.widgets import (
     Tab,
     TabPane,
     Input,
-    Checkbox,
     RadioButton,
     RadioSet,
 )
 from textual.reactive import reactive
 from textual.binding import Binding
-from textual.timer import Timer
-from textual.message import Message
-from textual.screen import ModalScreen
-from textual.worker import Worker, WorkerState
 
 from ...application.di_config import DIConfiguration
 from ...application.services.pipeline_application_service import (
@@ -51,7 +46,7 @@ from ...application.services.pipeline_application_service import (
 from ...application.services.workspace_application_service import (
     WorkspaceApplicationService,
 )
-from ...shared.dependencies.container import Container
+from ...shared.dependencies.container import Container as DIContainer
 
 
 @dataclass
@@ -520,7 +515,7 @@ class ModernPipelineRunnerApp(App[None]):
         self.config = config or TUIExecutionConfig()
         
         # DDD Services
-        self.di_container: Optional[Container] = None
+        self.di_container: Optional[DIContainer] = None
         self.pipeline_service: Optional[PipelineApplicationService] = None
         self.workspace_service: Optional[WorkspaceApplicationService] = None
         

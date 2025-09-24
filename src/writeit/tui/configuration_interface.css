@@ -1,0 +1,288 @@
+/* Configuration Interface TUI Styles */
+
+.app-container {
+    height: 100vh;
+    width: 100vw;
+}
+
+.title {
+    text-align: center;
+    text-style: bold;
+    color: $primary;
+    margin: 1 0;
+}
+
+.main-content {
+    height: 1fr;
+    dock: left;
+}
+
+.config-panel {
+    width: 60%;
+    height: 1fr;
+    padding: 1;
+    border: solid $primary;
+    border-title: "Configuration";
+}
+
+.info-panel {
+    width: 40%;
+    height: 1fr;
+    padding: 1;
+}
+
+.section-title {
+    text-align: center;
+    text-style: bold;
+    color: $secondary;
+    margin: 0 0 1 0;
+}
+
+.config-table {
+    height: 1fr;
+    margin: 0 0 1 0;
+}
+
+.config-table DataTable {
+    height: 1fr;
+}
+
+.config-table .datatable--cursor {
+    background: $primary;
+    color: $text;
+}
+
+/* Radio Set Styles */
+RadioSet {
+    margin: 0 0 1 0;
+}
+
+RadioButton {
+    margin: 0 1 0 0;
+}
+
+/* Modal Styles */
+#edit-config-modal, #create-config-modal, #validation-modal {
+    align: center middle;
+    width: 80;
+    height: auto;
+    max-height: 85%;
+    background: $surface;
+    border: solid $primary;
+    border-title: "Modal";
+    padding: 2;
+}
+
+.modal-title {
+    text-align: center;
+    text-style: bold;
+    color: $primary;
+    margin: 0 0 2 0;
+}
+
+/* Button Styles */
+Button {
+    margin: 0 1;
+}
+
+Button.primary {
+    background: $primary;
+    color: $text;
+}
+
+Button.success {
+    background: $success;
+    color: $text;
+}
+
+Button.error {
+    background: $error;
+    color: $text;
+}
+
+Button.warning {
+    background: $warning;
+    color: $text;
+}
+
+Button.default {
+    background: $surface;
+    border: solid $primary;
+    color: $primary;
+}
+
+/* Input Styles */
+Input {
+    margin: 0 0 1 0;
+    border: solid $primary;
+}
+
+Select {
+    margin: 0 0 1 0;
+    border: solid $primary;
+}
+
+/* Log Styles */
+Log {
+    height: 1fr;
+    background: $surface;
+    border: solid $secondary;
+    border-title: "Activity";
+    padding: 1;
+    overflow-y: auto;
+}
+
+/* Validation Message Styles */
+.success-message {
+    color: $success;
+    text-align: center;
+    text-style: bold;
+    margin: 1 0;
+}
+
+/* Responsive Design */
+@media (max-width: 120) {
+    .config-panel {
+        width: 100%;
+        height: 60%;
+    }
+    
+    .info-panel {
+        width: 100%;
+        height: 40%;
+    }
+}
+
+/* Animation Support */
+.config-table {
+    transition: opacity 300ms ease-in-out;
+}
+
+.config-table.loading {
+    opacity: 0.5;
+}
+
+/* Focus Styles */
+Button:focus {
+    border: double $primary;
+    background: $primary-lighten-1;
+}
+
+Input:focus {
+    border: double $primary;
+    background: $surface-lighten-1;
+}
+
+Select:focus {
+    border: double $primary;
+    background: $surface-lighten-1;
+}
+
+RadioButton:focus {
+    background: $primary-lighten-1;
+}
+
+/* Status Colors */
+.config-table .datatable--row-cell {
+    color: $text;
+}
+
+.config-table .datatable--row-cell[data-column="4"]:contains("✅") {
+    color: $success;
+}
+
+.config-table .datatable--row-cell[data-column="4"]:contains("❌") {
+    color: $error;
+}
+
+/* Markdown Styles */
+Markdown {
+    margin: 0 0 1 0;
+}
+
+Markdown h1 {
+    color: $primary;
+    text-style: bold;
+}
+
+Markdown h2 {
+    color: $secondary;
+    text-style: bold;
+}
+
+Markdown h3 {
+    color: $accent;
+    text-style: bold;
+}
+
+Markdown code {
+    background: $surface-darken-1;
+    padding: 0 1;
+    border-radius: 1;
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+}
+
+/* Switch Styles */
+Switch {
+    margin: 0 0 1 0;
+}
+
+/* Error States */
+.error-message {
+    color: $error;
+    background: $error-lighten-3;
+    padding: 1;
+    border: solid $error;
+    border-radius: 1;
+    margin: 0 0 1 0;
+}
+
+/* Warning States */
+.warning-message {
+    color: $warning;
+    background: $warning-lighten-3;
+    padding: 1;
+    border: solid $warning;
+    border-radius: 1;
+    margin: 0 0 1 0;
+}
+
+/* Info States */
+.info-message {
+    color: $info;
+    background: $info-lighten-3;
+    padding: 1;
+    border: solid $info;
+    border-radius: 1;
+    margin: 0 0 1 0;
+}
+
+/* Disabled States */
+Button:disabled {
+    opacity: 0.5;
+    background: $surface;
+}
+
+Input:disabled {
+    opacity: 0.5;
+    background: $surface;
+}
+
+Select:disabled {
+    opacity: 0.5;
+    background: $surface;
+}
+
+/* Success States */
+.success-message {
+    color: $success;
+    background: $success-lighten-3;
+    padding: 1;
+    border: solid $success;
+    border-radius: 1;
+    margin: 0 0 1 0;
+}

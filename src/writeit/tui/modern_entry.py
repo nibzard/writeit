@@ -9,10 +9,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from ..infrastructure.tui.components import ModernWriteItTUI, run_modern_tui
+from ..infrastructure.tui.components import run_modern_tui
 from ..infrastructure.tui.integration import TUIRunner, create_tui_runner
 from ..infrastructure.tui.context import TUIContext, TUIContextManager, TUIMode
-from ..shared.dependencies.container import Container
 from ..shared.dependencies.service_manager import create_default_container
 
 

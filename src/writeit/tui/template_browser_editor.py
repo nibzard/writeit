@@ -1064,36 +1064,6 @@ class TemplateBrowserEditorApp(App[None]):
     
     def action_show_help(self) -> None:
         """Show help information."""
-        help_text = """
-# WriteIt Template Browser & Editor Help
-
-## Navigation
-- **Tab/Shift+Tab**: Navigate between fields
-- **Arrow Keys**: Navigate in lists and tables
-- **Enter**: Select/Confirm action
-- **Esc**: Cancel/Go back
-
-## Browser View
-- **F5/R**: Refresh content list
-- **Ctrl+N**: Create new template
-- **Delete**: Delete selected item
-- **F1**: Show this help
-
-## Editor View
-- **Ctrl+S**: Save content
-- **Ctrl+R**: Reset to original
-- **Ctrl+V**: Validate content
-- **F1**: Show this help
-
-## Content Types
-- **Templates**: YAML pipeline definitions with steps and inputs
-- **Styles**: Markdown style primers for content generation
-
-## Tips
-- Use workspace scope to organize your content
-- Global templates/styles are shared across all workspaces
-- Validation helps ensure content quality and compatibility
-"""
         
         # Show help in a modal or new view would be ideal
         # For now, we'll update the status message

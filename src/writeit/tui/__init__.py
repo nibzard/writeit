@@ -13,6 +13,26 @@ from .template_browser_editor import (
     TemplateEditorMode,
     ContentType
 )
+from .workspace_switcher import (
+    run_workspace_switcher,
+    WorkspaceSwitcherApp,
+    WorkspaceSwitcherConfig,
+    WorkspaceAction,
+    WorkspaceInfo,
+    WorkspaceSelected,
+    WorkspaceCreated,
+    WorkspaceDeleted
+)
+from .configuration_interface import (
+    run_configuration_interface,
+    ConfigurationInterfaceApp,
+    ConfigurationInterfaceConfig,
+    ConfigAction,
+    ConfigurationEntry,
+    ConfigurationSelected,
+    ConfigurationUpdated,
+    ConfigurationReset
+)
 
 __all__ = [
     # "run_pipeline_tui",  # Commented out due to external dependency
@@ -23,5 +43,21 @@ __all__ = [
     "TemplateBrowserEditorApp",
     "TemplateEditorConfig",
     "TemplateEditorMode",
-    "ContentType"
+    "ContentType",
+    "run_workspace_switcher",
+    "WorkspaceSwitcherApp",
+    "WorkspaceSwitcherConfig",
+    "WorkspaceAction",
+    "WorkspaceInfo",
+    "WorkspaceSelected",
+    "WorkspaceCreated",
+    "WorkspaceDeleted",
+    "run_configuration_interface",
+    "ConfigurationInterfaceApp",
+    "ConfigurationInterfaceConfig",
+    "ConfigAction",
+    "ConfigurationEntry",
+    "ConfigurationSelected",
+    "ConfigurationUpdated",
+    "ConfigurationReset"
 ]
