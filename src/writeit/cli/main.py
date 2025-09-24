@@ -37,7 +37,7 @@ def main():
     """Main CLI entry point for WriteIt."""
     try:
         # Setup basic logging
-        from writeit.logging import configure_default_logging
+        from writeit.infrastructure.logging import configure_default_logging
 
         logger = configure_default_logging()
         logger.debug("Starting WriteIt CLI application")
