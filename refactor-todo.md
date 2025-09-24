@@ -540,7 +540,7 @@
 - [*] **Domain Unit Tests** - IN PROGRESS 2025-01-24
   - [✅] Entity behavior tests - COMPLETED 2025-01-24 (Comprehensive tests implemented for all domain entities)
   - [✅] Value object validation tests - COMPLETED 2025-01-24 (Comprehensive tests implemented for all domain value objects)
-  - [*] Domain service logic tests - IN PROGRESS 2025-01-24
+  - [*] Domain service logic tests - IN PROGRESS 2025-01-24 (Selected for implementation)
   - [ ] Business rule enforcement tests
 
 ### 7.2 Integration Testing

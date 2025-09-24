@@ -5,6 +5,7 @@ from datetime import datetime
 
 from writeit.domains.workspace.repositories.workspace_config_repository import WorkspaceConfigRepository
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
+from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.shared.repository import Specification
 
@@ -333,3 +334,264 @@ class MockWorkspaceConfigRepository(BaseMockRepository[WorkspaceConfiguration], 
         
         self._log_event("import_settings", self._get_entity_type_name(), 
                        str(workspace_name.value))
+
+    # Missing abstract methods from WorkspaceConfigRepository
+    
+    async def find_by_workspace(self, workspace: Workspace) -> Optional[WorkspaceConfiguration]:
+        """Find configuration for a specific workspace."""
+        return await self.find_by_workspace_name(workspace.name)
+    
+    async def get_global_config(self) -> WorkspaceConfiguration:
+        """Get global (default) configuration."""
+        await self._check_error_condition("get_global_config")
+        self._increment_call_count("get_global_config")
+        await self._apply_call_delay("get_global_config")
+        
+        global_name = WorkspaceName("global")
+        global_config = await self.find_by_workspace_name(global_name)
+        if not global_config:
+            # Create default global configuration
+            from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
+            defaults = await self.get_default_settings()
+            global_config = WorkspaceConfiguration(
+                workspace_name=global_name,
+                settings=defaults,
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            await self.save(global_config)
+        
+        return global_config
+    
+    async def get_effective_config(self, workspace: Workspace) -> WorkspaceConfiguration:
+        """Get effective configuration for workspace (with global fallbacks)."""
+        await self._check_error_condition("get_effective_config")
+        self._increment_call_count("get_effective_config")
+        await self._apply_call_delay("get_effective_config")
+        
+        # Get workspace-specific config
+        workspace_config = await self.find_by_workspace(workspace)
+        global_config = await self.get_global_config()
+        
+        # Merge with global defaults
+        if not workspace_config:
+            return global_config
+        
+        # Merge settings: workspace overrides global
+        effective_settings = global_config.settings.copy()
+        effective_settings.update(workspace_config.settings)
+        
+        from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
+        return WorkspaceConfiguration(
+            workspace_name=workspace.name,
+            settings=effective_settings,
+            created_at=workspace_config.created_at,
+            updated_at=workspace_config.updated_at
+        )
+    
+    async def get_config_value(
+        self, 
+        workspace: Workspace, 
+        key: str, 
+        default: Optional[Any] = None
+    ) -> Any:
+        """Get specific configuration value for workspace."""
+        effective_config = await self.get_effective_config(workspace)
+        return effective_config.settings.get(key, default)
+    
+    async def set_config_value(
+        self, 
+        workspace: Workspace, 
+        key: str, 
+        value: Any
+    ) -> None:
+        """Set specific configuration value for workspace."""
+        await self.set_setting(workspace.name, key, value)
+    
+    async def remove_config_value(
+        self, 
+        workspace: Workspace, 
+        key: str
+    ) -> bool:
+        """Remove specific configuration value for workspace."""
+        return await self.remove_setting(workspace.name, key)
+    
+    async def update_config(
+        self, 
+        workspace: Workspace, 
+        updates: Dict[str, Any]
+    ) -> WorkspaceConfiguration:
+        """Update multiple configuration values atomically."""
+        await self.update_settings(workspace.name, updates)
+        return await self.get_effective_config(workspace)
+    
+    async def reset_to_defaults(
+        self, 
+        workspace: Workspace, 
+        keys: Optional[List[str]] = None
+    ) -> WorkspaceConfiguration:
+        """Reset configuration values to defaults."""
+        await self._check_error_condition("reset_to_defaults_workspace")
+        self._increment_call_count("reset_to_defaults_workspace")
+        await self._apply_call_delay("reset_to_defaults_workspace")
+        
+        if keys is None:
+            # Reset all to defaults
+            await self.reset_to_defaults(workspace.name)
+        else:
+            # Reset specific keys
+            defaults = await self.get_default_settings()
+            updates = {key: defaults.get(key) for key in keys if key in defaults}
+            if updates:
+                await self.update_settings(workspace.name, updates)
+        
+        return await self.get_effective_config(workspace)
+    
+    async def export_config(
+        self, 
+        workspace: Workspace, 
+        include_defaults: bool = False
+    ) -> Dict[str, Any]:
+        """Export workspace configuration to dictionary."""
+        if include_defaults:
+            config = await self.get_effective_config(workspace)
+        else:
+            config = await self.find_by_workspace(workspace)
+            if not config:
+                return {}
+        
+        return {
+            "workspace_name": str(workspace.name.value),
+            "settings": config.settings,
+            "exported_at": datetime.now().isoformat(),
+            "version": "1.0.0"
+        }
+    
+    async def import_config(
+        self, 
+        workspace: Workspace, 
+        config_data: Dict[str, Any], 
+        merge: bool = True
+    ) -> WorkspaceConfiguration:
+        """Import configuration from dictionary."""
+        await self._check_error_condition("import_config")
+        self._increment_call_count("import_config")
+        await self._apply_call_delay("import_config")
+        
+        if "settings" not in config_data:
+            raise ValueError("Invalid config data: missing 'settings' key")
+        
+        settings = config_data["settings"]
+        if merge:
+            current_config = await self.find_by_workspace(workspace)
+            if current_config:
+                current_settings = current_config.settings.copy()
+                current_settings.update(settings)
+                settings = current_settings
+        
+        await self.update_settings(workspace.name, settings)
+        return await self.get_effective_config(workspace)
+    
+    async def validate_config(
+        self, 
+        config: WorkspaceConfiguration
+    ) -> List[str]:
+        """Validate configuration object."""
+        await self._check_error_condition("validate_config")
+        self._increment_call_count("validate_config")
+        await self._apply_call_delay("validate_config")
+        
+        # Mock validation - return configured errors or empty list
+        errors = self._behavior.return_values.get("validate_config", [])
+        return errors
+    
+    async def get_config_schema(self) -> Dict[str, Any]:
+        """Get configuration schema definition."""
+        await self._check_error_condition("get_config_schema")
+        self._increment_call_count("get_config_schema")
+        await self._apply_call_delay("get_config_schema")
+        
+        schema = self._behavior.return_values.get("get_config_schema", {
+            "properties": {
+                "auto_save": {"type": "boolean", "default": True},
+                "cache_enabled": {"type": "boolean", "default": True},
+                "default_model": {"type": "string", "default": "gpt-4o-mini"},
+                "max_concurrent_steps": {"type": "integer", "default": 3, "minimum": 1},
+                "step_timeout_seconds": {"type": "integer", "default": 300, "minimum": 30},
+                "enable_streaming": {"type": "boolean", "default": True}
+            },
+            "required": [],
+            "additionalProperties": True
+        })
+        
+        return schema
+    
+    async def find_configs_with_value(
+        self, 
+        key: str, 
+        value: Any
+    ) -> List[WorkspaceConfiguration]:
+        """Find all configurations with specific key-value pair."""
+        await self._check_error_condition("find_configs_with_value")
+        self._increment_call_count("find_configs_with_value")
+        await self._apply_call_delay("find_configs_with_value")
+        
+        all_configs = await self.find_all()
+        matching_configs = [
+            config for config in all_configs 
+            if config.settings.get(key) == value
+        ]
+        
+        self._log_event("find_configs_with_value", self._get_entity_type_name(), 
+                       key=key, matches_found=len(matching_configs))
+        return matching_configs
+    
+    async def get_config_usage_stats(self) -> Dict[str, Any]:
+        """Get configuration usage statistics."""
+        await self._check_error_condition("get_config_usage_stats")
+        self._increment_call_count("get_config_usage_stats")
+        await self._apply_call_delay("get_config_usage_stats")
+        
+        all_configs = await self.find_all()
+        defaults = await self.get_default_settings()
+        
+        # Calculate statistics
+        total_configs = len(all_configs)
+        all_keys = set()
+        value_counts = {}
+        custom_configs = []
+        
+        for config in all_configs:
+            all_keys.update(config.settings.keys())
+            for key, value in config.settings.items():
+                if key not in value_counts:
+                    value_counts[key] = {}
+                if value not in value_counts[key]:
+                    value_counts[key][value] = 0
+                value_counts[key][value] += 1
+                
+                # Check if it's a custom (non-default) value
+                if defaults.get(key) != value:
+                    custom_configs.append(config)
+        
+        # Most common values
+        most_common_values = {}
+        for key, values in value_counts.items():
+            most_common_values[key] = max(values.items(), key=lambda x: x[1])
+        
+        # Unused keys
+        default_keys = set(defaults.keys())
+        unused_keys = default_keys - all_keys
+        
+        stats = {
+            "total_configs": total_configs,
+            "most_common_values": most_common_values,
+            "custom_configs": len(set(config.workspace_name.value for config in custom_configs)),
+            "unused_keys": list(unused_keys),
+            "all_keys_used": list(all_keys),
+            "stats_generated_at": datetime.now().isoformat()
+        }
+        
+        self._log_event("get_config_usage_stats", self._get_entity_type_name(), 
+                       total_configs=total_configs)
+        return stats
