@@ -1,8 +1,8 @@
 # ABOUTME: Unit tests for ValidationResult and related classes
 # ABOUTME: Tests validation result formatting, issue management, and summary generation
 from pathlib import Path
-from writeit.validation import (
-    ValidationResult,
+from writeit.shared.validation import (
+    TemplateValidationResult as ValidationResult,
     ValidationIssue,
     ValidationSummary,
     IssueType,

@@ -660,7 +660,7 @@
     - [✅] Update infrastructure layer to be self-contained - COMPLETED 2025-09-24
     - [✅] Remove legacy storage layer dependencies - COMPLETED 2025-09-24
   - [✅] **Legacy Directory Migration** - PARTIALLY COMPLETED 2025-09-24
-    - [ ] Migrate models/ to domain entities
+    - [✅] Migrate models/ to domain entities - COMPLETED 2025-09-24
     - [✅] Migrate storage/ to infrastructure layer - COMPLETED 2025-09-24
     - [ ] Migrate workspace/ to domain workspace
     - [ ] Migrate pipeline/ to domain pipeline  

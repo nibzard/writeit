@@ -2,7 +2,7 @@
 # ABOUTME: Tests the validation system against actual pipeline templates and style primers
 import pytest
 from pathlib import Path
-from writeit.validation import PipelineValidator, StyleValidator
+from writeit.shared.validation import PipelineValidator, StyleValidator
 
 
 class TestValidationIntegration:
@@ -173,7 +173,7 @@ class TestValidationIntegration:
 
     def test_validation_system_comprehensive(self):
         """Test validation system with multiple files."""
-        from writeit.validation import ValidationSummary
+        from writeit.shared.validation import ValidationSummary
 
         results = []
 

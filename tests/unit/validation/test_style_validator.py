@@ -3,7 +3,7 @@
 import yaml
 import tempfile
 from pathlib import Path
-from writeit.validation import StyleValidator
+from writeit.shared.validation import StyleValidator
 
 
 class TestStyleValidator:

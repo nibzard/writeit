@@ -13,7 +13,7 @@ from writeit.workspace.template_manager import (
     TemplateType,
     TemplateScope,
 )
-from writeit.validation import PipelineValidator, StyleValidator, ValidationSummary
+from writeit.shared.validation import PipelineValidator, StyleValidator, ValidationSummary
 from writeit.cli.output import (
     console,
     print_error,

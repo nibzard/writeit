@@ -19,8 +19,8 @@ from rich.tree import Tree
 from rich.text import Text
 from rich.theme import Theme
 
-from writeit.validation.validation_result import (
-    ValidationResult,
+from writeit.shared.validation import (
+    TemplateValidationResult as ValidationResult,
     ValidationSummary,
     IssueType,
 )
