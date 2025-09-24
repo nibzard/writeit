@@ -208,25 +208,38 @@ class StylePrimerBuilder:
     """Builder for StylePrimer test data."""
     
     def __init__(self) -> None:
-        self._name = StyleName("test_style")
-        self._tone = "professional"
-        self._style_guide = "Use clear and concise language"
-        self._examples = {}
-        self._rules = []
-        self._metadata = {}
-        self._version = "1.0.0"
+        self._name = StyleName("test-style")
         self._description = "A test style primer"
+        self._tone = "professional"
+        self._voice = None
+        self._writing_style = None
+        self._target_audience = None
+        self._language = "en"
+        self._guidelines = []
+        self._formatting_preferences = {}
+        self._vocabulary_preferences = {}
+        self._applicable_content_types = []
+        self._examples = []
         self._tags = []
+        self._is_published = False
+        self._is_deprecated = False
+        self._usage_count = 0
         self._author = None
-        self._file_path = None
+        self._version = "1.0.0"
+        self._metadata = {}
         self._created_at = datetime.now()
         self._updated_at = datetime.now()
     
     def with_name(self, name: str | StyleName) -> Self:
         """Set the style name."""
         if isinstance(name, str):
-            name = StyleName(name)
+            name = StyleName.from_user_input(name)
         self._name = name
+        return self
+    
+    def with_description(self, description: str) -> Self:
+        """Set the style description."""
+        self._description = description
         return self
     
     def with_tone(self, tone: str) -> Self:
@@ -234,39 +247,69 @@ class StylePrimerBuilder:
         self._tone = tone
         return self
     
-    def with_style_guide(self, guide: str) -> Self:
-        """Set the style guide."""
-        self._style_guide = guide
+    def with_voice(self, voice: str) -> Self:
+        """Set the style voice."""
+        self._voice = voice
         return self
     
-    def with_examples(self, examples: Dict[str, str]) -> Self:
+    def with_writing_style(self, writing_style: str) -> Self:
+        """Set the writing style."""
+        self._writing_style = writing_style
+        return self
+    
+    def with_target_audience(self, target_audience: str) -> Self:
+        """Set the target audience."""
+        self._target_audience = target_audience
+        return self
+    
+    def with_language(self, language: str) -> Self:
+        """Set the language."""
+        self._language = language
+        return self
+    
+    def with_guidelines(self, guidelines: List[str]) -> Self:
+        """Set the guidelines."""
+        self._guidelines = guidelines.copy()
+        return self
+    
+    def with_formatting_preferences(self, preferences: Dict[str, Any]) -> Self:
+        """Set formatting preferences."""
+        self._formatting_preferences = preferences.copy()
+        return self
+    
+    def with_vocabulary_preferences(self, preferences: Dict[str, Any]) -> Self:
+        """Set vocabulary preferences."""
+        self._vocabulary_preferences = preferences.copy()
+        return self
+    
+    def with_applicable_content_types(self, content_types: List[ContentType]) -> Self:
+        """Set applicable content types."""
+        self._applicable_content_types = content_types.copy()
+        return self
+    
+    def with_examples(self, examples: List[str]) -> Self:
         """Set style examples."""
-        self._examples = examples
-        return self
-    
-    def with_rules(self, rules: List[ValidationRule]) -> Self:
-        """Set style rules."""
-        self._rules = rules
-        return self
-    
-    def with_metadata(self, metadata: Dict[str, Any]) -> Self:
-        """Set the metadata."""
-        self._metadata = metadata
-        return self
-    
-    def with_version(self, version: str) -> Self:
-        """Set the version."""
-        self._version = version
-        return self
-    
-    def with_description(self, description: str) -> Self:
-        """Set the description."""
-        self._description = description
+        self._examples = examples.copy()
         return self
     
     def with_tags(self, tags: List[str]) -> Self:
         """Set the tags."""
-        self._tags = tags
+        self._tags = tags.copy()
+        return self
+    
+    def with_published(self, is_published: bool = True) -> Self:
+        """Set published status."""
+        self._is_published = is_published
+        return self
+    
+    def with_deprecated(self, is_deprecated: bool = True) -> Self:
+        """Set deprecated status."""
+        self._is_deprecated = is_deprecated
+        return self
+    
+    def with_usage_count(self, usage_count: int) -> Self:
+        """Set usage count."""
+        self._usage_count = usage_count
         return self
     
     def with_author(self, author: str) -> Self:
@@ -274,29 +317,49 @@ class StylePrimerBuilder:
         self._author = author
         return self
     
-    def with_file_path(self, file_path: str | Path) -> Self:
-        """Set the file path."""
-        if isinstance(file_path, str):
-            file_path = Path(file_path)
-        self._file_path = file_path
+    def with_version(self, version: str) -> Self:
+        """Set the version."""
+        self._version = version
+        return self
+    
+    def with_metadata(self, metadata: Dict[str, Any]) -> Self:
+        """Set the metadata."""
+        self._metadata = metadata.copy()
+        return self
+    
+    def with_timestamps(self, created_at: datetime, updated_at: datetime) -> Self:
+        """Set timestamps."""
+        self._created_at = created_at
+        self._updated_at = updated_at
         return self
     
     def build(self) -> StylePrimer:
         """Build the StylePrimer."""
         return StylePrimer(
+            id=ContentId.generate(),
             name=self._name,
-            tone=self._tone,
-            style_guide=self._style_guide,
-            examples=self._examples,
-            rules=self._rules,
-            metadata=self._metadata,
-            version=self._version,
             description=self._description,
+            tone=self._tone,
+            voice=self._voice,
+            writing_style=self._writing_style,
+            target_audience=self._target_audience,
+            language=self._language,
+            guidelines=self._guidelines,
+            formatting_preferences=self._formatting_preferences,
+            vocabulary_preferences=self._vocabulary_preferences,
+            applicable_content_types=self._applicable_content_types,
+            examples=self._examples,
             tags=self._tags,
-            author=self._author,
-            file_path=self._file_path,
+            is_published=self._is_published,
+            is_deprecated=self._is_deprecated,
             created_at=self._created_at,
-            updated_at=self._updated_at
+            updated_at=self._updated_at,
+            published_at=datetime.now() if self._is_published else None,
+            deprecated_at=datetime.now() if self._is_deprecated else None,
+            usage_count=self._usage_count,
+            author=self._author,
+            version=self._version,
+            metadata=self._metadata
         )
     
     @classmethod
@@ -305,12 +368,20 @@ class StylePrimerBuilder:
         return (cls()
                 .with_name(name)
                 .with_tone("professional")
-                .with_style_guide("Use formal language, avoid contractions, be concise")
-                .with_examples({
-                    "good": "We recommend implementing this solution.",
-                    "bad": "We'd suggest implementing this solution."
-                })
-                .with_tags(["professional", "formal"]))
+                .with_voice("third_person")
+                .with_writing_style("formal")
+                .with_target_audience("business professionals")
+                .with_guidelines([
+                    "Use formal language throughout",
+                    "Avoid contractions and colloquialisms",
+                    "Be concise and direct",
+                    "Maintain professional tone"
+                ])
+                .with_examples([
+                    "We recommend implementing this solution to improve efficiency.",
+                    "Please find the quarterly report attached for your review."
+                ])
+                .with_tags(["professional", "formal", "business"]))
     
     @classmethod
     def casual(cls, name: str = "casual") -> Self:
@@ -318,12 +389,20 @@ class StylePrimerBuilder:
         return (cls()
                 .with_name(name)
                 .with_tone("casual")
-                .with_style_guide("Use conversational language, contractions are fine")
-                .with_examples({
-                    "good": "Let's implement this solution!",
-                    "bad": "We shall implement this solution."
-                })
-                .with_tags(["casual", "conversational"]))
+                .with_voice("second_person")
+                .with_writing_style("conversational")
+                .with_target_audience("general audience")
+                .with_guidelines([
+                    "Use conversational language",
+                    "Contractions are welcome",
+                    "Keep it friendly and approachable",
+                    "Use active voice"
+                ])
+                .with_examples([
+                    "Let's implement this solution together!",
+                    "You'll find this approach much easier to work with."
+                ])
+                .with_tags(["casual", "conversational", "friendly"]))
     
     @classmethod
     def technical(cls, name: str = "technical") -> Self:
@@ -331,12 +410,21 @@ class StylePrimerBuilder:
         return (cls()
                 .with_name(name)
                 .with_tone("technical")
-                .with_style_guide("Use precise terminology, include code examples, be specific")
-                .with_examples({
-                    "good": "The function returns a Promise<string> object.",
-                    "bad": "The function returns something."
-                })
-                .with_tags(["technical", "documentation"]))
+                .with_voice("third_person")
+                .with_writing_style("academic")
+                .with_target_audience("software developers")
+                .with_guidelines([
+                    "Use precise technical terminology",
+                    "Include code examples where appropriate",
+                    "Be specific and detailed",
+                    "Reference standards and best practices"
+                ])
+                .with_examples([
+                    "The function returns a Promise<string> object that resolves with the API response.",
+                    "Implement the Observer pattern to handle state changes efficiently."
+                ])
+                .with_applicable_content_types([ContentType.documentation(), ContentType.code()])
+                .with_tags(["technical", "documentation", "programming"]))
 
 
 class GeneratedContentBuilder:
@@ -344,16 +432,46 @@ class GeneratedContentBuilder:
     
     def __init__(self) -> None:
         self._id = ContentId.generate()
-        self._content_format = ContentFormat.MARKDOWN
-        self._content = "# Test Content\n\nThis is test content."
-        self._source_template = None
-        self._source_inputs = {}
-        self._metadata = {}
+        self._content_text = "# Test Content\n\nThis is test content."
+        self._template_name = TemplateName("test-template")
+        self._content_type = ContentType.article()
+        self._format = ContentFormat.markdown()
+        self._title = None
+        self._summary = None
+        self._style_name = None
+        self._word_count = 0
+        self._character_count = 0
+        self._content_length = None
+        
+        # Generation metadata
+        self._pipeline_run_id = None
+        self._step_count = 0
+        self._total_generation_time_seconds = 0.0
+        self._llm_model_used = None
+        self._total_tokens_used = 0
+        self._generation_cost = 0.0
+        
+        # Quality and approval
+        self._quality_metrics = {}
+        self._approval_status = None
+        self._approved_by = None
+        self._approved_at = None
+        self._feedback = []
+        
+        # Versioning and tracking
         self._version = "1.0.0"
-        self._workspace_name = "test_workspace"
+        self._revision_count = 0
+        self._parent_content_id = None
         self._tags = []
+        
+        # Timestamps
         self._created_at = datetime.now()
         self._updated_at = datetime.now()
+        self._published_at = None
+        
+        # Additional metadata
+        self._author = None
+        self._metadata = {}
     
     def with_id(self, content_id: str | ContentId) -> Self:
         """Set the content ID."""
@@ -362,31 +480,92 @@ class GeneratedContentBuilder:
         self._id = content_id
         return self
     
-    def with_format(self, content_format: ContentFormat) -> Self:
-        """Set the content format."""
-        self._content_format = content_format
+    def with_content_text(self, content_text: str) -> Self:
+        """Set the content text."""
+        self._content_text = content_text
         return self
     
-    def with_content(self, content: str) -> Self:
-        """Set the content."""
-        self._content = content
-        return self
-    
-    def with_source_template(self, template_name: str | TemplateName) -> Self:
-        """Set the source template."""
+    def with_template_name(self, template_name: str | TemplateName) -> Self:
+        """Set the template name."""
         if isinstance(template_name, str):
             template_name = TemplateName(template_name)
-        self._source_template = template_name
+        self._template_name = template_name
         return self
     
-    def with_source_inputs(self, inputs: Dict[str, Any]) -> Self:
-        """Set the source inputs."""
-        self._source_inputs = inputs
+    def with_content_type(self, content_type: ContentType) -> Self:
+        """Set the content type."""
+        self._content_type = content_type
         return self
     
-    def with_metadata(self, metadata: Dict[str, Any]) -> Self:
-        """Set the metadata."""
-        self._metadata = metadata
+    def with_format(self, format: ContentFormat) -> Self:
+        """Set the content format."""
+        self._format = format
+        return self
+    
+    def with_title(self, title: str) -> Self:
+        """Set the title."""
+        self._title = title
+        return self
+    
+    def with_summary(self, summary: str) -> Self:
+        """Set the summary."""
+        self._summary = summary
+        return self
+    
+    def with_style_name(self, style_name: str | StyleName) -> Self:
+        """Set the style name."""
+        if isinstance(style_name, str):
+            style_name = StyleName(style_name)
+        self._style_name = style_name
+        return self
+    
+    def with_word_count(self, word_count: int) -> Self:
+        """Set the word count."""
+        self._word_count = word_count
+        return self
+    
+    def with_character_count(self, character_count: int) -> Self:
+        """Set the character count."""
+        self._character_count = character_count
+        return self
+    
+    def with_pipeline_run_id(self, pipeline_run_id: str) -> Self:
+        """Set the pipeline run ID."""
+        self._pipeline_run_id = pipeline_run_id
+        return self
+    
+    def with_generation_metadata(
+        self,
+        step_count: int = 0,
+        generation_time: float = 0.0,
+        model_used: str = None,
+        tokens_used: int = 0,
+        cost: float = 0.0
+    ) -> Self:
+        """Set generation metadata."""
+        self._step_count = step_count
+        self._total_generation_time_seconds = generation_time
+        self._llm_model_used = model_used
+        self._total_tokens_used = tokens_used
+        self._generation_cost = cost
+        return self
+    
+    def with_quality_metrics(self, quality_metrics: Dict[str, Any]) -> Self:
+        """Set quality metrics."""
+        self._quality_metrics = quality_metrics.copy()
+        return self
+    
+    def with_approval_status(self, status: str, approved_by: str = None) -> Self:
+        """Set approval status."""
+        self._approval_status = status
+        self._approved_by = approved_by
+        if status in {"approved", "rejected"}:
+            self._approved_at = datetime.now()
+        return self
+    
+    def with_feedback(self, feedback: List[str]) -> Self:
+        """Set feedback."""
+        self._feedback = feedback.copy()
         return self
     
     def with_version(self, version: str) -> Self:
@@ -394,40 +573,78 @@ class GeneratedContentBuilder:
         self._version = version
         return self
     
-    def with_workspace(self, workspace_name: str) -> Self:
-        """Set the workspace name."""
-        self._workspace_name = workspace_name
+    def with_revision_count(self, revision_count: int) -> Self:
+        """Set revision count."""
+        self._revision_count = revision_count
+        return self
+    
+    def with_parent_content_id(self, parent_id: str | ContentId) -> Self:
+        """Set parent content ID."""
+        if isinstance(parent_id, str):
+            parent_id = ContentId(parent_id)
+        self._parent_content_id = parent_id
         return self
     
     def with_tags(self, tags: List[str]) -> Self:
         """Set the tags."""
-        self._tags = tags
+        self._tags = tags.copy()
         return self
     
-    def with_generation_info(self, template: str, inputs: Dict[str, Any]) -> Self:
-        """Set generation information."""
-        return (self
-                .with_source_template(template)
-                .with_source_inputs(inputs)
-                .with_metadata({
-                    "generated_from": template,
-                    "generation_time": datetime.now().isoformat()
-                }))
+    def with_timestamps(self, created_at: datetime, updated_at: datetime) -> Self:
+        """Set timestamps."""
+        self._created_at = created_at
+        self._updated_at = updated_at
+        return self
+    
+    def with_published_at(self, published_at: datetime) -> Self:
+        """Set published timestamp."""
+        self._published_at = published_at
+        return self
+    
+    def with_author(self, author: str) -> Self:
+        """Set the author."""
+        self._author = author
+        return self
+    
+    def with_metadata(self, metadata: Dict[str, Any]) -> Self:
+        """Set the metadata."""
+        self._metadata = metadata.copy()
+        return self
     
     def build(self) -> GeneratedContent:
         """Build the GeneratedContent."""
         return GeneratedContent(
             id=self._id,
-            content_format=self._content_format,
-            content=self._content,
-            source_template=self._source_template,
-            source_inputs=self._source_inputs,
-            metadata=self._metadata,
+            content_text=self._content_text,
+            template_name=self._template_name,
+            content_type=self._content_type,
+            format=self._format,
+            title=self._title,
+            summary=self._summary,
+            style_name=self._style_name,
+            word_count=self._word_count,
+            character_count=self._character_count,
+            content_length=self._content_length,
+            pipeline_run_id=self._pipeline_run_id,
+            step_count=self._step_count,
+            total_generation_time_seconds=self._total_generation_time_seconds,
+            llm_model_used=self._llm_model_used,
+            total_tokens_used=self._total_tokens_used,
+            generation_cost=self._generation_cost,
+            quality_metrics=self._quality_metrics,
+            approval_status=self._approval_status,
+            approved_by=self._approved_by,
+            approved_at=self._approved_at,
+            feedback=self._feedback,
             version=self._version,
-            workspace_name=self._workspace_name,
+            revision_count=self._revision_count,
+            parent_content_id=self._parent_content_id,
             tags=self._tags,
             created_at=self._created_at,
-            updated_at=self._updated_at
+            updated_at=self._updated_at,
+            published_at=self._published_at,
+            author=self._author,
+            metadata=self._metadata
         )
     
     @classmethod
@@ -445,49 +662,124 @@ Here is the main content of the article.
 This concludes {title}.
 """
         return (cls()
-                .with_format(ContentFormat.MARKDOWN)
-                .with_content(content)
-                .with_source_inputs({"title": title})
+                .with_content_text(content)
+                .with_template_name("article-template")
+                .with_content_type(ContentType.article())
+                .with_format(ContentFormat.markdown())
+                .with_title(title)
                 .with_tags(["article", "markdown"]))
     
     @classmethod
-    def json_data(cls, data: Dict[str, Any] = None) -> Self:
-        """Create a JSON data builder."""
-        test_data = data or {"test": "data", "number": 42}
-        import json
-        content = json.dumps(test_data, indent=2)
+    def blog_post(cls, title: str = "Test Blog Post") -> Self:
+        """Create a blog post builder."""
+        content = f"""# {title}
+
+This is a test blog post about {title.lower()}.
+
+Here's some engaging content for readers to enjoy.
+
+## Key Points
+
+- Point one about {title.lower()}
+- Point two with more details
+- Point three for conclusion
+
+Thanks for reading!
+"""
         return (cls()
-                .with_format(ContentFormat.JSON)
-                .with_content(content)
-                .with_source_inputs(test_data)
-                .with_tags(["data", "json"]))
+                .with_content_text(content)
+                .with_template_name("blog-post-template")
+                .with_content_type(ContentType.blog_post())
+                .with_format(ContentFormat.markdown())
+                .with_title(title)
+                .with_tags(["blog", "post", "markdown"]))
     
     @classmethod
-    def yaml_config(cls, config: Dict[str, Any] = None) -> Self:
-        """Create a YAML config builder."""
-        test_config = config or {"setting1": "value1", "setting2": 42}
-        import yaml
-        content = yaml.dump(test_config, indent=2)
+    def technical_doc(cls, topic: str = "API Documentation") -> Self:
+        """Create a technical documentation builder."""
+        content = f"""# {topic}
+
+## Overview
+This document describes the {topic.lower()}.
+
+## Usage
+```python
+# Example code for {topic.lower()}
+import api
+result = api.call()
+```
+
+## Parameters
+- `param1`: Description of parameter 1
+- `param2`: Description of parameter 2
+
+## Returns
+Returns a result object with the following structure:
+```json
+{{"status": "success", "data": "..."}}
+```
+"""
         return (cls()
-                .with_format(ContentFormat.YAML)
-                .with_content(content)
-                .with_source_inputs(test_config)
-                .with_tags(["config", "yaml"]))
+                .with_content_text(content)
+                .with_template_name("tech-doc-template")
+                .with_content_type(ContentType.documentation())
+                .with_format(ContentFormat.markdown())
+                .with_title(topic)
+                .with_tags(["technical", "documentation", "api"]))
     
     @classmethod
-    def from_template(cls, template_name: str, inputs: Dict[str, Any]) -> Self:
-        """Create content from template inputs."""
-        content = f"Generated from {template_name} with inputs: {inputs}"
+    def email_content(cls, subject: str = "Test Email") -> Self:
+        """Create an email content builder."""
+        content = f"""Subject: {subject}
+
+Dear Recipient,
+
+This is a test email regarding {subject.lower()}.
+
+Please find the important information below:
+
+- Item 1: Important detail
+- Item 2: Another detail
+- Item 3: Final note
+
+Best regards,
+Test Author
+"""
         return (cls()
-                .with_content(content)
-                .with_generation_info(template_name, inputs)
-                .with_tags(["generated", "template"]))
+                .with_content_text(content)
+                .with_template_name("email-template")
+                .with_content_type(ContentType.email())
+                .with_format(ContentFormat.plain_text())
+                .with_title(subject)
+                .with_tags(["email", "communication"]))
     
     @classmethod
-    def large_content(cls, size_kb: int = 10) -> Self:
-        """Create large content for testing."""
-        content = "Large content test. " * (size_kb * 50)  # Rough KB estimate
-        return (cls()
-                .with_content(content)
-                .with_metadata({"size_estimate_kb": size_kb})
-                .with_tags(["large", "test"]))
+    def approved_content(cls, title: str = "Approved Content") -> Self:
+        """Create approved content builder."""
+        return (cls.markdown_article(title)
+                .with_approval_status("approved", "reviewer@example.com")
+                .with_quality_metrics({
+                    "overall_score": 8.5,
+                    "readability_score": 9.0,
+                    "seo_score": 7.5
+                }))
+    
+    @classmethod
+    def published_content(cls, title: str = "Published Content") -> Self:
+        """Create published content builder."""
+        now = datetime.now()
+        return (cls.approved_content(title)
+                .with_published_at(now))
+    
+    @classmethod
+    def with_generation_stats(cls, title: str = "Generated Content") -> Self:
+        """Create content with generation statistics."""
+        return (cls.markdown_article(title)
+                .with_generation_metadata(
+                    step_count=3,
+                    generation_time=45.2,
+                    model_used="gpt-4o-mini",
+                    tokens_used=1250,
+                    cost=0.025
+                )
+                .with_pipeline_run_id("run-12345"))

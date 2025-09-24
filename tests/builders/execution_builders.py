@@ -16,24 +16,23 @@ class LLMProviderBuilder:
     """Builder for LLMProvider test data."""
     
     def __init__(self) -> None:
-        self._provider_name = "test_provider"
+        self._name = "test_provider"
         self._provider_type = ProviderType.OPENAI
-        self._api_key = "test_api_key"
-        self._api_base_url = "https://api.openai.com/v1"
-        self._supported_models = [ModelName("gpt-4o-mini"), ModelName("gpt-4o")]
-        self._default_model = ModelName("gpt-4o-mini")
+        self._status = None
+        self._api_key_ref = "test_api_key"
+        self._base_url = "https://api.openai.com/v1"
+        self._supported_models = []
+        self._capabilities = {}
         self._rate_limits = {}
-        self._configuration = {}
-        self._is_active = True
-        self._health_status = "healthy"
+        self._error_message = None
+        self._last_health_check = None
         self._metadata = {}
         self._created_at = datetime.now()
         self._updated_at = datetime.now()
-        self._last_used = None
     
     def with_name(self, name: str) -> Self:
         """Set the provider name."""
-        self._provider_name = name
+        self._name = name
         return self
     
     def with_type(self, provider_type: str | ProviderType) -> Self:
@@ -44,14 +43,22 @@ class LLMProviderBuilder:
         self._provider_type = provider_type
         return self
     
-    def with_api_key(self, api_key: str) -> Self:
-        """Set the API key."""
-        self._api_key = api_key
+    def with_status(self, status: str) -> Self:
+        """Set the provider status."""
+        from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
+        if isinstance(status, str):
+            status = ProviderStatus(status.lower())
+        self._status = status
         return self
     
-    def with_api_base_url(self, base_url: str) -> Self:
-        """Set the API base URL."""
-        self._api_base_url = base_url
+    def with_api_key_ref(self, api_key_ref: str) -> Self:
+        """Set the API key reference."""
+        self._api_key_ref = api_key_ref
+        return self
+    
+    def with_base_url(self, base_url: str) -> Self:
+        """Set the base URL."""
+        self._base_url = base_url
         return self
     
     def with_supported_models(self, models: List[str | ModelName]) -> Self:
@@ -59,129 +66,164 @@ class LLMProviderBuilder:
         model_names = []
         for model in models:
             if isinstance(model, str):
-                model = ModelName(model)
+                model = ModelName.from_string(model)
             model_names.append(model)
         self._supported_models = model_names
         return self
     
-    def with_default_model(self, model: str | ModelName) -> Self:
-        """Set the default model."""
-        if isinstance(model, str):
-            model = ModelName(model)
-        self._default_model = model
+    def with_capabilities(self, capabilities: Dict[str, bool]) -> Self:
+        """Set the capabilities."""
+        self._capabilities = capabilities.copy()
         return self
     
-    def with_rate_limits(self, limits: Dict[str, Any]) -> Self:
+    def with_rate_limits(self, limits: Dict[str, int]) -> Self:
         """Set the rate limits."""
-        self._rate_limits = limits
+        self._rate_limits = limits.copy()
         return self
     
-    def with_configuration(self, config: Dict[str, Any]) -> Self:
-        """Set the configuration."""
-        self._configuration = config
+    def with_error_message(self, error_message: str) -> Self:
+        """Set the error message."""
+        self._error_message = error_message
         return self
     
-    def active(self) -> Self:
-        """Mark the provider as active."""
-        self._is_active = True
-        return self
-    
-    def inactive(self) -> Self:
-        """Mark the provider as inactive."""
-        self._is_active = False
-        return self
-    
-    def with_health_status(self, status: str) -> Self:
-        """Set the health status."""
-        self._health_status = status
-        return self
-    
-    def healthy(self) -> Self:
-        """Mark the provider as healthy."""
-        self._health_status = "healthy"
-        return self
-    
-    def unhealthy(self, reason: str = "connection_error") -> Self:
-        """Mark the provider as unhealthy."""
-        self._health_status = f"unhealthy: {reason}"
+    def with_last_health_check(self, last_check: datetime) -> Self:
+        """Set the last health check time."""
+        self._last_health_check = last_check
         return self
     
     def with_metadata(self, metadata: Dict[str, Any]) -> Self:
         """Set the metadata."""
-        self._metadata = metadata
+        self._metadata = metadata.copy()
         return self
     
-    def recently_used(self) -> Self:
-        """Mark the provider as recently used."""
-        self._last_used = datetime.now()
+    def with_timestamps(self, created_at: datetime, updated_at: datetime) -> Self:
+        """Set the timestamps."""
+        self._created_at = created_at
+        self._updated_at = updated_at
+        return self
+    
+    def active(self) -> Self:
+        """Mark the provider as active."""
+        from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
+        self._status = ProviderStatus.ACTIVE
+        return self
+    
+    def inactive(self) -> Self:
+        """Mark the provider as inactive."""
+        from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
+        self._status = ProviderStatus.INACTIVE
+        return self
+    
+    def maintenance(self) -> Self:
+        """Mark the provider as under maintenance."""
+        from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
+        self._status = ProviderStatus.MAINTENANCE
+        return self
+    
+    def error(self, message: str = "Provider error") -> Self:
+        """Mark the provider as having an error."""
+        from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
+        self._status = ProviderStatus.ERROR
+        self._error_message = message
         return self
     
     def build(self) -> LLMProvider:
         """Build the LLMProvider."""
         from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
         
-        # Map internal fields to entity constructor
+        # Use default status if not set
+        status = self._status or ProviderStatus.ACTIVE
+        
         return LLMProvider(
-            name=self._provider_name,
+            name=self._name,
             provider_type=self._provider_type,
-            status=ProviderStatus.ACTIVE if self._is_active else ProviderStatus.INACTIVE,
-            api_key_ref=self._api_key,
-            base_url=self._api_base_url,
+            status=status,
+            api_key_ref=self._api_key_ref,
+            base_url=self._base_url,
             supported_models=self._supported_models,
+            capabilities=self._capabilities,
             rate_limits=self._rate_limits,
+            error_message=self._error_message,
+            last_health_check=self._last_health_check,
             created_at=self._created_at,
             updated_at=self._updated_at,
             metadata=self._metadata
         )
     
     @classmethod
-    def openai(cls, name: str = "openai_test") -> Self:
+    def openai(cls, name: str = "OpenAI Provider") -> Self:
         """Create an OpenAI provider builder."""
         return (cls()
                 .with_name(name)
                 .with_type("openai")
-                .with_api_base_url("https://api.openai.com/v1")
+                .with_base_url("https://api.openai.com/v1")
                 .with_supported_models(["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"])
-                .with_default_model("gpt-4o-mini")
+                .with_capabilities({
+                    "streaming": True,
+                    "function_calling": True,
+                    "vision": True
+                })
                 .with_rate_limits({
-                    "requests_per_minute": 3000,
-                    "tokens_per_minute": 250000
+                    "requests_per_minute": 3500,
+                    "tokens_per_minute": 500000
+                })
+                .with_metadata({
+                    "max_tokens_gpt-4o": 128000,
+                    "max_tokens_gpt-4o-mini": 128000,
+                    "max_tokens_gpt-3.5-turbo": 16384
                 }))
     
     @classmethod
-    def anthropic(cls, name: str = "anthropic_test") -> Self:
+    def anthropic(cls, name: str = "Anthropic Provider") -> Self:
         """Create an Anthropic provider builder."""
         return (cls()
                 .with_name(name)
                 .with_type("anthropic")
-                .with_api_base_url("https://api.anthropic.com/v1")
+                .with_base_url("https://api.anthropic.com/v1")
                 .with_supported_models(["claude-3-haiku", "claude-3-sonnet", "claude-3-opus"])
-                .with_default_model("claude-3-haiku")
+                .with_capabilities({
+                    "streaming": True,
+                    "function_calling": True,
+                    "vision": False
+                })
                 .with_rate_limits({
                     "requests_per_minute": 1000,
                     "tokens_per_minute": 100000
+                })
+                .with_metadata({
+                    "max_tokens_claude-3-haiku": 200000,
+                    "max_tokens_claude-3-sonnet": 200000,
+                    "max_tokens_claude-3-opus": 200000
                 }))
     
     @classmethod
-    def local(cls, name: str = "local_test") -> Self:
+    def local(cls, name: str = "Local Provider") -> Self:
         """Create a local provider builder."""
         return (cls()
                 .with_name(name)
                 .with_type("local")
-                .with_api_base_url("http://localhost:8080")
+                .with_base_url("http://localhost:8080")
                 .with_supported_models(["llama2", "codellama"])
-                .with_default_model("llama2")
+                .with_capabilities({
+                    "streaming": False,
+                    "function_calling": False,
+                    "vision": False
+                })
                 .with_rate_limits({}))
     
     @classmethod
-    def mock_provider(cls, name: str = "mock_test") -> Self:
+    def mock_provider(cls, name: str = "Mock Provider") -> Self:
         """Create a mock provider builder."""
         return (cls()
                 .with_name(name)
                 .with_type("mock")
-                .with_api_base_url("http://mock.test")
-                .with_supported_models(["mock-model"])
-                .with_default_model("mock-model")
+                .with_base_url("http://mock.test")
+                .with_supported_models(["mock-model", "test-model"])
+                .with_capabilities({
+                    "streaming": True,
+                    "function_calling": True,
+                    "vision": True
+                })
                 .with_rate_limits({}))
 
 
