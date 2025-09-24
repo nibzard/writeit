@@ -326,22 +326,22 @@ class ContentAnalyticsQueryResult(QueryResult):
 
 # Query Handler Interfaces
 
-class TemplateQueryHandler(QueryHandler[TemplateQueryResult], ABC):
+class TemplateQueryHandler(QueryHandler[GetTemplatesQuery, TemplateQueryResult], ABC):
     """Base interface for template query handlers."""
     pass
 
 
-class GeneratedContentQueryHandler(QueryHandler[GeneratedContentQueryResult], ABC):
+class GeneratedContentQueryHandler(QueryHandler[ListGeneratedContentQuery, GeneratedContentQueryResult], ABC):
     """Base interface for generated content query handlers."""
     pass
 
 
-class StylePrimerQueryHandler(QueryHandler[StylePrimerQueryResult], ABC):
+class StylePrimerQueryHandler(QueryHandler[GetStylePrimersQuery, StylePrimerQueryResult], ABC):
     """Base interface for style primer query handlers."""
     pass
 
 
-class ContentAnalyticsQueryHandler(QueryHandler[ContentAnalyticsQueryResult], ABC):
+class ContentAnalyticsQueryHandler(QueryHandler[GetContentAnalyticsQuery, ContentAnalyticsQueryResult], ABC):
     """Base interface for content analytics query handlers."""
     pass
 

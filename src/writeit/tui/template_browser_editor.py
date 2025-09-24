@@ -33,7 +33,7 @@ from textual.widgets import (
 from textual.reactive import reactive
 from textual.binding import Binding
 
-from ...application.services.content_application_service import (
+from ..application.services.content_application_service import (
     ContentApplicationService,
     ContentListingRequest,
     ContentListingScope,
@@ -42,10 +42,10 @@ from ...application.services.content_application_service import (
     ContentValidationRequest,
     ContentValidationLevel,
 )
-from ...application.services.workspace_application_service import (
+from ..application.services.workspace_application_service import (
     WorkspaceApplicationService,
 )
-from ...shared.dependencies.container import Container as DIContainer
+from ..shared.dependencies.container import Container as DIContainer
 
 
 class TemplateEditorMode(str, Enum):
@@ -798,7 +798,7 @@ class TemplateBrowserEditorApp(App[None]):
         """Initialize required services."""
         try:
             # Create DI container
-            from ...application.di_config import DIConfiguration
+            from ..application.di_config import DIConfiguration
             self.di_container = DIConfiguration.create_container(
                 base_path=Path.cwd(),
                 workspace_name=self.workspace_name

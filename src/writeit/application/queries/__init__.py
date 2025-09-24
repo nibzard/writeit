@@ -83,8 +83,6 @@ from .workspace_queries import (
     GetWorkspaceTemplateQueryHandler,
     
     # Enums
-    WorkspaceStatus,
-    WorkspaceScope,
 )
 
 from .content_queries import (
@@ -261,8 +259,6 @@ __all__ = [
     "GetWorkspaceTemplateQueryHandler",
     
     # Workspace Enums
-    "WorkspaceStatus",
-    "WorkspaceScope",
     
     # Template Queries
     "GetTemplatesQuery",

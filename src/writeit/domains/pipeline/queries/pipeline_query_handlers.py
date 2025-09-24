@@ -48,7 +48,7 @@ from .pipeline_queries import (
 )
 
 
-class GetPipelineTemplatesHandler(QueryHandler[GetPipelineTemplatesResult]):
+class GetPipelineTemplatesHandler(QueryHandler[GetPipelineTemplatesQuery, GetPipelineTemplatesResult]):
     """Handler for listing pipeline templates with filtering and pagination."""
     
     def __init__(
@@ -166,7 +166,7 @@ class GetPipelineTemplatesHandler(QueryHandler[GetPipelineTemplatesResult]):
         return errors
 
 
-class GetPipelineTemplateHandler(QueryHandler[GetPipelineTemplateResult]):
+class GetPipelineTemplateHandler(QueryHandler[GetPipelineTemplateQuery, GetPipelineTemplateResult]):
     """Handler for getting a specific pipeline template."""
     
     def __init__(
@@ -254,7 +254,7 @@ class GetPipelineTemplateHandler(QueryHandler[GetPipelineTemplateResult]):
         return errors
 
 
-class GetPipelineRunHandler(QueryHandler[GetPipelineRunResult]):
+class GetPipelineRunHandler(QueryHandler[GetPipelineRunQuery, GetPipelineRunResult]):
     """Handler for getting a specific pipeline run."""
     
     def __init__(
@@ -357,7 +357,7 @@ class GetPipelineRunHandler(QueryHandler[GetPipelineRunResult]):
         return errors
 
 
-class GetPipelineRunsHandler(QueryHandler[GetPipelineRunsResult]):
+class GetPipelineRunsHandler(QueryHandler[GetPipelineRunsQuery, GetPipelineRunsResult]):
     """Handler for listing pipeline runs with filtering and pagination."""
     
     def __init__(self, run_repository: PipelineRunRepository):
@@ -452,7 +452,7 @@ class GetPipelineRunsHandler(QueryHandler[GetPipelineRunsResult]):
             )
 
 
-class SearchPipelineTemplatesHandler(QueryHandler[SearchPipelineTemplatesResult]):
+class SearchPipelineTemplatesHandler(QueryHandler[SearchPipelineTemplatesQuery, SearchPipelineTemplatesResult]):
     """Handler for searching pipeline templates by text content."""
     
     def __init__(self, template_repository: PipelineTemplateRepository):
@@ -561,7 +561,7 @@ class SearchPipelineTemplatesHandler(QueryHandler[SearchPipelineTemplatesResult]
             )
 
 
-class GetPipelineHistoryHandler(QueryHandler[GetPipelineHistoryResult]):
+class GetPipelineHistoryHandler(QueryHandler[GetPipelineHistoryQuery, GetPipelineHistoryResult]):
     """Handler for getting pipeline execution history and analytics."""
     
     def __init__(
@@ -699,7 +699,7 @@ class GetPipelineHistoryHandler(QueryHandler[GetPipelineHistoryResult]):
         return {"placeholder": "step_performance_data"}
 
 
-class GetPipelineMetricsHandler(QueryHandler[GetPipelineMetricsResult]):
+class GetPipelineMetricsHandler(QueryHandler[GetPipelineMetricsQuery, GetPipelineMetricsResult]):
     """Handler for getting pipeline performance metrics and KPIs."""
     
     def __init__(
@@ -866,7 +866,7 @@ class GetPipelineMetricsHandler(QueryHandler[GetPipelineMetricsResult]):
         return recommendations
 
 
-class GetStepExecutionsHandler(QueryHandler[GetStepExecutionsResult]):
+class GetStepExecutionsHandler(QueryHandler[GetStepExecutionsQuery, GetStepExecutionsResult]):
     """Handler for listing step executions with filtering and pagination."""
     
     def __init__(self, step_repository: StepExecutionRepository):

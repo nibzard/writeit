@@ -35,18 +35,18 @@ from textual.widgets import (
 from textual.reactive import reactive
 from textual.binding import Binding
 
-from ...application.di_config import DIConfiguration
-from ...application.services.pipeline_application_service import (
+from ..application.di_config import DIConfiguration
+from ..application.services.pipeline_application_service import (
     PipelineApplicationService,
     PipelineExecutionRequest,
     PipelineExecutionResult,
     PipelineExecutionMode,
     PipelineSource,
 )
-from ...application.services.workspace_application_service import (
+from ..application.services.workspace_application_service import (
     WorkspaceApplicationService,
 )
-from ...shared.dependencies.container import Container as DIContainer
+from ..shared.dependencies.container import Container as DIContainer
 
 
 @dataclass

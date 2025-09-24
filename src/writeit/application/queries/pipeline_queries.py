@@ -289,17 +289,32 @@ class PipelineAnalyticsQueryResult(QueryResult):
 
 # Query Handler Interfaces
 
-class PipelineTemplateQueryHandler(QueryHandler[PipelineTemplateQueryResult], ABC):
+class PipelineTemplateQueryHandler(QueryHandler[GetPipelineTemplateQuery, PipelineTemplateQueryResult], ABC):
     """Base interface for pipeline template query handlers."""
     pass
 
 
-class PipelineRunQueryHandler(QueryHandler[PipelineRunQueryResult], ABC):
+class ListPipelineTemplatesQueryHandler(QueryHandler[ListPipelineTemplatesQuery, PipelineTemplateQueryResult], ABC):
+    """Base interface for listing pipeline templates query handlers."""
+    pass
+
+
+class SearchPipelineTemplatesQueryHandler(QueryHandler[SearchPipelineTemplatesQuery, PipelineTemplateQueryResult], ABC):
+    """Base interface for searching pipeline templates query handlers."""
+    pass
+
+
+class PipelineRunQueryHandler(QueryHandler[GetPipelineRunQuery, PipelineRunQueryResult], ABC):
     """Base interface for pipeline run query handlers."""
     pass
 
 
-class PipelineAnalyticsQueryHandler(QueryHandler[PipelineAnalyticsQueryResult], ABC):
+class ListPipelineRunsQueryHandler(QueryHandler[ListPipelineRunsQuery, PipelineRunQueryResult], ABC):
+    """Base interface for listing pipeline runs query handlers."""
+    pass
+
+
+class PipelineAnalyticsQueryHandler(QueryHandler[GetPipelineAnalyticsQuery, PipelineAnalyticsQueryResult], ABC):
     """Base interface for pipeline analytics query handlers."""
     pass
 
@@ -315,7 +330,7 @@ class GetPipelineTemplateQueryHandler(PipelineTemplateQueryHandler):
         pass
 
 
-class ListPipelineTemplatesQueryHandler(PipelineTemplateQueryHandler):
+class ListPipelineTemplatesQueryHandler(ListPipelineTemplatesQueryHandler):
     """Handler for listing pipeline templates."""
     
     @abstractmethod
@@ -324,7 +339,7 @@ class ListPipelineTemplatesQueryHandler(PipelineTemplateQueryHandler):
         pass
 
 
-class SearchPipelineTemplatesQueryHandler(PipelineTemplateQueryHandler):
+class SearchPipelineTemplatesQueryHandler(SearchPipelineTemplatesQueryHandler):
     """Handler for searching pipeline templates."""
     
     @abstractmethod
@@ -342,7 +357,7 @@ class GetPipelineRunQueryHandler(PipelineRunQueryHandler):
         pass
 
 
-class ListPipelineRunsQueryHandler(PipelineRunQueryHandler):
+class ListPipelineRunsQueryHandler(ListPipelineRunsQueryHandler):
     """Handler for listing pipeline runs."""
     
     @abstractmethod

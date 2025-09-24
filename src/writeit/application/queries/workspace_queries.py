@@ -1,174 +1,148 @@
-"""Workspace CQRS Queries.
+"""Workspace query definitions for application layer.
 
-Queries for read operations related to workspace management,
-configuration, and isolation.
+Provides application-level queries for workspace operations with proper
+abstraction and type safety.
 """
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional, Union
 from enum import Enum
 
-from ...shared.query import Query, QueryHandler, QueryResult, ListQuery, GetByIdQuery, SearchQuery
+from ...shared.query import (
+    Query,
+    QueryResult,
+    ListQuery,
+    GetByIdQuery,
+    SearchQuery,
+    PaginationInfo,
+    QueryHandler
+)
 from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.workspace.entities import Workspace, WorkspaceConfiguration
+from ...domains.workspace.entities import Workspace
+from ...domains.workspace.services.workspace_configuration_service import (
+    ConfigurationScope,
+    ConfigurationSchema
+)
 
 
-class WorkspaceStatus(str, Enum):
-    """Workspace status for filtering."""
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    ARCHIVED = "archived"
-    INITIALIZING = "initializing"
-    ERROR = "error"
+class WorkspaceSortField(Enum):
+    """Available fields for sorting workspaces."""
+    NAME = "name"
+    CREATED_AT = "created_at"
+    UPDATED_AT = "updated_at"
+    SIZE = "size"
+    PIPELINE_COUNT = "pipeline_count"
 
-
-class WorkspaceScope(str, Enum):
-    """Workspace scope for filtering."""
-    USER = "user"
-    GLOBAL = "global"
-    SYSTEM = "system"
-
-
-# Workspace Management Queries
 
 @dataclass(frozen=True)
 class GetWorkspacesQuery(ListQuery):
-    """Query to list all workspaces with filtering and pagination."""
+    """Query for listing workspaces with filtering and pagination."""
     
-    scope: Optional[WorkspaceScope] = None
-    status: Optional[WorkspaceStatus] = None
-    created_after: Optional[datetime] = None
-    created_before: Optional[datetime] = None
-    last_accessed_after: Optional[datetime] = None
-    include_stats: bool = True
-    include_config: bool = False
+    include_inactive: bool = False
+    include_analytics: bool = False
+    name_filter: Optional[str] = None
 
 
 @dataclass(frozen=True)
 class GetWorkspaceQuery(GetByIdQuery):
-    """Query to get a workspace by name."""
+    """Query for getting workspace by name."""
     
-    workspace_name: WorkspaceName = field(default=None)
-    include_config: bool = True
-    include_stats: bool = True
-    include_templates: bool = False
-    
-    def __post_init__(self):
-        object.__setattr__(self, 'entity_id', str(self.workspace_name))
-        super().__post_init__()
+    workspace_name: str
 
 
 @dataclass(frozen=True)
 class GetActiveWorkspaceQuery(Query):
-    """Query to get the currently active workspace."""
+    """Query for getting the active workspace."""
     
-    include_config: bool = True
-    include_stats: bool = True
+    pass
 
 
 @dataclass(frozen=True)
 class GetWorkspaceConfigQuery(Query):
-    """Query to get workspace configuration."""
+    """Query for getting workspace configuration."""
     
-    workspace_name: Optional[WorkspaceName] = None  # None for active workspace
+    workspace_name: str = ""
+    scope: ConfigurationScope = ConfigurationScope.WORKSPACE
 
 
 @dataclass(frozen=True)
 class GetWorkspaceStatsQuery(Query):
-    """Query to get workspace statistics."""
+    """Query for getting workspace statistics."""
     
-    workspace_name: Optional[WorkspaceName] = None  # None for active workspace
-    include_pipeline_stats: bool = True
-    include_content_stats: bool = True
-    include_storage_stats: bool = True
+    workspace_name: str = ""
+    include_analytics: bool = True
 
 
 @dataclass(frozen=True)
 class SearchWorkspacesQuery(SearchQuery):
-    """Query to search workspaces by text."""
+    """Query for searching workspaces."""
     
-    scope: Optional[WorkspaceScope] = None
-    status: Optional[WorkspaceStatus] = None
-    search_fields: List[str] = field(default_factory=list)
+    search_fields: List[str] = field(default_factory=lambda: ["name", "description"])
     
     def __post_init__(self):
-        # Set default search fields if empty list
-        if not self.search_fields:
-            object.__setattr__(self, 'search_fields', ['name', 'description', 'tags'])
+        """Initialize with default search term if not provided."""
         super().__post_init__()
+        
+        # Set a default search term if empty
+        if not self.search_term or not self.search_term.strip():
+            object.__setattr__(self, 'search_term', '*')  # Match all
 
-
-# Workspace Template Queries
-
-@dataclass(frozen=True)
-class GetWorkspaceTemplatesQuery(ListQuery):
-    """Query to list workspace templates."""
-    
-    scope: Optional[WorkspaceScope] = None
-    category: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    
-    def __post_init__(self):
-        # Tags default is now handled by field(default_factory=list)
-        super().__post_init__()
-
-
-@dataclass(frozen=True)
-class GetWorkspaceTemplateQuery(GetByIdQuery):
-    """Query to get a workspace template by name."""
-    
-    template_name: str = ""
-    
-    def __post_init__(self):
-        object.__setattr__(self, 'entity_id', self.template_name)
-        super().__post_init__()
-
-
-# Workspace Validation Queries
 
 @dataclass(frozen=True)
 class ValidateWorkspaceNameQuery(Query):
-    """Query to validate workspace name availability."""
+    """Query for validating workspace name."""
     
-    workspace_name: WorkspaceName = field(default=None)
+    name: str = ""
+    check_exists: bool = True
 
 
 @dataclass(frozen=True)
 class CheckWorkspaceExistsQuery(Query):
-    """Query to check if workspace exists."""
+    """Query for checking if workspace exists."""
     
-    workspace_name: WorkspaceName = field(default=None)
+    name: str = ""
 
 
 @dataclass(frozen=True)
 class GetWorkspaceHealthQuery(Query):
-    """Query to get workspace health status."""
+    """Query for getting workspace health status."""
     
-    workspace_name: Optional[WorkspaceName] = None  # None for active workspace
-    check_storage: bool = True
-    check_permissions: bool = True
-    check_integrity: bool = True
+    workspace_name: str = ""
+    include_detailed: bool = False
 
 
-# Query Results
+@dataclass(frozen=True)
+class GetWorkspaceTemplatesQuery(ListQuery):
+    """Query for getting workspace templates."""
+    
+    workspace_name: str = ""
+    template_type: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class GetWorkspaceTemplateQuery(GetByIdQuery):
+    """Query for getting workspace template by name."""
+    
+    workspace_name: str = ""
+    template_name: str = ""
+
+
+# Query Result Classes
 
 @dataclass(frozen=True)
 class WorkspaceQueryResult(QueryResult):
-    """Result for workspace queries."""
+    """Base result for workspace queries."""
     
-    workspaces: List[Workspace] = field(default_factory=list)
     workspace: Optional[Workspace] = None
-    config: Optional[WorkspaceConfiguration] = None
+    workspaces: List[Workspace] = field(default_factory=list)
+    config: Optional[Dict[str, Any]] = None
     stats: Optional[Dict[str, Any]] = None
     health: Optional[Dict[str, Any]] = None
     exists: Optional[bool] = None
+    is_valid: Optional[bool] = None
     validation_errors: List[str] = field(default_factory=list)
-    
-    def __post_init__(self):
-        # All defaults are now handled by field(default_factory=list)
-        super().__post_init__()
 
 
 @dataclass(frozen=True)
@@ -177,120 +151,60 @@ class WorkspaceTemplateQueryResult(QueryResult):
     
     templates: List[Dict[str, Any]] = field(default_factory=list)
     template: Optional[Dict[str, Any]] = None
-    
-    def __post_init__(self):
-        # All defaults are now handled by field(default_factory=list)
-        super().__post_init__()
 
 
 # Query Handler Interfaces
 
-class WorkspaceQueryHandler(QueryHandler[WorkspaceQueryResult], ABC):
-    """Base interface for workspace query handlers."""
+class GetWorkspacesQueryHandler(QueryHandler[GetWorkspacesQuery, WorkspaceQueryResult], ABC):
+    """Base interface for getting workspaces query handlers."""
     pass
 
 
-class WorkspaceTemplateQueryHandler(QueryHandler[WorkspaceTemplateQueryResult], ABC):
-    """Base interface for workspace template query handlers."""
+class GetWorkspaceQueryHandler(QueryHandler[GetWorkspaceQuery, WorkspaceQueryResult], ABC):
+    """Base interface for getting workspace query handlers."""
     pass
 
 
-# Specific Query Handlers
-
-class GetWorkspacesQueryHandler(WorkspaceQueryHandler):
-    """Handler for listing workspaces."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspacesQuery) -> WorkspaceQueryResult:
-        """Handle list workspaces query."""
-        pass
+class GetActiveWorkspaceQueryHandler(QueryHandler[GetActiveWorkspaceQuery, WorkspaceQueryResult], ABC):
+    """Base interface for getting active workspace query handlers."""
+    pass
 
 
-class GetWorkspaceQueryHandler(WorkspaceQueryHandler):
-    """Handler for getting workspace by name."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspaceQuery) -> WorkspaceQueryResult:
-        """Handle get workspace query."""
-        pass
+class GetWorkspaceConfigQueryHandler(QueryHandler[GetWorkspaceConfigQuery, WorkspaceQueryResult], ABC):
+    """Base interface for getting workspace config query handlers."""
+    pass
 
 
-class GetActiveWorkspaceQueryHandler(WorkspaceQueryHandler):
-    """Handler for getting active workspace."""
-    
-    @abstractmethod
-    async def handle(self, query: GetActiveWorkspaceQuery) -> WorkspaceQueryResult:
-        """Handle get active workspace query."""
-        pass
+class GetWorkspaceStatsQueryHandler(QueryHandler[GetWorkspaceStatsQuery, WorkspaceQueryResult], ABC):
+    """Base interface for getting workspace stats query handlers."""
+    pass
 
 
-class GetWorkspaceConfigQueryHandler(WorkspaceQueryHandler):
-    """Handler for getting workspace configuration."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspaceConfigQuery) -> WorkspaceQueryResult:
-        """Handle get workspace config query."""
-        pass
+class SearchWorkspacesQueryHandler(QueryHandler[SearchWorkspacesQuery, WorkspaceQueryResult], ABC):
+    """Base interface for searching workspaces query handlers."""
+    pass
 
 
-class GetWorkspaceStatsQueryHandler(WorkspaceQueryHandler):
-    """Handler for getting workspace statistics."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspaceStatsQuery) -> WorkspaceQueryResult:
-        """Handle get workspace stats query."""
-        pass
+class ValidateWorkspaceNameQueryHandler(QueryHandler[ValidateWorkspaceNameQuery, WorkspaceQueryResult], ABC):
+    """Base interface for validating workspace name query handlers."""
+    pass
 
 
-class SearchWorkspacesQueryHandler(WorkspaceQueryHandler):
-    """Handler for searching workspaces."""
-    
-    @abstractmethod
-    async def handle(self, query: SearchWorkspacesQuery) -> WorkspaceQueryResult:
-        """Handle search workspaces query."""
-        pass
+class CheckWorkspaceExistsQueryHandler(QueryHandler[CheckWorkspaceExistsQuery, WorkspaceQueryResult], ABC):
+    """Base interface for checking workspace exists query handlers."""
+    pass
 
 
-class ValidateWorkspaceNameQueryHandler(WorkspaceQueryHandler):
-    """Handler for validating workspace name."""
-    
-    @abstractmethod
-    async def handle(self, query: ValidateWorkspaceNameQuery) -> WorkspaceQueryResult:
-        """Handle validate workspace name query."""
-        pass
+class GetWorkspaceHealthQueryHandler(QueryHandler[GetWorkspaceHealthQuery, WorkspaceQueryResult], ABC):
+    """Base interface for getting workspace health query handlers."""
+    pass
 
 
-class CheckWorkspaceExistsQueryHandler(WorkspaceQueryHandler):
-    """Handler for checking workspace existence."""
-    
-    @abstractmethod
-    async def handle(self, query: CheckWorkspaceExistsQuery) -> WorkspaceQueryResult:
-        """Handle check workspace exists query."""
-        pass
+class GetWorkspaceTemplatesQueryHandler(QueryHandler[GetWorkspaceTemplatesQuery, WorkspaceTemplateQueryResult], ABC):
+    """Base interface for getting workspace templates query handlers."""
+    pass
 
 
-class GetWorkspaceHealthQueryHandler(WorkspaceQueryHandler):
-    """Handler for getting workspace health."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspaceHealthQuery) -> WorkspaceQueryResult:
-        """Handle get workspace health query."""
-        pass
-
-
-class GetWorkspaceTemplatesQueryHandler(WorkspaceTemplateQueryHandler):
-    """Handler for listing workspace templates."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspaceTemplatesQuery) -> WorkspaceTemplateQueryResult:
-        """Handle list workspace templates query."""
-        pass
-
-
-class GetWorkspaceTemplateQueryHandler(WorkspaceTemplateQueryHandler):
-    """Handler for getting workspace template."""
-    
-    @abstractmethod
-    async def handle(self, query: GetWorkspaceTemplateQuery) -> WorkspaceTemplateQueryResult:
-        """Handle get workspace template query."""
-        pass
+class GetWorkspaceTemplateQueryHandler(QueryHandler[GetWorkspaceTemplateQuery, WorkspaceTemplateQueryResult], ABC):
+    """Base interface for getting workspace template query handlers."""
+    pass

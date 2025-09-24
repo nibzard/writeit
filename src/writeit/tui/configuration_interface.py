@@ -37,13 +37,13 @@ from textual.screen import ModalScreen
 from textual.message import Message
 from textual.timer import Timer
 
-from ...domains.workspace.services.workspace_configuration_service import (
+from ..domains.workspace.services.workspace_configuration_service import (
     WorkspaceConfigurationService,
     ConfigurationValidationIssue,
     ConfigurationScope,
     ConfigurationSchema,
 )
-from ...shared.dependencies.container import Container as DIContainer
+from ..shared.dependencies.container import Container as DIContainer
 
 
 @dataclass
