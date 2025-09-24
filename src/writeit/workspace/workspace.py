@@ -1,9 +1,18 @@
 # ABOUTME: Core Workspace class for managing centralized ~/.writeit directory
 # ABOUTME: Handles workspace creation, configuration, and file operations
+# DEPRECATED: This module is deprecated. Use writeit.domains.workspace and writeit.application.services instead.
 from pathlib import Path
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 import yaml
+import warnings
+
+# Issue deprecation warning
+warnings.warn(
+    "writeit.workspace is deprecated. Use writeit.domains.workspace and writeit.application.services instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 class WorkspaceConfig(BaseModel):

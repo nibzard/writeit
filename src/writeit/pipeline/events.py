@@ -1,18 +1,52 @@
 # ABOUTME: Event sourcing system for WriteIt pipeline state management
 # ABOUTME: Provides immutable state with copy-on-write branching and event replay
+# DEPRECATED: This module is deprecated. Use writeit.domains.pipeline.events instead.
 
 import uuid
 from dataclasses import dataclass, field, asdict, replace
 from typing import Dict, Any, List, Optional
 from datetime import datetime, UTC
 from enum import Enum
+import warnings
 
-from writeit.models import PipelineRun, StepExecution, PipelineStatus, StepStatus
+# Import from DDD structure
+from writeit.domains.pipeline.events import (
+    PipelineExecutionStarted,
+    PipelineExecutionCompleted,
+    PipelineExecutionFailed,
+    StepExecutionStarted,
+    StepExecutionCompleted,
+    StepExecutionFailed
+)
+from writeit.domains.pipeline.entities import PipelineRun, StepExecution
+from writeit.domains.pipeline.value_objects import ExecutionStatus
+
+# Issue deprecation warning
+warnings.warn(
+    "writeit.pipeline.events is deprecated. Use writeit.domains.pipeline.events instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 
 class EventType(str, Enum):
-    """Types of pipeline events."""
-
+    """Types of pipeline events. Backward compatibility wrapper."""
+    
+    @property
+    def ddd_type(self):
+        """Get corresponding DDD event type."""
+        mapping = {
+            "run_created": PipelineExecutionStarted,
+            "run_started": PipelineExecutionStarted,
+            "run_completed": PipelineExecutionCompleted,
+            "run_failed": PipelineExecutionFailed,
+            "step_started": StepExecutionStarted,
+            "step_completed": StepExecutionCompleted,
+            "step_failed": StepExecutionFailed,
+        }
+        return mapping.get(self.value)
+    
+    # Keep all original enum values for backward compatibility
     RUN_CREATED = "run_created"
     RUN_STARTED = "run_started"
     RUN_COMPLETED = "run_completed"
