@@ -21,7 +21,7 @@ from ..shared.events.bus import EventBus
 from writeit.pipeline import PipelineExecutor
 from writeit.models import Pipeline, PipelineRun, PipelineStatus, StepStatus
 from writeit.workspace.workspace import Workspace
-from writeit.storage.manager import StorageManager
+from writeit.storage.adapter import create_storage_adapter
 from writeit.shared.errors import ValidationError
 
 

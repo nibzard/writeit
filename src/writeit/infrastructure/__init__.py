@@ -4,7 +4,7 @@ Provides concrete implementations of domain repositories using LMDB storage.
 Includes transaction management, data serialization, and workspace isolation.
 """
 
-# from .base.storage_manager import LMDBStorageManager  # Temporarily disabled due to circular import
+from .base.storage_manager import LMDBStorageManager
 from .base.repository_base import LMDBRepositoryBase
 from .base.unit_of_work import LMDBUnitOfWork
 from .base.serialization import DomainEntitySerializer
@@ -42,7 +42,7 @@ from .execution import (
 
 __all__ = [
     # Base infrastructure
-    # "LMDBStorageManager",  # Temporarily disabled due to circular import
+    "LMDBStorageManager",
     "LMDBRepositoryBase", 
     "LMDBUnitOfWork",
     "DomainEntitySerializer",

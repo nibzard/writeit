@@ -14,7 +14,7 @@ from writeit.models import (
     PipelineRun,
     StepExecution,
 )
-from writeit.storage.manager import StorageManager
+from writeit.storage.adapter import create_storage_adapter
 from writeit.workspace.workspace import Workspace
 from writeit.llm.token_usage import TokenUsageTracker
 from writeit.llm.cache import LLMCache, CachedLLMClient

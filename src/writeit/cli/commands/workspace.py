@@ -5,7 +5,7 @@ import typer
 from typing import Optional
 
 from writeit.workspace.workspace import Workspace
-from writeit.storage.manager import StorageManager
+from writeit.storage.adapter import create_storage_adapter
 from writeit.cli.output import (
     console,
     print_success,

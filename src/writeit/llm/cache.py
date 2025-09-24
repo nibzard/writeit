@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta, UTC
 
-from writeit.storage.manager import StorageManager
+from writeit.storage.adapter import create_storage_adapter
 
 
 @dataclass
@@ -66,7 +66,7 @@ class CacheEntry:
 class LLMCache:
     """LLM response cache with workspace awareness."""
 
-    def __init__(self, storage: StorageManager, workspace_name: str):
+    def __init__(self, storage, workspace_name: str):
         self.storage = storage
         self.workspace_name = workspace_name
         self.memory_cache: Dict[str, CacheEntry] = {}
