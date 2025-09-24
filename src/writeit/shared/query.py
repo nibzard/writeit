@@ -110,7 +110,7 @@ TQuery = TypeVar('TQuery', bound=Query)
 TResult = TypeVar('TResult', bound=QueryResult)
 
 
-class QueryHandler(Generic[TResult], ABC):
+class QueryHandler(Generic[TQuery, TResult], ABC):
     """Base interface for query handlers.
     
     Query handlers contain the logic for executing read operations
@@ -178,7 +178,7 @@ class QueryBus(ABC):
     def register_handler(
         self, 
         query_type: type, 
-        handler: QueryHandler[TResult]
+        handler: QueryHandler[TQuery, TResult]
     ) -> None:
         """Register query handler for query type.
         
@@ -279,7 +279,7 @@ class SimpleQueryBus(QueryBus):
     def register_handler(
         self, 
         query_type: type, 
-        handler: QueryHandler[TResult]
+        handler: QueryHandler[TQuery, TResult]
     ) -> None:
         """Register query handler."""
         self._handlers[query_type] = handler

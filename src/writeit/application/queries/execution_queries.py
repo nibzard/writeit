@@ -21,7 +21,7 @@ from ...domains.execution.entities import (
     ExecutionContext,
     TokenUsage
 )
-from ...shared.events.domain_event import Query, QueryHandler
+from ...shared.query import Query, QueryHandler
 
 
 # LLM Provider Queries
@@ -34,7 +34,7 @@ class GetLLMProvidersQuery(Query):
 @dataclass(frozen=True)
 class GetLLMProviderQuery(Query):
     """Query to get a specific LLM provider by name."""
-    provider_name: str
+    provider_name: str = ""
     
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ class SearchLLMProvidersQuery(Query):
 @dataclass(frozen=True)
 class GetTokenUsageQuery(Query):
     """Query to get token usage by execution context."""
-    execution_context_id: UUID
+    execution_context_id: UUID = UUID('00000000-0000-0000-0000-000000000000')
     
 
 @dataclass(frozen=True)
@@ -101,7 +101,7 @@ class GetCacheStatsQuery(Query):
 @dataclass(frozen=True)
 class GetCacheEntryQuery(Query):
     """Query to get a specific cache entry."""
-    cache_key: str
+    cache_key: str = ""
     
 
 @dataclass(frozen=True)
@@ -119,7 +119,7 @@ class SearchCacheEntriesQuery(Query):
 @dataclass(frozen=True)
 class GetExecutionContextQuery(Query):
     """Query to get an execution context by ID."""
-    context_id: UUID
+    context_id: UUID = UUID('00000000-0000-0000-0000-000000000000')
     
 
 @dataclass(frozen=True)

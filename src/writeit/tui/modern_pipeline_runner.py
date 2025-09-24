@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 import yaml
-from textual.app import App, ComposeResult, ComposeError
+from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
 from textual.widgets import (
     Header,

@@ -44,9 +44,7 @@ from .services import (
     WorkspaceApplicationService,
     ContentApplicationService,
     ExecutionApplicationService,
-    MigrationApplicationService
 )
-from .services.migration_application_service import DefaultMigrationApplicationService
 
 # Repository Interfaces
 from ..domains.pipeline.repositories import (

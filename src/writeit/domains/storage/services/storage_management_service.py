@@ -16,9 +16,9 @@ import logging
 from datetime import datetime
 import asyncio
 
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.content.value_objects import TemplateName, StyleName
-from ...domains.pipeline.value_objects import PipelineId, StepId
+from ...workspace.value_objects import WorkspaceName
+from ...content.value_objects import TemplateName, StyleName
+from ...pipeline.value_objects import PipelineId, StepId
 
 
 class StorageOperation(str, Enum):
