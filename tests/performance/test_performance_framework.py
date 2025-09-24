@@ -352,6 +352,9 @@ def validate_performance_thresholds(results: BenchmarkResult) -> Dict[str, Any]:
             f"High failure rate: {failure_rate:.2f}% > {max_failure_rate}%"
         )
     
+    # Debug info
+    print(f"DEBUG validate_performance_thresholds: total_operations={results.total_operations}, failed_operations={results.failed_operations}, failure_rate={failure_rate:.2f}%, max_failure_rate={max_failure_rate}%")
+    
     return {
         "passed": len(violations) == 0,
         "violations": violations,
