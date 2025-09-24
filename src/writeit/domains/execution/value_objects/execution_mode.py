@@ -4,7 +4,7 @@ Value object representing different execution modes for WriteIt operations.
 """
 
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Self, Dict, Any, Optional
 
 
@@ -50,7 +50,7 @@ class ExecutionMode:
     supports_real_time_updates: bool = False
     batch_size: Optional[int] = None
     timeout_seconds: Optional[int] = None
-    metadata: Dict[str, Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self) -> None:
         """Validate execution mode."""
@@ -291,7 +291,7 @@ class ExecutionMode:
         """
         return self.metadata.get(key, default)
     
-    def with_output_format(self, output_format: str) -> Self:
+    def with_output_format(self, output_format: str) -> 'ExecutionMode':
         """Create new mode with different output format.
         
         Args:
@@ -312,7 +312,7 @@ class ExecutionMode:
             metadata=self.metadata.copy() if self.metadata else {}
         )
     
-    def with_timeout(self, timeout_seconds: int) -> Self:
+    def with_timeout(self, timeout_seconds: int) -> 'ExecutionMode':
         """Create new mode with different timeout.
         
         Args:

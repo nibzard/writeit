@@ -22,7 +22,7 @@ class PipelineValidator:
     # Valid LLM providers
     VALID_LLM_PROVIDERS = {"openai", "anthropic", "google", "ollama"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the pipeline validator."""
         self.variable_pattern = re.compile(r"\{\{\s*([^}]+)\s*\}\}")
 
@@ -474,7 +474,7 @@ class PipelineValidator:
         self,
         step_name: str,
         step_config: Dict[str, Any],
-        step_names: list,
+        step_names: list[str],
         step_index: int,
         result: ValidationResult,
     ) -> None:

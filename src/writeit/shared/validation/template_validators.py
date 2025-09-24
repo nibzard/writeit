@@ -3,6 +3,7 @@
 
 import yaml
 import re
+import warnings
 from pathlib import Path
 from typing import Dict, Any, Set, List, Optional
 from dataclasses import dataclass
@@ -30,7 +31,7 @@ class PipelineValidator(ValidationRule[Path]):
     # Valid LLM providers
     VALID_LLM_PROVIDERS = {"openai", "anthropic", "google", "ollama"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the pipeline validator."""
         self.variable_pattern = re.compile(r"\{\{\s*([^}]+)\s*\}\}")
 
@@ -189,10 +190,10 @@ class PipelineValidator(ValidationRule[Path]):
 
     def _validate_variable_references(self, data: Dict[str, Any]) -> List[str]:
         """Validate variable references in templates."""
-        warnings: List[str] = []
+        errors: List[str] = []
         
         # Collect all available variables
-        available_vars = set()
+        available_vars: set[str] = set()
         
         # Add input variables
         if 'inputs' in data:
@@ -214,9 +215,9 @@ class PipelineValidator(ValidationRule[Path]):
                             # Strip whitespace and check if it's a valid variable
                             ref = ref.strip()
                             if ref not in available_vars:
-                                warnings.append(f"Step '{step_name}' references undefined variable: {ref}")
+                                errors.append(f"Step '{step_name}' references undefined variable: {ref}")
 
-        return warnings
+        return errors
 
     def validate_file(self, file_path: Path) -> TemplateValidationResult:
         """Validate a pipeline template file (legacy compatibility)."""
@@ -283,7 +284,7 @@ class StyleValidator(ValidationRule[Path]):
         "integration",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the style validator."""
         pass
 
@@ -391,7 +392,7 @@ class StyleValidator(ValidationRule[Path]):
 
         # Check for key voice attributes
         if 'tone' not in voice and 'personality' not in voice:
-            warnings.append("Voice section should include 'tone' or 'personality' attributes")
+            errors.append("Voice section should include 'tone' or 'personality' attributes")
 
         return errors
 
@@ -405,7 +406,7 @@ class StyleValidator(ValidationRule[Path]):
 
         # Check for key language attributes
         if 'vocabulary' not in language and 'grammar' not in language:
-            warnings.append("Language section should include 'vocabulary' or 'grammar' attributes")
+            errors.append("Language section should include 'vocabulary' or 'grammar' attributes")
 
         return errors
 
@@ -419,7 +420,7 @@ class StyleValidator(ValidationRule[Path]):
 
         # Check for key structure attributes
         if 'organization' not in structure and 'formatting' not in structure:
-            warnings.append("Structure section should include 'organization' or 'formatting' attributes")
+            errors.append("Structure section should include 'organization' or 'formatting' attributes")
 
         return errors
 

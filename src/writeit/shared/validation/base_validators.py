@@ -62,8 +62,8 @@ class StringLengthValidator(ValidationRule[str]):
 class RegexValidator(ValidationRule[str]):
     """Validates strings against a regular expression."""
     
-    def __init__(self, pattern: Union[str, Pattern], 
-                 error_message: Optional[str] = None):
+    def __init__(self, pattern: Union[str, Pattern[str]], 
+                 error_message: Optional[str] = None) -> None:
         if isinstance(pattern, str):
             self._pattern = re.compile(pattern)
             self._pattern_str = pattern

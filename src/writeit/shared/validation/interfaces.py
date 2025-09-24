@@ -70,7 +70,7 @@ class ValidationContext:
             user_id=self.user_id,
             environment=self.environment,
             strict_mode=self.strict_mode,
-            custom_data=self.custom_data.copy()
+            custom_data=self.custom_data.copy() if self.custom_data is not None else {}
         )
     
     def with_strict_mode(self, strict: bool = True) -> 'ValidationContext':
@@ -80,7 +80,7 @@ class ValidationContext:
             user_id=self.user_id,
             environment=self.environment,
             strict_mode=strict,
-            custom_data=self.custom_data.copy()
+            custom_data=self.custom_data.copy() if self.custom_data is not None else {}
         )
 
 

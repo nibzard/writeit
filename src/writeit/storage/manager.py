@@ -1,6 +1,6 @@
 # ABOUTME: Storage manager for WriteIt with workspace-aware LMDB connections
 # ABOUTME: Handles persistent storage of pipelines, artifacts, and state data
-import lmdb
+import lmdb  # type: ignore
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Type
 from contextlib import contextmanager
@@ -13,7 +13,7 @@ from datetime import datetime
 from uuid import UUID
 
 try:
-    import msgpack
+    import msgpack  # type: ignore
     HAS_MSGPACK = True
 except ImportError:
     HAS_MSGPACK = False
@@ -26,90 +26,87 @@ class SerializationFormat:
     MSGPACK = "msgpack"
 
 
-def _create_safe_serializer():
-    """Create a simple safe serializer for legacy storage."""
+class SimpleSafeSerializer:
+    """Simple safe serializer for legacy storage."""
     
-    class SimpleSafeSerializer:
-        def serialize(self, obj: Any) -> bytes:
-            """Serialize object to bytes safely."""
-            if isinstance(obj, (str, int, float, bool, type(None))):
-                return json.dumps({"__simple__": True, "data": obj}).encode('utf-8')
-            elif isinstance(obj, UUID):
-                return json.dumps({"__uuid__": str(obj)}).encode('utf-8')
-            elif isinstance(obj, datetime):
-                return json.dumps({"__datetime__": obj.isoformat()}).encode('utf-8')
-            elif is_dataclass(obj):
-                data = {}
-                for field in fields(obj):
-                    value = getattr(obj, field.name)
-                    data[field.name] = self._serialize_value(value)
-                return json.dumps({"__dataclass__": type(obj).__name__, "data": data}).encode('utf-8')
-            else:
-                # Fallback to dict representation
-                try:
-                    data = {}
-                    for attr in dir(obj):
-                        if not attr.startswith('_') and not callable(getattr(obj, attr, None)):
-                            try:
-                                value = getattr(obj, attr)
-                                data[attr] = self._serialize_value(value)
-                            except (AttributeError, TypeError):
-                                continue
-                    return json.dumps({"__dict__": data}).encode('utf-8')
-                except Exception:
-                    # Ultimate fallback
-                    return json.dumps({"__str__": str(obj)}).encode('utf-8')
-        
-        def deserialize(self, data: bytes, object_type: Type = None) -> Any:
-            """Deserialize bytes to object."""
+    def serialize(self, obj: Any) -> bytes:
+        """Serialize object to bytes safely."""
+        if isinstance(obj, (str, int, float, bool, type(None))):
+            return json.dumps({"__simple__": True, "data": obj}).encode('utf-8')
+        elif isinstance(obj, UUID):
+            return json.dumps({"__uuid__": str(obj)}).encode('utf-8')
+        elif isinstance(obj, datetime):
+            return json.dumps({"__datetime__": obj.isoformat()}).encode('utf-8')
+        elif is_dataclass(obj):
+            data = {}
+            for field in fields(obj):
+                value = getattr(obj, field.name)
+                data[field.name] = self._serialize_value(value)
+            return json.dumps({"__dataclass__": type(obj).__name__, "data": data}).encode('utf-8')
+        else:
+            # Fallback to dict representation
             try:
-                json_data = json.loads(data.decode('utf-8'))
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                return None
-            
-            if not isinstance(json_data, dict):
-                return json_data
-            
-            if "__simple__" in json_data:
-                return json_data["data"]
-            elif "__uuid__" in json_data:
-                return UUID(json_data["__uuid__"])
-            elif "__datetime__" in json_data:
-                return datetime.fromisoformat(json_data["__datetime__"])
-            elif "__str__" in json_data:
-                return json_data["__str__"]
-            else:
-                # For backward compatibility, return dict
-                return json_data
-        
-        def _serialize_value(self, value: Any) -> Any:
-            """Serialize a single value."""
-            if isinstance(value, (str, int, float, bool, type(None))):
-                return value
-            elif isinstance(value, UUID):
-                return {"__uuid__": str(value)}
-            elif isinstance(value, datetime):
-                return {"__datetime__": value.isoformat()}
-            elif is_dataclass(value):
                 data = {}
-                for field in fields(value):
-                    data[field.name] = self._serialize_value(getattr(value, field.name))
-                return {"__dataclass__": type(value).__name__, "data": data}
-            elif isinstance(value, (list, tuple)):
-                return [self._serialize_value(item) for item in value]
-            elif isinstance(value, dict):
-                return {k: self._serialize_value(v) for k, v in value.items()}
-            else:
-                return {"__str__": str(value)}
+                for attr in dir(obj):
+                    if not attr.startswith('_') and not callable(getattr(obj, attr, None)):
+                        try:
+                            value = getattr(obj, attr)
+                            data[attr] = self._serialize_value(value)
+                        except (AttributeError, TypeError):
+                            continue
+                return json.dumps({"__dict__": data}).encode('utf-8')
+            except Exception:
+                # Ultimate fallback
+                return json.dumps({"__str__": str(obj)}).encode('utf-8')
     
-    return SimpleSafeSerializer()
+    def deserialize(self, data: bytes, object_type: Optional[Type[Any]] = None) -> Any:
+        """Deserialize bytes to object."""
+        try:
+            json_data = json.loads(data.decode('utf-8'))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return None
+        
+        if not isinstance(json_data, dict):
+            return json_data
+        
+        if "__simple__" in json_data:
+            return json_data["data"]
+        elif "__uuid__" in json_data:
+            return UUID(json_data["__uuid__"])
+        elif "__datetime__" in json_data:
+            return datetime.fromisoformat(json_data["__datetime__"])
+        elif "__str__" in json_data:
+            return json_data["__str__"]
+        else:
+            # For backward compatibility, return dict
+            return json_data
+    
+    def _serialize_value(self, value: Any) -> Any:
+        """Serialize a single value."""
+        if isinstance(value, (str, int, float, bool, type(None))):
+            return value
+        elif isinstance(value, UUID):
+            return {"__uuid__": str(value)}
+        elif isinstance(value, datetime):
+            return {"__datetime__": value.isoformat()}
+        elif is_dataclass(value):
+            data = {}
+            for field in fields(value):
+                data[field.name] = self._serialize_value(getattr(value, field.name))
+            return {"__dataclass__": type(value).__name__, "data": data}
+        elif isinstance(value, (list, tuple)):
+            return [self._serialize_value(item) for item in value]
+        elif isinstance(value, dict):
+            return {k: self._serialize_value(v) for k, v in value.items()}
+        else:
+            return {"__str__": str(value)}
 
 
-def create_safe_serializer(format_preference=SerializationFormat.JSON, 
-                          enable_schema_validation=True, 
-                          migration_strategy=None):
+def create_safe_serializer(format_preference: SerializationFormat = SerializationFormat.JSON, 
+                          enable_schema_validation: bool = True, 
+                          migration_strategy: Optional[Any] = None) -> SimpleSafeSerializer:
     """Create a safe serializer - simplified version for legacy storage."""
-    return _create_safe_serializer()
+    return SimpleSafeSerializer()
 
 
 class StorageManager:
@@ -117,11 +114,11 @@ class StorageManager:
 
     def __init__(
         self,
-        workspace_manager=None,
+        workspace_manager: Optional[Any] = None,
         workspace_name: Optional[str] = None,
         map_size_mb: int = 100,
         max_dbs: int = 10,
-    ):
+    ) -> None:
         """Initialize storage manager.
 
         Args:
@@ -165,7 +162,7 @@ class StorageManager:
         return self.storage_path / f"{db_name}.lmdb"
 
     @contextmanager
-    def get_connection(self, db_name: str = "main", readonly: bool = False):
+    def get_connection(self, db_name: str = "main", readonly: bool = False) -> Any:
         """Get LMDB connection context manager.
 
         Args:
@@ -206,7 +203,7 @@ class StorageManager:
     @contextmanager
     def get_transaction(
         self, db_name: str = "main", write: bool = True, db_key: Optional[str] = None
-    ):
+    ) -> Any:
         """Get LMDB transaction context manager.
 
         Args:
@@ -334,7 +331,7 @@ class StorageManager:
         default: Any = None,
         db_name: str = "main",
         db_key: Optional[str] = None,
-        object_type: type = None,
+        object_type: Optional[type] = None,
     ) -> Any:
         """Load Python object using safe deserialization.
 
@@ -468,13 +465,13 @@ class StorageManager:
             env.close()
         self._connections.clear()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup connections on deletion."""
         self.close()
 
 
 def create_storage_manager(
-    workspace_manager=None, workspace_name: Optional[str] = None
+    workspace_manager: Optional[Any] = None, workspace_name: Optional[str] = None
 ) -> StorageManager:
     """Create a storage manager instance.
 

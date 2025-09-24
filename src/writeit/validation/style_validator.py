@@ -48,7 +48,7 @@ class StyleValidator:
         "integration",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the style validator."""
         self.variable_pattern = re.compile(r"\{\{\s*([^}]+)\s*\}\}")
 

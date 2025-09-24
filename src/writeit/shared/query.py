@@ -29,7 +29,7 @@ class Query(ABC):
     sorting: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize query with defaults."""
         # Field default factories handle the initialization now
         pass
@@ -50,15 +50,13 @@ class QueryResult(ABC):
     page_info: Optional[Dict[str, Any]] = None
     execution_time: Optional[float] = None
     cache_hit: bool = False
-    errors: List[str] = None
-    warnings: List[str] = None
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize result with defaults."""
-        if self.errors is None:
-            object.__setattr__(self, 'errors', [])
-        if self.warnings is None:
-            object.__setattr__(self, 'warnings', [])
+        # Field default factories handle the initialization now
+        pass
     
     @property
     def has_errors(self) -> bool:
@@ -100,7 +98,7 @@ class SortInfo:
     field: str
     direction: str = "asc"  # asc or desc
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate sort direction."""
         if self.direction not in ("asc", "desc"):
             raise ValueError(f"Invalid sort direction: {self.direction}")
@@ -235,8 +233,8 @@ class QueryExecutionError(QueryError):
 class SimpleQueryBus(QueryBus):
     """Simple in-memory query bus implementation."""
     
-    def __init__(self):
-        self._handlers: Dict[type, QueryHandler] = {}
+    def __init__(self) -> None:
+        self._handlers: Dict[type, QueryHandler[Any, Any]] = {}
     
     async def send(self, query: TQuery) -> TResult:
         """Send query for execution."""
@@ -305,7 +303,7 @@ class ListQuery(Query):
     sort_direction: str = "asc"
     search_term: Optional[str] = None
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         
         # Validate pagination
@@ -336,7 +334,7 @@ class SearchQuery(Query):
     page_size: int = 20
     filters: Dict[str, Any] = field(default_factory=dict)
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         
         if not self.search_term or not self.search_term.strip():

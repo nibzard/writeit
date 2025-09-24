@@ -80,7 +80,7 @@ class StorageKey:
         """Hash for use in sets and dictionaries."""
         return hash(self.value)
     
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Equality comparison."""
         if isinstance(other, StorageKey):
             return self.value == other.value

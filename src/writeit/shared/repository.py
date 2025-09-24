@@ -8,7 +8,8 @@ Provides common repository patterns including:
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, List, Optional, Protocol, TypeVar
+from typing import Any, Generic, List, Optional, Protocol, TypeVar, Type
+from types import TracebackType
 from uuid import UUID
 
 from ..domains.workspace.value_objects.workspace_name import WorkspaceName
@@ -237,7 +238,7 @@ class UnitOfWork(ABC):
         pass
     
     @abstractmethod
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
         """Exit async context manager with automatic rollback on exceptions."""
         pass
     

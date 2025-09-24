@@ -307,7 +307,7 @@ class ValidationRule:
         """Check if this is an info-level rule."""
         return self.severity == "info"
     
-    def with_severity(self, severity: str) -> Self:
+    def with_severity(self, severity: str) -> 'ValidationRule':
         """Create a copy with different severity."""
         return ValidationRule(
             rule_type=self.rule_type,
