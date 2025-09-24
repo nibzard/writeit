@@ -7,10 +7,11 @@ including access control, file system security, and audit logging.
 import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Optional, Union
+from typing import Any, AsyncGenerator, Dict, Optional, Union, TYPE_CHECKING
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...storage.manager import StorageManager
+if TYPE_CHECKING:
+    from ...storage.manager import StorageManager
 from .access_control import (
     AccessLevel, 
     ResourceType, 

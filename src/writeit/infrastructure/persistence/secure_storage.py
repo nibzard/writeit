@@ -8,10 +8,11 @@ import asyncio
 import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, List, Optional, Union
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union, TYPE_CHECKING
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...storage.manager import StorageManager
+if TYPE_CHECKING:
+    from ...storage.manager import StorageManager
 from ..base.access_control import (
     AccessLevel, 
     ResourceType, 

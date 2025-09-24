@@ -1,19 +1,18 @@
-"""LMDB Storage Manager for Infrastructure Layer.
+Independent LMDB Storage Manager for Infrastructure Layer.
 
-Enhanced storage manager that extends the existing WriteIt storage manager
-with domain-specific functionality for the infrastructure layer.
+Self-contained storage manager that provides LMDB functionality
+specifically for the infrastructure layer without dependencies on legacy storage.
 """
 
 import lmdb
 from pathlib import Path
 from typing import Optional, Dict, Any, List, AsyncContextManager, Type, TypeVar
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from uuid import UUID
 import json
 import warnings
 from datetime import datetime
 
-from ...storage.manager import StorageManager
 from ...shared.repository import RepositoryError, EntityNotFoundError, EntityAlreadyExistsError
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from .safe_serialization import SafeDomainEntitySerializer, SerializationFormat
@@ -21,14 +20,15 @@ from .safe_serialization import SafeDomainEntitySerializer, SerializationFormat
 T = TypeVar('T')
 
 
-class LMDBStorageManager(StorageManager):
-    """Enhanced LMDB storage manager for infrastructure layer.
+class LMDBStorageManager:
+    """Independent LMDB storage manager for infrastructure layer.
     
-    Extends the base storage manager with:
+    Self-contained storage manager with:
     - Domain entity serialization/deserialization 
     - Async transaction management
     - Repository-specific error handling
     - Workspace isolation for multi-tenancy
+    - Independent LMDB implementation
     """
     
     def __init__(
@@ -38,20 +38,120 @@ class LMDBStorageManager(StorageManager):
         map_size_mb: int = 500,  # Increased default for domain entities
         max_dbs: int = 20,  # More databases for domain separation
     ):
-        """Initialize enhanced storage manager.
+        """Initialize independent storage manager.
         
         Args:
             workspace_manager: Workspace instance for path resolution
             workspace_name: Specific workspace name (defaults to active workspace)
-            map_size_mb: Initial LMDB map size in megabytes (default: 500MB)
+            map_size_mb: Initial LMDB map size in megabytes (default: 500)
             max_dbs: Maximum number of named databases (default: 20)
         """
-        super().__init__(workspace_manager, workspace_name, map_size_mb, max_dbs)
+        self.workspace_manager = workspace_manager
+        self.workspace_name = workspace_name
+        self.map_size = map_size_mb * 1024 * 1024  # Convert to bytes
+        self.max_dbs = max_dbs
+        self._connections: Dict[str, lmdb.Environment] = {}
         self._serializer = None
 
     def set_serializer(self, serializer: 'DomainEntitySerializer') -> None:
         """Set the domain entity serializer."""
         self._serializer = serializer
+
+    @property
+    def storage_path(self) -> Path:
+        """Get storage path for the current workspace.
+
+        Returns:
+            Path to workspace storage directory
+        """
+        if self.workspace_manager is None:
+            # Fallback to local storage for testing
+            return Path.cwd() / ".writeit"
+
+        workspace_path = self.workspace_manager.get_workspace_path(self.workspace_name)
+        return workspace_path
+
+    def get_db_path(self, db_name: str) -> Path:
+        """Get path for a specific database file.
+
+        Args:
+            db_name: Name of the database (e.g., 'artifacts', 'pipelines')
+
+        Returns:
+            Path to database file
+        """
+        return self.storage_path / f"{db_name}.lmdb"
+
+    @contextmanager
+    def get_connection(self, db_name: str = "main", readonly: bool = False):
+        """Get LMDB connection context manager.
+
+        Args:
+            db_name: Database name
+            readonly: Whether to open in read-only mode
+
+        Yields:
+            LMDB environment
+        """
+        connection_key = f"{self.workspace_name or 'default'}:{db_name}:{readonly}"
+
+        if connection_key not in self._connections:
+            db_path = self.get_db_path(db_name)
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # LMDB can't open non-existent databases in readonly mode
+            # If database doesn't exist and we need readonly access, create it first
+            if readonly and not db_path.exists():
+                # Create the database first
+                temp_env = lmdb.open(
+                    str(db_path),
+                    map_size=self.map_size,
+                    max_dbs=self.max_dbs,
+                    readonly=False,
+                )
+                temp_env.close()
+
+            env = lmdb.open(
+                str(db_path),
+                map_size=self.map_size,
+                max_dbs=self.max_dbs,
+                readonly=readonly,
+            )
+            self._connections[connection_key] = env
+
+        yield self._connections[connection_key]
+
+    @contextmanager
+    def get_transaction(
+        self, db_name: str = "main", write: bool = True, db_key: Optional[str] = None
+    ):
+        """Get LMDB transaction context manager.
+
+        Args:
+            db_name: Database name
+            write: Whether this is a write transaction
+            db_key: Specific sub-database key
+
+        Yields:
+            Tuple of (transaction, database)
+        """
+        with self.get_connection(db_name, readonly=not write) as env:
+            with env.begin(write=write) as txn:
+                if db_key:
+                    db = env.open_db(db_key.encode(), txn=txn, create=write)
+                else:
+                    db = env.open_db(txn=txn, create=write)
+                yield txn, db
+
+    def close(self) -> None:
+        """Close all connections."""
+        for env in self._connections.values():
+            env.close()
+        self._connections.clear()
+
+    def __del__(self):
+        """Cleanup connections on deletion."""
+        self.close()
 
     @asynccontextmanager
     async def transaction(
@@ -290,33 +390,16 @@ class LMDBStorageManager(StorageManager):
         except Exception as e:
             raise RepositoryError(f"Failed to count entities: {e}") from e
 
+
     def _make_key(self, entity_id: Any) -> str:
-        """Create a standardized string key from entity ID.
-        
-        Args:
-            entity_id: Entity identifier (can be string, UUID, etc.)
-            
-        Returns:
-            Standardized string key
-        """
         if isinstance(entity_id, UUID):
             return str(entity_id)
         elif hasattr(entity_id, 'value'):
-            # Handle value objects
             return str(entity_id.value)
         else:
             return str(entity_id)
 
     def get_workspace_storage_path(self, workspace: WorkspaceName) -> Path:
-        """Get storage path for a specific workspace.
-        
-        Args:
-            workspace: Workspace name
-            
-        Returns:
-            Path to workspace storage directory
-        """
         if self.workspace_manager is None:
             return Path.cwd() / ".writeit" / "workspaces" / workspace.value
-            
         return self.workspace_manager.get_workspace_path(workspace.value)
