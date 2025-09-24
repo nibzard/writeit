@@ -14,7 +14,8 @@ from unittest.mock import AsyncMock, Mock
 import json
 
 from writeit.storage import StorageManager
-from writeit.workspace import WorkspaceManager
+from writeit.application.services.workspace_application_service import WorkspaceApplicationService
+from writeit.infrastructure.factory import InfrastructureFactory
 
 
 class StorageTestHelper:
@@ -48,8 +49,11 @@ class StorageTestHelper:
             }
         
         # Create workspace manager
-        workspace_manager = WorkspaceManager(str(storage_dir))
-        await workspace_manager.initialize()
+        factory = InfrastructureFactory()
+        workspace_manager = WorkspaceApplicationService(
+            workspace_repository=factory.create_workspace_repository(str(storage_dir)),
+            config_repository=factory.create_workspace_config_repository(str(storage_dir))
+        )
         
         # Create storage manager
         storage_manager = StorageManager(
@@ -111,8 +115,11 @@ async def with_test_database(
         config.update(config_overrides)
         
         # Create workspace manager
-        workspace_manager = WorkspaceManager(str(temp_dir))
-        await workspace_manager.initialize()
+        factory = InfrastructureFactory()
+        workspace_manager = WorkspaceApplicationService(
+            workspace_repository=factory.create_workspace_repository(str(temp_dir)),
+            config_repository=factory.create_workspace_config_repository(str(temp_dir))
+        )
         
         # Create storage manager
         storage_manager = StorageManager(

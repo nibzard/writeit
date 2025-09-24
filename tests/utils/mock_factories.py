@@ -11,7 +11,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from writeit.shared.events import DomainEvent, EventHandler, AsyncEventBus, EventPublishResult
-from writeit.pipeline.executor import PipelineExecutor
+from writeit.pipeline import PipelineExecutor
 from writeit.domains.workspace.repositories.workspace_repository import WorkspaceRepository
 from writeit.domains.workspace.entities.workspace import Workspace
 
@@ -47,13 +47,13 @@ from writeit.domains.execution.services.token_analytics_service import TokenAnal
 # Entity and Value Object imports for mock data
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
 from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from writeit.domains.pipeline.entities.step_execution import StepExecution
-from writeit.domains.workspace.entities.workspace_config import WorkspaceConfig
-from writeit.domains.content.entities.content_template import ContentTemplate
+from writeit.domains.pipeline.entities.pipeline_step import StepExecution
+from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
+from writeit.domains.content.entities.template import Template as ContentTemplate
 from writeit.domains.content.entities.style_primer import StylePrimer
 from writeit.domains.content.entities.generated_content import GeneratedContent
-from writeit.domains.execution.entities.llm_cache_entry import LLMCacheEntry
-from writeit.domains.execution.entities.token_usage_record import TokenUsageRecord
+from writeit.llm.cache import CacheEntry as LLMCacheEntry
+from writeit.domains.execution.entities.token_usage import TokenUsage as TokenUsageRecord
 
 # Value Object imports
 from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
@@ -612,12 +612,12 @@ class MockWorkspaceConfigRepository:
     """Mock workspace config repository for testing."""
     
     def __init__(self):
-        self.configs: Dict[str, WorkspaceConfig] = {}
+        self.configs: Dict[str, WorkspaceConfiguration] = {}
         self.operation_log: List[tuple[str, str]] = []
         self.should_fail = False
         self.failure_message = "Mock repository failure"
     
-    async def find_by_workspace(self, workspace: WorkspaceName) -> Optional[WorkspaceConfig]:
+    async def find_by_workspace(self, workspace: WorkspaceName) -> Optional[WorkspaceConfiguration]:
         """Find config by workspace (mock)."""
         if self.should_fail:
             raise Exception(self.failure_message)
@@ -625,7 +625,7 @@ class MockWorkspaceConfigRepository:
         self.operation_log.append(("find_by_workspace", workspace.value))
         return self.configs.get(workspace.value)
     
-    async def save(self, config: WorkspaceConfig) -> None:
+    async def save(self, config: WorkspaceConfiguration) -> None:
         """Save config (mock)."""
         if self.should_fail:
             raise Exception(self.failure_message)
@@ -634,7 +634,7 @@ class MockWorkspaceConfigRepository:
         self.operation_log.append(("save", workspace_key))
         self.configs[workspace_key] = config
     
-    async def delete(self, config: WorkspaceConfig) -> None:
+    async def delete(self, config: WorkspaceConfiguration) -> None:
         """Delete config (mock)."""
         if self.should_fail:
             raise Exception(self.failure_message)
@@ -644,7 +644,7 @@ class MockWorkspaceConfigRepository:
         if workspace_key in self.configs:
             del self.configs[workspace_key]
     
-    async def list_all(self) -> List[WorkspaceConfig]:
+    async def list_all(self) -> List[WorkspaceConfiguration]:
         """List all configs (mock)."""
         if self.should_fail:
             raise Exception(self.failure_message)
@@ -653,7 +653,7 @@ class MockWorkspaceConfigRepository:
         return list(self.configs.values())
     
     # Test helper methods
-    def add_config(self, config: WorkspaceConfig) -> None:
+    def add_config(self, config: WorkspaceConfiguration) -> None:
         """Add config to mock repository."""
         workspace_key = getattr(config, 'workspace_name', {}).value if hasattr(config, 'workspace_name') else str(uuid4())
         self.configs[workspace_key] = config

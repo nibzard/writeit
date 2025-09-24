@@ -15,7 +15,8 @@ from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration  
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from writeit.workspace import Workspace as LegacyWorkspace
+from writeit.application.services.workspace_application_service import WorkspaceApplicationService
+from writeit.infrastructure.factory import InfrastructureFactory
 
 
 class WorkspaceTestHelper:
@@ -64,12 +65,21 @@ class WorkspaceTestHelper:
         self.workspaces.append(workspace)
         return workspace
     
-    def create_workspace_manager(self, root_path: Optional[Path] = None) -> LegacyWorkspace:
-        """Create a workspace for testing."""
+    def create_workspace_manager(self, root_path: Optional[Path] = None) -> WorkspaceApplicationService:
+        """Create a workspace manager for testing."""
         if root_path is None:
             root_path = self.create_temp_workspace_root()
         
-        return LegacyWorkspace(str(root_path))
+        # Create infrastructure factory
+        factory = InfrastructureFactory()
+        
+        # Create workspace application service
+        service = WorkspaceApplicationService(
+            workspace_repository=factory.create_workspace_repository(str(root_path)),
+            config_repository=factory.create_workspace_config_repository(str(root_path))
+        )
+        
+        return service
     
     async def cleanup(self):
         """Clean up all test workspaces and temporary directories."""
