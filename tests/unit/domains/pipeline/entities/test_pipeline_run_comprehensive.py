@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 
 from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from src.writeit.domains.pipeline.entities.step_execution import StepExecution
+from src.writeit.domains.pipeline.entities.pipeline_step import StepExecution
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus

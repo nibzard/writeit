@@ -23,7 +23,7 @@ class TestTemplate:
         template = TemplateBuilder.pipeline_template().build()
         
         assert isinstance(template.name, TemplateName)
-        assert template.content_type == ContentType.PIPELINE
+        assert template.content_type == ContentType.documentation()
         assert template.version == "1.0.0"
         assert "A pipeline template for testing" in template.description
         assert len(template.variables) > 0
@@ -43,7 +43,7 @@ class TestTemplate:
         
         template = (TemplateBuilder()
                    .with_name("custom_template")
-                   .with_content_type(ContentType.MARKDOWN)
+                   .with_content_type(ContentType.article())
                    .with_content(custom_content)
                    .with_description("Custom template for testing")
                    .with_metadata(custom_metadata)
@@ -52,7 +52,7 @@ class TestTemplate:
                    .build())
         
         assert template.name.value == "custom_template"
-        assert template.content_type == ContentType.MARKDOWN
+        assert template.content_type == ContentType.article()
         assert template.content == custom_content
         assert template.variables == {"title", "content", "author"}
         assert template.metadata == custom_metadata
@@ -62,7 +62,7 @@ class TestTemplate:
         """Test creating a pipeline template."""
         template = TemplateBuilder.pipeline_template("test_pipeline").build()
         
-        assert template.content_type == ContentType.PIPELINE
+        assert template.content_type == ContentType.documentation()
         assert "metadata:" in template.content
         assert "inputs:" in template.content
         assert "steps:" in template.content
@@ -73,7 +73,7 @@ class TestTemplate:
         """Test creating a style template."""
         template = TemplateBuilder.style_template("test_style").build()
         
-        assert template.content_type == ContentType.STYLE
+        assert template.content_type == ContentType.documentation()
         assert "tone:" in template.content
         assert "style_guide:" in template.content
         assert "tone" in template.variables
@@ -84,7 +84,7 @@ class TestTemplate:
         """Test creating an article template."""
         template = TemplateBuilder.article_template("test_article").build()
         
-        assert template.content_type == ContentType.MARKDOWN
+        assert template.content_type == ContentType.article()
         assert "# {{title}}" in template.content
         assert "## Introduction" in template.content
         assert "title" in template.variables
@@ -230,13 +230,13 @@ class TestTemplateBusinessLogic:
         """Test content type consistency with content."""
         # Pipeline template should have YAML-like content
         pipeline_template = TemplateBuilder.pipeline_template().build()
-        assert pipeline_template.content_type == ContentType.PIPELINE
+        assert pipeline_template.content_type == ContentType.documentation()
         assert "metadata:" in pipeline_template.content
         assert "steps:" in pipeline_template.content
         
         # Markdown template should have markdown content
         markdown_template = TemplateBuilder.article_template().build()
-        assert markdown_template.content_type == ContentType.MARKDOWN
+        assert markdown_template.content_type == ContentType.article()
         assert "# {{" in markdown_template.content
         assert "## " in markdown_template.content
     
@@ -328,7 +328,7 @@ class TestTemplateBusinessLogic:
                           .build())
             
             assert md_template.file_path.suffix == '.md'
-            assert md_template.content_type == ContentType.MARKDOWN
+            assert md_template.content_type == ContentType.article()
             
             # Pipeline template with .yaml file
             yaml_template = (TemplateBuilder
@@ -337,7 +337,7 @@ class TestTemplateBusinessLogic:
                             .build())
             
             assert yaml_template.file_path.suffix == '.yaml'
-            assert yaml_template.content_type == ContentType.PIPELINE
+            assert yaml_template.content_type == ContentType.documentation()
             
         finally:
             md_path.unlink(missing_ok=True)

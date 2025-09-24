@@ -225,7 +225,7 @@ class WorkspaceBuilder:
                 .with_description(f"Workspace for {project_name} project"))
     
     @classmethod
-    def temporary(cls, name: str = "temp") -> Self:
+    def temporary(cls, name: str = "temporary") -> Self:
         """Create a temporary workspace builder."""
         return (cls()
                 .with_name(name)
