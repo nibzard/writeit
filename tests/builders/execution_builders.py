@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Self
 
-from src.writeit.domains.execution.entities.llm_provider import LLMProvider
+from src.writeit.domains.execution.entities.llm_provider import LLMProvider, ProviderType
 from src.writeit.domains.execution.entities.execution_context import ExecutionContext
 from src.writeit.domains.execution.entities.token_usage import TokenUsage
 from src.writeit.domains.execution.value_objects.model_name import ModelName
@@ -17,7 +17,7 @@ class LLMProviderBuilder:
     
     def __init__(self) -> None:
         self._provider_name = "test_provider"
-        self._provider_type = "openai"
+        self._provider_type = ProviderType.OPENAI
         self._api_key = "test_api_key"
         self._api_base_url = "https://api.openai.com/v1"
         self._supported_models = [ModelName("gpt-4o-mini"), ModelName("gpt-4o")]
@@ -36,8 +36,11 @@ class LLMProviderBuilder:
         self._provider_name = name
         return self
     
-    def with_type(self, provider_type: str) -> Self:
+    def with_type(self, provider_type: str | ProviderType) -> Self:
         """Set the provider type."""
+        if isinstance(provider_type, str):
+            # Convert string to ProviderType enum (enum values are lowercase)
+            provider_type = ProviderType(provider_type.lower())
         self._provider_type = provider_type
         return self
     
@@ -115,21 +118,20 @@ class LLMProviderBuilder:
     
     def build(self) -> LLMProvider:
         """Build the LLMProvider."""
+        from src.writeit.domains.execution.entities.llm_provider import ProviderStatus
+        
+        # Map internal fields to entity constructor
         return LLMProvider(
-            provider_name=self._provider_name,
+            name=self._provider_name,
             provider_type=self._provider_type,
-            api_key=self._api_key,
-            api_base_url=self._api_base_url,
+            status=ProviderStatus.ACTIVE if self._is_active else ProviderStatus.INACTIVE,
+            api_key_ref=self._api_key,
+            base_url=self._api_base_url,
             supported_models=self._supported_models,
-            default_model=self._default_model,
             rate_limits=self._rate_limits,
-            configuration=self._configuration,
-            is_active=self._is_active,
-            health_status=self._health_status,
-            metadata=self._metadata,
             created_at=self._created_at,
             updated_at=self._updated_at,
-            last_used=self._last_used
+            metadata=self._metadata
         )
     
     @classmethod
@@ -188,7 +190,7 @@ class ExecutionContextBuilder:
     
     def __init__(self) -> None:
         self._context_id = "test_context"
-        self._execution_mode = ExecutionMode.CLI
+        self._execution_mode = ExecutionMode.cli()
         self._workspace_name = "test_workspace"
         self._pipeline_run_id = "test_run"
         self._step_id = None
@@ -211,17 +213,17 @@ class ExecutionContextBuilder:
     
     def cli_mode(self) -> Self:
         """Set CLI execution mode."""
-        self._execution_mode = ExecutionMode.CLI
+        self._execution_mode = ExecutionMode.cli()
         return self
     
     def tui_mode(self) -> Self:
         """Set TUI execution mode."""
-        self._execution_mode = ExecutionMode.TUI
+        self._execution_mode = ExecutionMode.tui()
         return self
     
     def server_mode(self) -> Self:
         """Set server execution mode."""
-        self._execution_mode = ExecutionMode.SERVER
+        self._execution_mode = ExecutionMode.server()
         return self
     
     def with_workspace(self, workspace_name: str) -> Self:
@@ -262,17 +264,10 @@ class ExecutionContextBuilder:
     def build(self) -> ExecutionContext:
         """Build the ExecutionContext."""
         return ExecutionContext(
-            context_id=self._context_id,
-            execution_mode=self._execution_mode,
+            id=self._context_id,
             workspace_name=self._workspace_name,
-            pipeline_run_id=self._pipeline_run_id,
-            step_id=self._step_id,
-            user_inputs=self._user_inputs,
-            step_outputs=self._step_outputs,
-            environment_variables=self._environment_variables,
-            session_data=self._session_data,
-            created_at=self._created_at,
-            updated_at=self._updated_at
+            pipeline_id=self._pipeline_run_id or "test-pipeline",
+            execution_mode=self._execution_mode
         )
     
     @classmethod
@@ -323,10 +318,10 @@ class TokenUsageBuilder:
     
     def __init__(self) -> None:
         self._provider_name = "test_provider"
-        self._model_name = ModelName("test_model")
-        self._prompt_tokens = TokenCount(100)
-        self._completion_tokens = TokenCount(50)
-        self._total_tokens = TokenCount(150)
+        self._model_name = "test_model"
+        self._prompt_tokens = 100
+        self._completion_tokens = 50
+        self._total_tokens = 150
         self._cost_estimate = 0.001
         self._request_id = "test_request"
         self._context_id = "test_context"
@@ -343,16 +338,17 @@ class TokenUsageBuilder:
     
     def with_model_name(self, model_name: str | ModelName) -> Self:
         """Set the model name."""
-        if isinstance(model_name, str):
-            model_name = ModelName(model_name)
-        self._model_name = model_name
+        if isinstance(model_name, ModelName):
+            self._model_name = str(model_name)
+        else:
+            self._model_name = model_name
         return self
     
     def with_token_counts(self, prompt: int, completion: int) -> Self:
         """Set the token counts."""
-        self._prompt_tokens = TokenCount(prompt)
-        self._completion_tokens = TokenCount(completion)
-        self._total_tokens = TokenCount(prompt + completion)
+        self._prompt_tokens = prompt
+        self._completion_tokens = completion
+        self._total_tokens = prompt + completion
         return self
     
     def with_cost_estimate(self, cost: float) -> Self:
@@ -393,25 +389,44 @@ class TokenUsageBuilder:
     
     def build(self) -> TokenUsage:
         """Build the TokenUsage."""
+        import uuid
+        from src.writeit.domains.execution.entities.token_usage import (
+            TokenMetrics, CostBreakdown, UsageType, UsageCategory
+        )
+        from src.writeit.domains.execution.value_objects.model_name import ModelName
+        
+        # Create TokenMetrics from individual token counts
+        token_metrics = TokenMetrics(
+            input_tokens=self._prompt_tokens,
+            output_tokens=self._completion_tokens, 
+            total_tokens=self._total_tokens
+        )
+        
+        # Create CostBreakdown  
+        from decimal import Decimal
+        cost_breakdown = CostBreakdown(total_cost=Decimal(str(self._cost_estimate)))
+        
         return TokenUsage(
-            provider_name=self._provider_name,
-            model_name=self._model_name,
-            prompt_tokens=self._prompt_tokens,
-            completion_tokens=self._completion_tokens,
-            total_tokens=self._total_tokens,
-            cost_estimate=self._cost_estimate,
-            request_id=self._request_id,
-            context_id=self._context_id,
+            id=str(uuid.uuid4()),
+            session_id=self._context_id or str(uuid.uuid4()),
+            model_name=ModelName.from_string(self._model_name),
             workspace_name=self._workspace_name,
-            pipeline_run_id=self._pipeline_run_id,
+            pipeline_id=self._pipeline_run_id,
             step_id=self._step_id,
-            metadata=self._metadata,
-            timestamp=self._timestamp
+            usage_type=UsageType.TOTAL,
+            usage_category=UsageCategory.PIPELINE_EXECUTION,
+            token_metrics=token_metrics,
+            cost_breakdown=cost_breakdown,
+            timestamp=self._timestamp,
+            request_id=self._request_id,
+            metadata=self._metadata
         )
     
     @classmethod
     def small_request(cls, provider: str = "openai", model: str = "gpt-4o-mini") -> Self:
         """Create a small token usage record."""
+        if not model or not model.strip():
+            model = "gpt-4o-mini"
         return (cls()
                 .with_provider_name(provider)
                 .with_model_name(model)

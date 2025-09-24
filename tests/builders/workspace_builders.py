@@ -1,6 +1,7 @@
 """Test data builders for Workspace domain entities."""
 
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Any, Optional, Self
 
 from src.writeit.domains.workspace.entities.workspace import Workspace
@@ -67,14 +68,13 @@ class WorkspaceConfigurationBuilder:
     def build(self) -> WorkspaceConfiguration:
         """Build the WorkspaceConfiguration."""
         return WorkspaceConfiguration(
-            workspace_name=self._workspace_name,
             values=self._values,
             created_at=self._created_at,
             updated_at=self._updated_at
         )
     
     @classmethod
-    def default(cls, workspace_name: str = "default") -> Self:
+    def default(cls, workspace_name: str = "test-workspace") -> Self:
         """Create a default workspace configuration."""
         return (cls()
                 .with_workspace_name(workspace_name)
@@ -102,7 +102,7 @@ class WorkspaceBuilder:
     
     def __init__(self) -> None:
         self._name = WorkspaceName("test_workspace")
-        self._path = WorkspacePath("/tmp/test_workspace")
+        self._path = WorkspacePath(Path("/tmp/test_workspace"))
         self._is_active = False
         self._metadata = {}
         self._created_at = datetime.now()
@@ -119,11 +119,11 @@ class WorkspaceBuilder:
     def with_path(self, path: str | WorkspacePath) -> Self:
         """Set the workspace path."""
         if isinstance(path, str):
-            path = WorkspacePath(path)
+            path = WorkspacePath.from_string(path)
         self._path = path
         return self
     
-    def active(self) -> Self:
+    def mark_active(self) -> Self:
         """Mark the workspace as active."""
         self._is_active = True
         self._last_accessed = datetime.now()
@@ -175,9 +175,20 @@ class WorkspaceBuilder:
     
     def build(self) -> Workspace:
         """Build the Workspace."""
+        from src.writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
+        from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
+        
+        # Create a default configuration for the workspace
+        default_config = WorkspaceConfiguration(
+            values={},
+            created_at=self._created_at,
+            updated_at=self._updated_at
+        )
+        
         return Workspace(
             name=self._name,
-            path=self._path,
+            root_path=self._path,
+            configuration=default_config,
             is_active=self._is_active,
             metadata=self._metadata,
             created_at=self._created_at,
@@ -186,7 +197,7 @@ class WorkspaceBuilder:
         )
     
     @classmethod
-    def default(cls, name: str = "default") -> Self:
+    def default(cls, name: str = "test-workspace") -> Self:
         """Create a default workspace builder."""
         return (cls()
                 .with_name(name)
@@ -199,7 +210,7 @@ class WorkspaceBuilder:
         return (cls()
                 .with_name(name)
                 .with_path(f"/tmp/{name}")
-                .active()
+                .mark_active()
                 .recently_accessed()
                 .with_description("Active test workspace"))
     

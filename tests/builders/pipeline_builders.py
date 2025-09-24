@@ -8,7 +8,7 @@ from src.writeit.domains.pipeline.entities.pipeline_template import (
     PipelineTemplate, PipelineStepTemplate, PipelineInput
 )
 from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from src.writeit.domains.pipeline.entities.step_execution import StepExecution
+from src.writeit.domains.pipeline.entities.pipeline_step import StepExecution
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate

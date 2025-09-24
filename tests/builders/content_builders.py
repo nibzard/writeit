@@ -20,7 +20,7 @@ class TemplateBuilder:
     
     def __init__(self) -> None:
         self._name = TemplateName("test_template")
-        self._content_type = ContentType.PIPELINE
+        self._content_type = ContentType.documentation()
         self._content = "# {{title}}\n\n{{content}}"
         self._version = "1.0.0"
         self._description = "A test template"
@@ -109,21 +109,24 @@ class TemplateBuilder:
     
     def build(self) -> Template:
         """Build the Template."""
+        from src.writeit.domains.content.value_objects.content_id import ContentId
+        
+        # Generate a ContentId
+        content_id = ContentId.generate()
+        
         return Template(
+            id=content_id,
             name=self._name,
             content_type=self._content_type,
-            content=self._content,
+            yaml_content=self._content,
             version=self._version,
             description=self._description,
-            metadata=self._metadata,
-            variables=self._variables,
-            validation_rules=self._validation_rules,
-            dependencies=self._dependencies,
             tags=self._tags,
+            validation_rules=self._validation_rules,
             author=self._author,
-            file_path=self._file_path,
             created_at=self._created_at,
-            updated_at=self._updated_at
+            updated_at=self._updated_at,
+            metadata=self._metadata
         )
     
     @classmethod
@@ -131,7 +134,7 @@ class TemplateBuilder:
         """Create a pipeline template builder."""
         return (cls()
                 .with_name(name)
-                .with_content_type(ContentType.PIPELINE)
+                .with_content_type(ContentType.documentation())
                 .with_content("""
 metadata:
   name: "{{name}}"
@@ -157,7 +160,7 @@ steps:
         """Create a style template builder."""
         return (cls()
                 .with_name(name)
-                .with_content_type(ContentType.STYLE)
+                .with_content_type(ContentType.documentation())
                 .with_content("""
 tone: {{tone}}
 style_guide: |
@@ -173,7 +176,7 @@ style_guide: |
         """Create an article template builder."""
         return (cls()
                 .with_name(name)
-                .with_content_type(ContentType.MARKDOWN)
+                .with_content_type(ContentType.article())
                 .with_content("""
 # {{title}}
 
