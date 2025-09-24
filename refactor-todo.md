@@ -562,8 +562,8 @@
 
 - [*] **Use Case Tests** - IN PROGRESS 2025-01-24
   - [*] Complete pipeline execution flows - IN PROGRESS 2025-01-24
-  - [ ] Workspace management scenarios
-  - [ ] Template operations
+  - [✅] Workspace management scenarios - COMPLETED 2025-01-24
+  - [✅] Template operations - COMPLETED 2025-01-24
   - [ ] Error recovery scenarios
 
 - [✅] **API Contract Tests** - COMPLETED 2025-01-24
