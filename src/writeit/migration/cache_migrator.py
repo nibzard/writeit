@@ -158,7 +158,12 @@ class CacheFormatDetector:
     @staticmethod
     def _analyze_file_cache(cache_path: Path, analysis: CacheAnalysis) -> CacheAnalysis:
         """Analyze file-based cache storage."""
-        cache_files = list(cache_path.glob("*.cache")) + list(cache_path.glob("*.json"))
+        # If cache_path is a file, treat it as a single cache entry
+        if cache_path.is_file():
+            cache_files = [cache_path]
+        else:
+            # If cache_path is a directory, look for cache files within it
+            cache_files = list(cache_path.glob("*.cache")) + list(cache_path.glob("*.json"))
         
         for cache_file in cache_files:
             try:
@@ -567,6 +572,7 @@ class CacheMigrationManager:
         """
         analyses = []
         
+        # Check standard cache locations
         cache_locations = [
             workspace_path / ".writeit" / "cache",
             workspace_path / "cache",
@@ -580,6 +586,14 @@ class CacheMigrationManager:
         for cache_location in cache_locations:
             if cache_location.exists():
                 analysis = self.detector.analyze_legacy_cache(cache_location)
+                analyses.append(analysis)
+        
+        # Also check for individual cache files in .writeit directory
+        writeit_dir = workspace_path / ".writeit"
+        if writeit_dir.exists() and writeit_dir.is_dir():
+            cache_files = list(writeit_dir.glob("*.json")) + list(writeit_dir.glob("*.cache"))
+            for cache_file in cache_files:
+                analysis = self.detector.analyze_legacy_cache(cache_file)
                 analyses.append(analysis)
         
         return analyses

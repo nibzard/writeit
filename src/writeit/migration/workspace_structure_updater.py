@@ -12,6 +12,21 @@ from typing import Dict, Any, List, Optional, Set
 import yaml
 
 from writeit.workspace.workspace import Workspace
+from dataclasses import dataclass, field
+from typing import List
+
+
+@dataclass
+class WorkspaceStructureUpdateResult:
+    """Result of workspace structure update."""
+    
+    success: bool
+    message: str
+    updated_directories: int = 0
+    created_files: int = 0
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+    backup_path: Optional[Path] = None
 
 
 class WorkspaceStructureUpdater:
@@ -46,15 +61,20 @@ class WorkspaceStructureUpdater:
         """
         return self.update_log
         
-    def update_workspace_structure(self, workspace_name: str) -> bool:
+    def update_workspace_structure(self, workspace_name: str) -> WorkspaceStructureUpdateResult:
         """Update workspace directory structure to DDD format.
         
         Args:
             workspace_name: Name of workspace to update
             
         Returns:
-            True if update successful, False otherwise
+            Update result with success status and details
         """
+        result = WorkspaceStructureUpdateResult(
+            success=False,
+            message=f"Workspace structure update for {workspace_name}"
+        )
+        
         try:
             self.log_update(f"Updating workspace structure: {workspace_name}")
             
@@ -63,32 +83,42 @@ class WorkspaceStructureUpdater:
             
             if not workspace_path.exists():
                 self.log_update(f"Workspace not found: {workspace_path}", "error")
-                return False
+                result.message = f"Workspace not found: {workspace_path}"
+                return result
                 
             # Create backup before making changes
             if not self.backup_created:
-                self._create_workspace_backup(workspace_path)
+                result.backup_path = self._create_workspace_backup(workspace_path)
                 self.backup_created = True
                 
             # Update structure
-            success = self._perform_structure_update(workspace_path)
+            update_success = self._perform_structure_update(workspace_path)
             
-            if success:
-                self.log_update(f"Successfully updated workspace structure: {workspace_name}")
+            if update_success:
+                result.success = True
+                result.message = f"Successfully updated workspace structure: {workspace_name}"
+                self.log_update(result.message)
             else:
-                self.log_update(f"Failed to update workspace structure: {workspace_name}", "error")
+                result.message = f"Failed to update workspace structure: {workspace_name}"
+                self.log_update(result.message, "error")
                 
-            return success
+            return result
             
         except Exception as e:
-            self.log_update(f"Error updating workspace structure {workspace_name}: {e}", "error")
-            return False
+            result.success = False
+            result.message = f"Error updating workspace structure {workspace_name}: {e}"
+            result.errors.append(str(e))
+            self.log_update(result.message, "error")
+            return result
             
-    def _create_workspace_backup(self, workspace_path: Path) -> None:
+    def _create_workspace_backup(self, workspace_path: Path) -> Path:
         """Create backup of workspace before structure update.
         
         Args:
             workspace_path: Path to workspace
+            
+        Returns:
+            Path to backup directory
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         workspace_name = workspace_path.name
@@ -98,6 +128,7 @@ class WorkspaceStructureUpdater:
         try:
             shutil.copytree(workspace_path, backup_path)
             self.log_update(f"Created workspace backup: {backup_path}")
+            return backup_path
             
         except Exception as e:
             self.log_update(f"Failed to create backup: {e}", "error")

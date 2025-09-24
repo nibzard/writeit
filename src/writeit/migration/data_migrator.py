@@ -141,7 +141,7 @@ class DataFormatDetector:
                         if 'created_at' in config_data and hasattr(config_data['created_at'], 'isoformat'):
                             config_data['created_at'] = config_data['created_at'].isoformat()
                         # Create DDD workspace config from legacy data
-                        data.config = self._create_legacy_config_from_dict(config_data)
+                        data.config = DataFormatDetector._create_legacy_config_from_dict(config_data)
                         data.has_config = True
                 except (yaml.YAMLError, TypeError):
                     pass
@@ -209,7 +209,8 @@ class DataFormatDetector:
         
         return pickle_keys
     
-    def _create_legacy_config_from_dict(self, config_data: Dict[str, Any]) -> 'LegacyWorkspaceConfig':
+    @staticmethod
+    def _create_legacy_config_from_dict(config_data: Dict[str, Any]) -> 'LegacyWorkspaceConfig':
         """Create a legacy config object from dictionary data.
         
         Args:
@@ -253,7 +254,8 @@ class WorkspaceDataMigrator:
         legacy_path: Path, 
         target_name: Optional[str] = None,
         overwrite: bool = False,
-        backup: bool = True
+        backup: bool = True,
+        dry_run: bool = False
     ) -> MigrationResult:
         """Migrate a legacy workspace to new DDD format.
         
@@ -262,10 +264,13 @@ class WorkspaceDataMigrator:
             target_name: Name for new workspace (auto-generated if None)
             overwrite: Whether to overwrite existing workspace
             backup: Whether to create backup before migration
+            dry_run: Whether to only simulate migration without making changes
             
         Returns:
             Migration result
         """
+        backup_path = None
+        
         try:
             # Analyze legacy workspace
             legacy_data = self.detector.analyze_legacy_workspace(legacy_path)
@@ -275,8 +280,7 @@ class WorkspaceDataMigrator:
                 target_name = self._generate_workspace_name(legacy_path)
             
             # Create backup if requested
-            backup_path = None
-            if backup:
+            if backup and not dry_run:
                 backup_path = self._create_backup(legacy_path)
             
             # Check if target exists
@@ -288,49 +292,63 @@ class WorkspaceDataMigrator:
                 )
             
             # Create new DDD workspace
-            workspace = self._create_ddd_workspace(target_name, legacy_data)
+            workspace = self._create_ddd_workspace(target_name, legacy_data) if not dry_run else None
             
             # Migrate data
             migrated_count = 0
             warnings = []
             errors = []
             
-            # Migrate pipelines
-            if legacy_data.has_pipelines:
-                pipeline_result = self._migrate_pipelines(legacy_path, workspace)
-                migrated_count += pipeline_result.migrated_items
-                warnings.extend(pipeline_result.warnings)
-                errors.extend(pipeline_result.errors)
-            
-            # Migrate articles/templates
-            if legacy_data.has_articles:
-                template_result = self._migrate_templates(legacy_path, workspace)
-                migrated_count += template_result.migrated_items
-                warnings.extend(template_result.warnings)
-                errors.extend(template_result.errors)
-            
-            # Migrate LMDB data
-            if legacy_data.has_lmdb:
-                lmdb_result = self._migrate_lmdb_data(legacy_path, workspace)
-                migrated_count += lmdb_result.migrated_items
-                warnings.extend(lmdb_result.warnings)
-                errors.extend(lmdb_result.errors)
-            
-            # Migrate cache data
-            cache_result = self._migrate_cache_data(legacy_path, workspace)
-            migrated_count += cache_result.migrated_items
-            warnings.extend(cache_result.warnings)
-            errors.extend(cache_result.errors)
-            
-            # Migrate configuration
-            config_result = self._migrate_configuration(legacy_path, workspace)
-            warnings.extend(config_result.warnings)
-            errors.extend(config_result.errors)
-            migrated_count += config_result.migrated_items
+            if not dry_run:
+                # Migrate pipelines
+                if legacy_data.has_pipelines:
+                    pipeline_result = self._migrate_pipelines(legacy_path, workspace)
+                    migrated_count += pipeline_result.migrated_items
+                    warnings.extend(pipeline_result.warnings)
+                    errors.extend(pipeline_result.errors)
+                
+                # Migrate articles/templates
+                if legacy_data.has_articles:
+                    template_result = self._migrate_templates(legacy_path, workspace)
+                    migrated_count += template_result.migrated_items
+                    warnings.extend(template_result.warnings)
+                    errors.extend(template_result.errors)
+                
+                # Migrate LMDB data
+                if legacy_data.has_lmdb:
+                    lmdb_result = self._migrate_lmdb_data(legacy_path, workspace)
+                    migrated_count += lmdb_result.migrated_items
+                    warnings.extend(lmdb_result.warnings)
+                    errors.extend(lmdb_result.errors)
+                
+                # Migrate cache data
+                cache_result = self._migrate_cache_data(legacy_path, workspace)
+                migrated_count += cache_result.migrated_items
+                warnings.extend(cache_result.warnings)
+                errors.extend(cache_result.errors)
+                
+                # Migrate configuration
+                config_result = self._migrate_configuration(legacy_path, workspace)
+                warnings.extend(config_result.warnings)
+                errors.extend(config_result.errors)
+                migrated_count += config_result.migrated_items
+            else:
+                # In dry run mode, just estimate what would be migrated
+                if legacy_data.has_pipelines:
+                    migrated_count += legacy_data.pipeline_count
+                if legacy_data.has_articles:
+                    migrated_count += legacy_data.article_count
+                if legacy_data.has_lmdb:
+                    migrated_count += len(legacy_data.lmdb_files)
+                
+                warnings.append("Dry run mode - no actual migration performed")
             
             success = len(errors) == 0
-            message = f"Successfully migrated workspace '{target_name}'" if success else \
-                     f"Migration completed with {len(errors)} errors"
+            if dry_run:
+                message = f"Dry run successful for workspace '{target_name}' - {migrated_count} items would be migrated"
+            else:
+                message = f"Successfully migrated workspace '{target_name}'" if success else \
+                         f"Migration completed with {len(errors)} errors"
             
             return MigrationResult(
                 success=success,
@@ -417,15 +435,16 @@ class WorkspaceDataMigrator:
         new_config = WorkspaceConfiguration.default()
         
         # Map legacy configuration values
-        if legacy_config.default_pipeline:
+        if hasattr(legacy_config, 'default_pipeline') and legacy_config.default_pipeline:
             new_config = new_config.set_value("default_pipeline", legacy_config.default_pipeline)
         
         # Convert LLM provider configurations
-        for provider, config in legacy_config.llm_providers.items():
-            if provider == "openai" and isinstance(config, str):
-                new_config = new_config.set_value("openai_api_key", config)
-            elif provider == "anthropic" and isinstance(config, str):
-                new_config = new_config.set_value("anthropic_api_key", config)
+        if hasattr(legacy_config, 'llm_providers'):
+            for provider, config in legacy_config.llm_providers.items():
+                if provider == "openai" and isinstance(config, str):
+                    new_config = new_config.set_value("openai_api_key", config)
+                elif provider == "anthropic" and isinstance(config, str):
+                    new_config = new_config.set_value("anthropic_api_key", config)
         
         return new_config
     
@@ -595,15 +614,15 @@ class WorkspaceDataMigrator:
                     config_result = successful_configs[0]
                     result.success = config_result.success
                     result.message = config_result.message
-                    result.migrated_items = config_result.migrated_keys
-                    result.warnings.extend(config_result.warnings)
-                    result.errors.extend(config_result.errors)
+                    result.migrated_items = getattr(config_result, 'migrated_keys', 1)
+                    result.warnings.extend(getattr(config_result, 'warnings', []))
+                    result.errors.extend(getattr(config_result, 'errors', []))
                 else:
                     # All config migrations failed
                     result.success = False
                     result.message = "Configuration migration failed"
                     for config_result in config_results:
-                        result.errors.extend(config_result.errors)
+                        result.errors.extend(getattr(config_result, 'errors', []))
             else:
                 # No config files found, save default configuration
                 config_file = workspace.get_config_path().value
