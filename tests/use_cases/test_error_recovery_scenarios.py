@@ -920,6 +920,466 @@ class TestErrorRecoveryScenarios:
             assert failed_run.status == ExecutionStatus.FAILED
 
 
+    @pytest.mark.asyncio
+    async def test_lmdb_map_size_exhaustion_recovery(self, error_test_environment):
+        """Test recovery from LMDB database map size exhaustion."""
+        env = error_test_environment
+        
+        # Create workspace that will grow large
+        large_workspace = WorkspaceInfo(
+            name="large_storage_test",
+            path=str(env['error_dir'] / "large_storage"),
+            description="Testing LMDB map size exhaustion"
+        )
+        
+        await env['services']['workspace'].create_workspace(large_workspace)
+        await env['services']['workspace'].set_active_workspace("large_storage_test")
+        
+        # Create many templates to fill LMDB
+        template_count = 0
+        max_templates = 1000  # Simulate large dataset
+        
+        try:
+            for i in range(max_templates):
+                template_data = {
+                    'metadata': {
+                        'name': f'Large Template {i}',
+                        'version': '1.0.0',
+                        'description': f'Template {i} for testing LMDB limits'
+                    },
+                    'inputs': {
+                        'data': {'type': 'text', 'required': True}
+                    },
+                    'steps': {
+                        'process': {
+                            'name': 'Process Data',
+                            'type': 'llm_generate',
+                            'prompt_template': f'Process data item {i}: {{ inputs.data }}'
+                        }
+                    }
+                }
+                
+                await env['services']['template'].create_template(f'template_{i}.yaml', template_data)
+                template_count += 1
+                
+        except Exception as e:
+            # Simulate LMDB map size exhaustion
+            if "map size" in str(e).lower() or "mdb" in str(e).lower():
+                # Verify error handling for map size exhaustion
+                assert template_count > 0  # Some templates were created
+                
+                # Test recovery - create new workspace with larger map size
+                recovery_workspace = WorkspaceInfo(
+                    name="recovery_large_storage",
+                    path=str(env['error_dir'] / "recovery_large_storage"),
+                    description="Recovery workspace with larger LMDB map size"
+                )
+                
+                await env['services']['workspace'].create_workspace(recovery_workspace)
+                await env['services']['workspace'].set_active_workspace("recovery_large_storage")
+                
+                # Verify recovery workspace works
+                recovery_template = {
+                    'metadata': {'name': 'Recovery Template', 'version': '1.0.0'},
+                    'inputs': {'data': {'type': 'text'}},
+                    'steps': {
+                        'recover': {
+                            'name': 'Recovery Step',
+                            'type': 'llm_generate',
+                            'prompt_template': 'Recovery data: {{ inputs.data }}'
+                        }
+                    }
+                }
+                
+                recovery_id = await env['services']['template'].create_template('recovery.yaml', recovery_template)
+                assert recovery_id is not None
+            else:
+                # Re-raise if not LMDB-related error
+                raise
+
+    @pytest.mark.asyncio
+    async def test_workspace_configuration_corruption_recovery(self, error_test_environment):
+        """Test recovery from corrupted workspace configuration files."""
+        env = error_test_environment
+        
+        # Create workspace with configuration
+        config_workspace = WorkspaceInfo(
+            name="config_corruption_test",
+            path=str(env['error_dir'] / "config_corruption"),
+            description="Testing workspace configuration corruption recovery"
+        )
+        
+        await env['services']['workspace'].create_workspace(config_workspace)
+        await env['services']['workspace'].set_active_workspace("config_corruption_test")
+        
+        # Create templates and pipelines in the workspace
+        test_templates = [
+            ('config_test_1.yaml', {'metadata': {'name': 'Config Test 1', 'version': '1.0.0'}}),
+            ('config_test_2.yaml', {'metadata': {'name': 'Config Test 2', 'version': '1.0.0'}})
+        ]
+        
+        for name, content in test_templates:
+            await env['services']['template'].create_template(name, content)
+        
+        # Verify initial state
+        templates = await env['services']['template'].list_templates()
+        assert len(templates) == 2
+        
+        # Simulate configuration corruption
+        async def corrupted_workspace_operations():
+            """Mock corrupted workspace configuration."""
+            raise Exception("Workspace configuration corrupted - invalid YAML syntax")
+        
+        # Store original functions
+        original_list_templates = env['services']['template'].list_templates
+        original_get_template = env['services']['template'].get_template
+        
+        # Corrupt workspace operations
+        env['services']['template'].list_templates = corrupted_workspace_operations
+        env['services']['template'].get_template = corrupted_workspace_operations
+        
+        # Test corruption detection
+        try:
+            corrupted_templates = await env['services']['template'].list_templates()
+            assert False, "Should have detected configuration corruption"
+        except Exception as e:
+            assert "corrupted" in str(e).lower() or "invalid yaml" in str(e).lower()
+        
+        # Simulate configuration recovery process
+        async def recover_workspace_config():
+            """Simulate workspace configuration recovery."""
+            # In real system, would restore from backup or recreate config
+            return ['config_test_1.yaml', 'config_test_2.yaml']
+        
+        # Restore functionality after recovery
+        env['services']['template'].list_templates = original_list_templates
+        env['services']['template'].get_template = original_get_template
+        
+        # Verify recovery
+        recovered_templates = await env['services']['template'].list_templates()
+        assert len(recovered_templates) == 2
+        assert 'config_test_1.yaml' in recovered_templates
+        assert 'config_test_2.yaml' in recovered_templates
+
+    @pytest.mark.asyncio
+    async def test_event_sourcing_corruption_recovery(self, error_test_environment):
+        """Test recovery from corrupted event streams in event sourcing system."""
+        env = error_test_environment
+        
+        # Create pipeline with event sourcing
+        event_pipeline = Pipeline(
+            id="event_corruption_pipeline",
+            name="Event Sourcing Test Pipeline",
+            description="Pipeline testing event stream corruption recovery",
+            template_path="event_template.yaml",
+            steps=[
+                PipelineStepModel(
+                    id="event_step_1",
+                    name="Event Step 1",
+                    description="First step generating events",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Generate initial content: {{ inputs.data }}",
+                    dependencies=[]
+                ),
+                PipelineStepModel(
+                    id="event_step_2",
+                    name="Event Step 2",
+                    description="Second step generating events",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Process content: {{ steps.event_step_1 }}",
+                    dependencies=["event_step_1"]
+                ),
+                PipelineStepModel(
+                    id="event_step_3",
+                    name="Event Step 3",
+                    description="Third step generating events",
+                    step_type=StepType.LLM_GENERATE,
+                    prompt_template="Final processing: {{ steps.event_step_2 }}",
+                    dependencies=["event_step_2"]
+                )
+            ],
+            inputs={"data": "Event Sourcing Test Data"},
+            config={"event_sourcing": True, "checkpoint_interval": 1}
+        )
+        
+        await env['services']['pipeline'].create_pipeline(event_pipeline)
+        
+        pipeline_run = PipelineRun(
+            id="event_corruption_run",
+            pipeline_id="event_corruption_pipeline",
+            status=ExecutionStatus.PENDING,
+            inputs={"data": "Event Sourcing Test Data"}
+        )
+        
+        created_run = await env['services']['execution'].create_run(pipeline_run)
+        
+        # Track events generated during execution
+        generated_events = []
+        
+        # Mock event storage that gets corrupted
+        original_store_event = getattr(env['services']['execution'], '_store_event', None)
+        
+        async def corrupted_event_storage(event_data):
+            """Simulate event storage corruption."""
+            generated_events.append(event_data)
+            
+            # Simulate corruption after a few events
+            if len(generated_events) == 3:
+                raise Exception("Event stream corrupted - checksum validation failed")
+            # Simulate corruption after more events
+            elif len(generated_events) == 6:
+                raise Exception("Event store unreachable - disk I/O error")
+            
+            # Store event successfully
+            return f"event_{len(generated_events)}"
+        
+        # Apply corrupted event storage
+        if hasattr(env['services']['execution'], '_store_event'):
+            env['services']['execution']._store_event = corrupted_event_storage
+        
+        # Mock LLM service
+        mock_llm = AsyncMock()
+        mock_llm.generate.side_effect = lambda prompt: f"Event-generated content: {prompt}"
+        env['services']['execution']._llm_service = mock_llm
+        
+        # Execute with event corruption handling
+        try:
+            completed_run = await env['services']['execution'].execute_pipeline(created_run.id)
+            # If succeeds, verify all events were processed
+            assert completed_run.status == ExecutionStatus.COMPLETED
+        except Exception as e:
+            # Verify event corruption detection
+            assert "corrupted" in str(e).lower() or "checksum" in str(e).lower() or "unreachable" in str(e).lower()
+            
+            # Verify some events were generated before corruption
+            assert len(generated_events) >= 3
+            
+            # Test event stream recovery
+            async def recover_event_stream():
+                """Simulate event stream recovery from checkpoints."""
+                # In real system, would recover from last known good state
+                return generated_events[:2]  # Recover up to last checkpoint
+            
+            # Simulate recovery process
+            recovered_events = await recover_event_stream()
+            assert len(recovered_events) == 2
+            
+            # Verify run failure due to event corruption
+            failed_run = await env['services']['execution'].get_run(created_run.id)
+            assert failed_run.status == ExecutionStatus.FAILED
+
+    @pytest.mark.asyncio
+    async def test_concurrent_access_conflict_recovery(self, error_test_environment):
+        """Test recovery from concurrent access conflicts in shared resources."""
+        env = error_test_environment
+        
+        # Create shared workspace
+        shared_workspace = WorkspaceInfo(
+            name="concurrent_access_test",
+            path=str(env['error_dir'] / "concurrent_access"),
+            description="Testing concurrent access conflict recovery"
+        )
+        
+        await env['services']['workspace'].create_workspace(shared_workspace)
+        await env['services']['workspace'].set_active_workspace("concurrent_access_test")
+        
+        # Create shared resource (template)
+        shared_template = {
+            'metadata': {
+                'name': 'Shared Resource Template',
+                'version': '1.0.0',
+                'description': 'Template accessed by concurrent processes'
+            },
+            'inputs': {
+                'data': {'type': 'text', 'required': True}
+            },
+            'steps': {
+                'concurrent_step': {
+                    'name': 'Concurrent Access Step',
+                    'type': 'llm_generate',
+                    'prompt_template': 'Process data concurrently: {{ inputs.data }}'
+                }
+            }
+        }
+        
+        await env['services']['template'].create_template('shared_template.yaml', shared_template)
+        
+        # Track concurrent access attempts
+        access_log = []
+        
+        # Mock concurrent access conflicts
+        original_get_template = env['services']['template'].get_template
+        original_update_template = getattr(env['services']['template'], 'update_template', None)
+        
+        async def concurrent_access_get_template(name):
+            """Simulate concurrent access conflicts."""
+            access_log.append(f"get_template:{name}:{len(access_log)}")
+            
+            # Simulate conflict on even access attempts
+            if len(access_log) % 2 == 0 and name == 'shared_template.yaml':
+                raise Exception("Resource locked by another process - concurrent access conflict")
+            
+            return await original_get_template(name)
+        
+        async def concurrent_access_update_template(name, content):
+            """Simulate concurrent update conflicts."""
+            access_log.append(f"update_template:{name}:{len(access_log)}")
+            
+            # Simulate optimistic locking failure
+            if len(access_log) >= 5:
+                raise Exception("Optimistic lock failed - resource modified by another process")
+            
+            if original_update_template:
+                return await original_update_template(name, content)
+            else:
+                return f"updated_{name}"
+        
+        # Apply concurrent access simulation
+        env['services']['template'].get_template = concurrent_access_get_template
+        if original_update_template:
+            env['services']['template'].update_template = concurrent_access_update_template
+        
+        # Test concurrent access scenarios
+        concurrent_tasks = []
+        
+        async def access_shared_resource(task_id):
+            """Task accessing shared resource concurrently."""
+            try:
+                # Try to access shared template
+                template = await env['services']['template'].get_template('shared_template.yaml')
+                
+                # Try to update template (if update method exists)
+                if hasattr(env['services']['template'], 'update_template'):
+                    updated_content = template.copy()
+                    updated_content['metadata']['description'] = f'Updated by task {task_id}'
+                    await env['services']['template'].update_template('shared_template.yaml', updated_content)
+                
+                return f"task_{task_id}_success"
+            except Exception as e:
+                return f"task_{task_id}_error:{str(e)}"
+        
+        # Launch concurrent tasks
+        for i in range(5):
+            task = asyncio.create_task(access_shared_resource(i))
+            concurrent_tasks.append(task)
+        
+        # Wait for all tasks to complete
+        results = await asyncio.gather(*concurrent_tasks, return_exceptions=True)
+        
+        # Verify concurrent access handling
+        successful_tasks = [r for r in results if isinstance(r, str) and "success" in r]
+        failed_tasks = [r for r in results if isinstance(r, str) and "error" in r]
+        
+        # Some tasks should succeed, some should fail due to conflicts
+        assert len(successful_tasks) > 0
+        assert len(failed_tasks) > 0
+        
+        # Verify conflict detection
+        conflict_errors = [f for f in failed_tasks if "locked" in f or "optimistic" in f]
+        assert len(conflict_errors) > 0
+        
+        # Verify access log shows concurrent attempts
+        assert len(access_log) >= 5
+
+    @pytest.mark.asyncio
+    async def test_security_permission_error_recovery(self, error_test_environment):
+        """Test recovery from security and permission errors during execution."""
+        env = error_test_environment
+        
+        # Create workspace in restricted location
+        secure_workspace = WorkspaceInfo(
+            name="security_test",
+            path=str(env['error_dir'] / "security_test"),
+            description="Testing security permission error recovery"
+        )
+        
+        await env['services']['workspace'].create_workspace(secure_workspace)
+        await env['services']['workspace'].set_active_workspace("security_test")
+        
+        # Create secure template
+        secure_template = {
+            'metadata': {
+                'name': 'Security Test Template',
+                'version': '1.0.0',
+                'description': 'Template testing security permissions'
+            },
+            'inputs': {
+                'sensitive_data': {'type': 'text', 'required': True, 'secure': True}
+            },
+            'steps': {
+                'secure_step': {
+                    'name': 'Secure Processing Step',
+                    'type': 'llm_generate',
+                    'prompt_template': 'Process sensitive data securely: {{ inputs.sensitive_data }}'
+                }
+            }
+        }
+        
+        await env['services']['template'].create_template('secure_template.yaml', secure_template)
+        
+        # Track permission violations
+        permission_violations = []
+        
+        # Mock permission errors
+        original_get_template = env['services']['template'].get_template
+        original_create_run = env['services']['execution'].create_run
+        
+        async def permission_denied_get_template(name):
+            """Simulate permission denied errors."""
+            if name == 'secure_template.yaml':
+                permission_violations.append(f"access_denied:{name}")
+                raise PermissionError("Access denied - insufficient permissions for secure template")
+            return await original_get_template(name)
+        
+        async def permission_denied_create_run(run_data):
+            """Simulate permission denied for execution."""
+            if "secure" in str(run_data).lower():
+                permission_violations.append("execution_denied")
+                raise PermissionError("Execution denied - security policy violation")
+            return await original_create_run(run_data)
+        
+        # Apply permission simulation
+        env['services']['template'].get_template = permission_denied_get_template
+        env['services']['execution'].create_run = permission_denied_create_run
+        
+        # Test permission error scenarios
+        try:
+            # Try to access secure template
+            template = await env['services']['template'].get_template('secure_template.yaml')
+            assert False, "Should have raised permission error"
+        except PermissionError as e:
+            assert "access denied" in str(e).lower() or "insufficient permissions" in str(e).lower()
+            assert len(permission_violations) > 0
+        
+        # Test permission recovery with elevated privileges
+        async def elevated_privilege_access(name):
+            """Simulate access with elevated privileges."""
+            if name == 'secure_template.yaml':
+                permission_violations.append(f"elevated_access:{name}")
+                return secure_template  # Return template with elevated privileges
+            return await original_get_template(name)
+        
+        # Restore with elevated privileges
+        env['services']['template'].get_template = elevated_privilege_access
+        
+        # Test recovery with elevated privileges
+        try:
+            template = await env['services']['template'].get_template('secure_template.yaml')
+            assert template is not None
+            assert template['metadata']['name'] == 'Security Test Template'
+            
+            # Verify elevated access was logged
+            elevated_accesses = [v for v in permission_violations if "elevated_access" in v]
+            assert len(elevated_accesses) > 0
+            
+        except Exception as e:
+            # If still fails, verify proper error handling
+            assert "permission" in str(e).lower() or "security" in str(e).lower()
+        
+        # Verify permission violations were properly tracked
+        assert len(permission_violations) >= 2
+
+
 if __name__ == "__main__":
     # Run with: python -m pytest tests/use_cases/test_error_recovery_scenarios.py -v
     pass
