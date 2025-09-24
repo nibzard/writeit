@@ -11,7 +11,7 @@ from typing import Any, AsyncGenerator, Dict, Optional, Union, TYPE_CHECKING
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 if TYPE_CHECKING:
-    from ...storage.manager import StorageManager
+    from .storage_manager import LMDBStorageManager
 from .access_control import (
     AccessLevel, 
     ResourceType, 
@@ -20,7 +20,7 @@ from .access_control import (
     WorkspaceAccessDeniedError
 )
 from .file_access_control import create_file_access_controller, FileAccessController
-from .secure_storage import create_secure_storage_manager, SecureStorageManager
+from ..persistence.secure_storage import create_secure_storage_manager, SecureStorageManager
 from .security_audit import (
     SecurityEventType,
     SecurityEventSeverity,
@@ -137,6 +137,8 @@ class WorkspaceSecurityManager:
             details={"map_size_mb": map_size_mb, "max_dbs": max_dbs}
         )
         
+        # Create secure storage manager using infrastructure layer
+        from ..persistence.secure_storage import create_secure_storage_manager
         return await create_secure_storage_manager(
             workspace_name=self.workspace_name,
             workspace_manager=workspace_manager,

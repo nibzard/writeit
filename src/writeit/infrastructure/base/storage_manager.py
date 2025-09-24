@@ -1,4 +1,4 @@
-Independent LMDB Storage Manager for Infrastructure Layer.
+"""Independent LMDB Storage Manager for Infrastructure Layer.
 
 Self-contained storage manager that provides LMDB functionality
 specifically for the infrastructure layer without dependencies on legacy storage.
@@ -351,25 +351,8 @@ class LMDBStorageManager:
         except Exception as e:
             raise RepositoryError(f"Failed to find entities by prefix {prefix}: {e}") from e
 
-    async def count_entities(
-        self, 
-        prefix: str = "",
-        db_name: str = "main",
-        db_key: Optional[str] = None
-    ) -> int:
-        """Count entities with optional prefix filter.
-        
-        Args:
-            prefix: Key prefix to filter by
-            db_name: Database name
-            db_key: Sub-database key
-            
-        Returns:
-            Number of matching entities
-            
-        Raises:
-            RepositoryError: If count operation fails
-        """
+    async def count_entities(self, prefix: str = "", db_name: str = "main", db_key: Optional[str] = None) -> int:
+        """Count entities with optional prefix filter."""
         try:
             count = 0
             async with self.transaction(db_name, write=False, db_key=db_key) as (txn, db):
@@ -392,6 +375,7 @@ class LMDBStorageManager:
 
 
     def _make_key(self, entity_id: Any) -> str:
+        """Create a storage key from entity ID."""
         if isinstance(entity_id, UUID):
             return str(entity_id)
         elif hasattr(entity_id, 'value'):
@@ -400,6 +384,7 @@ class LMDBStorageManager:
             return str(entity_id)
 
     def get_workspace_storage_path(self, workspace: WorkspaceName) -> Path:
+        """Get storage path for workspace."""
         if self.workspace_manager is None:
             return Path.cwd() / ".writeit" / "workspaces" / workspace.value
         return self.workspace_manager.get_workspace_path(workspace.value)

@@ -12,7 +12,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Union, TYPE_CHECKI
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 if TYPE_CHECKING:
-    from ...storage.manager import StorageManager
+    from ..base.storage_manager import LMDBStorageManager
 from ..base.access_control import (
     AccessLevel, 
     ResourceType, 
@@ -38,7 +38,7 @@ class SecureStorageManager:
     
     def __init__(
         self,
-        storage_manager: StorageManager,
+        storage_manager: 'LMDBStorageManager',
         workspace_name: WorkspaceName,
         user_id: Optional[str] = None,
         enforce_isolation: bool = True
@@ -410,8 +410,9 @@ async def create_secure_storage_manager(
     if isinstance(workspace_name, str):
         workspace_name = WorkspaceName(workspace_name)
     
-    # Create underlying storage manager
-    storage_manager = StorageManager(
+    # Create underlying storage manager using infrastructure layer
+    from ..base.storage_manager import LMDBStorageManager
+    storage_manager = LMDBStorageManager(
         workspace_manager=workspace_manager,
         workspace_name=str(workspace_name),
         map_size_mb=map_size_mb,
