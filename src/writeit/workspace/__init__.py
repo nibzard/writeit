@@ -1,5 +1,6 @@
 # ABOUTME: WriteIt workspace management library
 # ABOUTME: Handles centralized ~/.writeit directory structure and workspace operations
+# DEPRECATED: This module is deprecated. Use writeit.domains.workspace and writeit.application.services instead.
 
 from .workspace import Workspace, WorkspaceConfig, GlobalConfig
 from .config import ConfigLoader, get_writeit_home, get_active_workspace
