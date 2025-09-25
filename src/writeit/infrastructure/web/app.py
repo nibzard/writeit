@@ -20,7 +20,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 
 from ...shared.dependencies.container import Container
-from ...shared.events.bus import EventBus
+from ...shared.events.event_bus import EventBus
 from ...shared.errors.base import DomainError
 from .context import APIContextMiddleware, APIContextManager
 from .error_handler import (

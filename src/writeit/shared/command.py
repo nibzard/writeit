@@ -67,7 +67,7 @@ TCommand = TypeVar('TCommand', bound=Command)
 TResult = TypeVar('TResult', bound=CommandResult)
 
 
-class CommandHandler(Generic[TCommand, TResult], ABC):
+class CommandHandler(ABC, Generic[TCommand, TResult]):
     """Base interface for command handlers.
     
     Command handlers contain the business logic for executing commands.
@@ -112,7 +112,7 @@ class CommandHandler(Generic[TCommand, TResult], ABC):
         return True
 
 
-class CommandBus(ABC):
+class CommandBus(ABC, Generic[TCommand, TResult]):
     """Interface for command bus that routes commands to handlers."""
     
     @abstractmethod
@@ -134,8 +134,8 @@ class CommandBus(ABC):
     @abstractmethod
     def register_handler(
         self, 
-        command_type: type, 
-        handler: CommandHandler[TResult]
+        command_type: type[TCommand], 
+        handler: CommandHandler[TCommand, TResult]
     ) -> None:
         """Register command handler for command type.
         
@@ -189,11 +189,11 @@ class CommandExecutionError(CommandError):
 
 # Simple Command Bus Implementation
 
-class SimpleCommandBus(CommandBus):
+class SimpleCommandBus(CommandBus[TCommand, TResult]):
     """Simple in-memory command bus implementation."""
     
     def __init__(self) -> None:
-        self._handlers: Dict[type, CommandHandler[Any, Any]] = {}
+        self._handlers: Dict[type[TCommand], CommandHandler[TCommand, TResult]] = {}
     
     async def send(self, command: TCommand) -> TResult:
         """Send command for execution."""
@@ -236,8 +236,8 @@ class SimpleCommandBus(CommandBus):
     
     def register_handler(
         self, 
-        command_type: type, 
-        handler: CommandHandler[TResult]
+        command_type: type[TCommand], 
+        handler: CommandHandler[TCommand, TResult]
     ) -> None:
         """Register command handler."""
         self._handlers[command_type] = handler

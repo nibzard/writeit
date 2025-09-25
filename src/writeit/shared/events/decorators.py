@@ -69,20 +69,23 @@ def _function_handler_decorator(
             raise ValueError(f"Could not infer event type for function {func.__name__}. Please specify explicitly.")
     
     # Create handler class
-    class FunctionEventHandler(BaseEventHandler[event_type]):
+    class FunctionEventHandler(BaseEventHandler):
         def __init__(self):
             super().__init__(priority)
             self.func = func
+            self._event_type = event_type
         
-        async def handle(self, event: event_type) -> None:
+        async def handle(self, event: DomainEvent) -> None:
+            if not isinstance(event, self._event_type):
+                raise TypeError(f"Expected {self._event_type}, got {type(event)}")
             if inspect.iscoroutinefunction(self.func):
                 await self.func(event)
             else:
                 self.func(event)
         
         @property
-        def event_type(self) -> Type[event_type]:
-            return event_type
+        def event_type(self) -> Type[DomainEvent]:
+            return self._event_type
         
         def __str__(self) -> str:
             return f"FunctionEventHandler({func.__name__}, priority={self.priority})"

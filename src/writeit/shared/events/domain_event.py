@@ -23,6 +23,9 @@ class DomainEvent(ABC):
     - Be serializable to dictionary
     """
     
+    _event_id: str
+    _timestamp: datetime
+    
     def __init__(self) -> None:
         """Base initialization - subclasses must call super().__init__()"""
         object.__setattr__(self, '_event_id', str(uuid.uuid4()))

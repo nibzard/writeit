@@ -29,6 +29,7 @@ dependencies = [
     "trio>=0.31.0",
     "psutil>=7.1.0",
     "msgpack>=1.0.0",
+    "pytest-asyncio>=1.1.0",
 ]
 
 [project.optional-dependencies]
@@ -77,8 +78,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 
 # Async test configuration
-# Note: Using explicit @pytest.mark.asyncio markers for async tests
-# Auto-detection mode has compatibility issues with current setup
+asyncio_mode = "auto"
 
 # Output and reporting
 addopts = [
