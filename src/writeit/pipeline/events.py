@@ -19,7 +19,10 @@ from writeit.domains.pipeline.events import (
     StepExecutionFailed
 )
 from writeit.domains.pipeline.entities import PipelineRun, StepExecution
-from writeit.domains.pipeline.value_objects import ExecutionStatus
+from writeit.domains.pipeline.value_objects.execution_status import (
+    PipelineExecutionStatus,
+    StepExecutionStatus
+)
 
 # Issue deprecation warning
 warnings.warn(
@@ -297,20 +300,20 @@ class PipelineEventStore:
 
         if event.event_type == EventType.RUN_STARTED:
             run_changes = {
-                "status": PipelineStatus.RUNNING,
+                "status": PipelineExecutionStatus.RUNNING,
                 "started_at": event.timestamp,
             }
 
         elif event.event_type == EventType.RUN_COMPLETED:
             run_changes = {
-                "status": PipelineStatus.COMPLETED,
+                "status": PipelineExecutionStatus.COMPLETED,
                 "completed_at": event.timestamp,
                 "outputs": event.data.get("outputs", {}),
             }
 
         elif event.event_type == EventType.RUN_FAILED:
             run_changes = {
-                "status": PipelineStatus.FAILED,
+                "status": PipelineExecutionStatus.FAILED,
                 "completed_at": event.timestamp,
                 "error": event.data.get("error"),
             }
@@ -319,7 +322,7 @@ class PipelineEventStore:
             step_key = event.data["step_key"]
             # Find or create step execution
             step_exec = self._find_or_create_step(state.run, step_key)
-            step_exec.status = StepStatus.RUNNING
+            step_exec.status = StepExecutionStatus.RUNNING
             step_exec.started_at = event.timestamp
 
             # Update run with modified step
@@ -329,7 +332,7 @@ class PipelineEventStore:
             step_key = event.data["step_key"]
             step_exec = self._find_step(state.run, step_key)
             if step_exec:
-                step_exec.status = StepStatus.COMPLETED
+                step_exec.status = StepExecutionStatus.COMPLETED
                 step_exec.completed_at = event.timestamp
                 step_exec.execution_time = event.data.get("execution_time", 0)
                 step_exec.tokens_used = event.data.get("tokens_used", {})
@@ -400,7 +403,59 @@ class PipelineEventStore:
         self.storage.store_json(key, event.to_dict(), db_name="pipeline_events")
 
     async def _load_events(self, run_id: str) -> List[PipelineEvent]:
-        """Load all events for a run from storage."""
-        # TODO: Implement efficient event loading from LMDB
-        # For now, return empty list - would need pagination for large event streams
-        return []
+        """Load all events for a run from storage with efficient pagination."""
+        try:
+            # Use prefix search to find all events for this run
+            event_prefix = f"event_{run_id}_"
+            
+            # Get all event keys for this run, sorted by sequence number
+            event_keys = self.storage.list_keys(
+                prefix=event_prefix, 
+                db_name="pipeline_events"
+            )
+            
+            # Sort keys by sequence number (encoded in the key)
+            event_keys.sort()  # Keys are formatted as "event_{run_id}_{sequence_number:06d}"
+            
+            events = []
+            
+            # Load events in batches to avoid memory issues with large event streams
+            batch_size = 100
+            for i in range(0, len(event_keys), batch_size):
+                batch_keys = event_keys[i:i + batch_size]
+                
+                # Load batch of events
+                for key in batch_keys:
+                    try:
+                        event_data = self.storage.load_json(
+                            key=key, 
+                            db_name="pipeline_events"
+                        )
+                        if event_data:
+                            event = PipelineEvent.from_dict(event_data)
+                            events.append(event)
+                    except (KeyError, ValueError, TypeError) as e:
+                        # Log warning for corrupted events but continue processing
+                        warnings.warn(
+                            f"Failed to load event {key} for run {run_id}: {e}",
+                            RuntimeWarning
+                        )
+                        continue
+            
+            # Sort events by sequence number to ensure correct order
+            events.sort(key=lambda e: e.sequence_number)
+            
+            # Update sequence counter for this run
+            if events:
+                max_sequence = max(event.sequence_number for event in events)
+                self.sequence_counters[run_id] = max_sequence
+            
+            return events
+            
+        except Exception as e:
+            # Log error and return empty list to avoid breaking the system
+            warnings.warn(
+                f"Failed to load events for run {run_id}: {e}",
+                RuntimeWarning
+            )
+            return []
