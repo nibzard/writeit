@@ -114,6 +114,11 @@ from .execution_application_service import (
     MonitoringError,
 )
 
+from .migration_application_service import (
+    MigrationApplicationService,
+    DefaultMigrationApplicationService,
+)
+
 __all__ = [
     # Pipeline Application Service
     "PipelineApplicationService",
@@ -180,4 +185,8 @@ __all__ = [
     "ExecutionFailedError",
     "OptimizationError",
     "MonitoringError",
+    
+    # Migration Application Service
+    "MigrationApplicationService",
+    "DefaultMigrationApplicationService",
 ]

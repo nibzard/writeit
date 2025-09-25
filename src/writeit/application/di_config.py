@@ -44,6 +44,8 @@ from .services import (
     WorkspaceApplicationService,
     ContentApplicationService,
     ExecutionApplicationService,
+    MigrationApplicationService,
+    DefaultMigrationApplicationService,
 )
 
 # Repository Interfaces
@@ -851,6 +853,7 @@ class DIConfiguration:
             "content_application_service": ContentApplicationService,
             "execution_application_service": ExecutionApplicationService,
             "migration_application_service": MigrationApplicationService,
+            "default_migration_application_service": DefaultMigrationApplicationService,
             
             # Repository Interfaces
             "pipeline_template_repository": PipelineTemplateRepository,
