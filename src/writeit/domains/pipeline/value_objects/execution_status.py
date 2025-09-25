@@ -5,7 +5,7 @@ Provides state enumeration with valid state transitions and validation.
 
 from enum import Enum
 from dataclasses import dataclass
-from typing import Set, Self, Optional
+from typing import Set, Self, Optional, cast
 from datetime import datetime
 
 
@@ -153,7 +153,7 @@ class ExecutionStatus:
                 f"Valid transitions: {', '.join(str(s) for s in valid_transitions)}"
             )
         
-        return ExecutionStatus(
+        return self.__class__(
             status=new_status,
             changed_at=datetime.now(),
             error_message=error_message,
@@ -220,9 +220,9 @@ class ExecutionStatus:
         
         # Return transitions based on the actual status type
         if isinstance(self.status, PipelineExecutionStatus):
-            return pipeline_transitions.get(self.status, set())
+            return cast(Set[PipelineExecutionStatus | StepExecutionStatus], pipeline_transitions.get(self.status, set()))
         elif isinstance(self.status, StepExecutionStatus):
-            return step_transitions.get(self.status, set())
+            return cast(Set[PipelineExecutionStatus | StepExecutionStatus], step_transitions.get(self.status, set()))
         else:
             return set()
     

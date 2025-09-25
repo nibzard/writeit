@@ -234,7 +234,7 @@ class PipelineTemplate:
             path.remove(step_key)
             return False
         
-        visited = set()
+        visited: set[str] = set()
         for step_key in self.steps:
             if step_key not in visited:
                 if has_cycle(step_key, visited, set()):
@@ -312,7 +312,7 @@ class PipelineTemplate:
         """
         execution_order = self.get_execution_order()
         groups = []
-        current_group = []
+        current_group: list[str] = []
         
         for step_key in execution_order:
             step = self.steps[step_key]

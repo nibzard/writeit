@@ -68,6 +68,7 @@ class WorkspaceConfiguration:
         config_def = self.values[key]
         
         # Create new configuration value with the updated value
+        new_config: ConfigurationValue[Any]
         if isinstance(config_def, StringConfigValue):
             new_config = replace(config_def, value=value)
         elif isinstance(config_def, IntConfigValue):
@@ -275,7 +276,7 @@ class WorkspaceConfiguration:
         Returns:
             Default configuration with common settings
         """
-        default_values = {
+        default_values: dict[str, ConfigurationValue[Any]] = {
             # LLM Settings
             "default_model": string_config(
                 key="default_model",

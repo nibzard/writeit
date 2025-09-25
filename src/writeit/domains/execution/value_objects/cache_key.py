@@ -94,7 +94,7 @@ class CacheKey:
             Generated cache key
         """
         # Build normalized request data
-        request_data = {
+        request_data: Dict[str, Any] = {
             "model": model.strip().lower(),
             "prompt": prompt.strip(),
         }
@@ -147,7 +147,7 @@ class CacheKey:
         Returns:
             Generated cache key
         """
-        request_data = {
+        request_data: Dict[str, Any] = {
             "model": model.strip().lower(),
             "messages": messages,
         }
@@ -173,7 +173,7 @@ class CacheKey:
         Returns:
             Normalized request data
         """
-        normalized = {}
+        normalized: Dict[str, Any] = {}
         
         for key, value in data.items():
             # Skip None values

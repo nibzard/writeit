@@ -102,7 +102,7 @@ class SimpleSafeSerializer:
             return {"__str__": str(value)}
 
 
-def create_safe_serializer(format_preference: SerializationFormat = SerializationFormat.JSON, 
+def create_safe_serializer(format_preference: str = SerializationFormat.JSON, 
                           enable_schema_validation: bool = True, 
                           migration_strategy: Optional[Any] = None) -> SimpleSafeSerializer:
     """Create a safe serializer - simplified version for legacy storage."""
