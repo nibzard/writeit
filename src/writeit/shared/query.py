@@ -261,7 +261,8 @@ class SimpleQueryBus(QueryBus):
         if not await handler.can_handle(query):
             raise QueryExecutionError(
                 f"Handler cannot execute query: {query_type.__name__}",
-                query
+                inner_exception=None,
+                query=query
             )
         
         try:

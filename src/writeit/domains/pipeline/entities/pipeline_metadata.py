@@ -4,7 +4,7 @@ Domain entity for managing pipeline metadata, versioning, and categorization."""
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Self
+from typing import Dict, Any, List, Optional, Self, cast
 from enum import Enum
 
 from ..value_objects.pipeline_id import PipelineId
@@ -306,7 +306,7 @@ class PipelineMetadata:
                 "last_change_description": change_description
             }
         
-        return replace(self, **updates)
+        return cast(Self, replace(self, **updates))
     
     def update_status(self, status: PipelineStatus) -> Self:
         """Update pipeline status.
@@ -325,7 +325,7 @@ class PipelineMetadata:
         if status == PipelineStatus.DEPRECATED:
             updates["deprecated_at"] = datetime.now()
         
-        return replace(self, **updates)
+        return cast(Self, replace(self, **updates))
     
     def publish(self) -> Self:
         """Mark pipeline as published.
@@ -364,7 +364,7 @@ class PipelineMetadata:
                 "deprecation_reason": reason
             }
         
-        return replace(self, **updates)
+        return cast(Self, replace(self, **updates))
     
     def add_tags(self, new_tags: List[str]) -> Self:
         """Add tags to pipeline.

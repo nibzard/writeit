@@ -147,3 +147,47 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+[tool.mypy]
+# Target Python version
+python_version = "3.12"
+
+# Strict mode settings
+strict = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+implicit_reexport = false
+strict_equality = true
+strict_concatenate = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = true
+warn_unreachable = true
+extra_checks = true
+
+# Module-specific settings
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disable_error_code = ["var-annotated", "override"]
+
+# Exclude files that shouldn't be type checked
+exclude = [
+    "build/",
+    "dist/",
+    "venv/",
+    ".venv/",
+    "docs/",
+]
+
+# Show error codes and context
+show_error_codes = true
+show_column_numbers = true
+pretty = true

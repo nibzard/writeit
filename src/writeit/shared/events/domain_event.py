@@ -23,7 +23,7 @@ class DomainEvent(ABC):
     - Be serializable to dictionary
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Base initialization - subclasses must call super().__init__()"""
         object.__setattr__(self, '_event_id', str(uuid.uuid4()))
         object.__setattr__(self, '_timestamp', datetime.now())
@@ -67,7 +67,7 @@ class DomainEvent(ABC):
         """
         pass
     
-    def __post_init__(self) -> None:
+    def _validate(self) -> None:
         """Validate event after creation."""
         if not self.event_id:
             raise ValueError("Event ID cannot be empty")

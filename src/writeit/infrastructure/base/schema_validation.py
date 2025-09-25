@@ -219,6 +219,8 @@ class SchemaField:
     
     def _validate_array_items(self, value: List[Any], path: str) -> None:
         """Validate array items."""
+        if self.items_schema is None:
+            return
         for i, item in enumerate(value):
             item_path = f"{path}[{i}]"
             self.items_schema.validate(item, item_path)
@@ -319,7 +321,11 @@ class DomainEntitySchemaBuilder:
         properties = {}
         for field in fields(dataclass_type):
             field_schema = self._build_field_schema(field.type)
-            field_schema.required = field.default == field.default_factory
+            # Handle the fact that field.default_factory might be a callable
+            if field.default_factory is not field.default:
+                field_schema.required = False
+            else:
+                field_schema.required = field.default is field.default_factory
             properties[field.name] = field_schema
         
         schema = SchemaField(

@@ -5,7 +5,7 @@ Responsibility Segregation (CQRS) pattern.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TypeVar, Generic, Any, Dict, List, Optional
 from uuid import uuid4
@@ -19,23 +19,17 @@ class Command(ABC):
     They should be immutable and contain all data needed for execution.
     """
     
-    command_id: str = None
-    timestamp: datetime = None
+    command_id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
     correlation_id: Optional[str] = None
     user_id: Optional[str] = None
     workspace_name: Optional[str] = None
-    metadata: Dict[str, Any] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize command with defaults."""
-        if self.command_id is None:
-            object.__setattr__(self, 'command_id', str(uuid4()))
-        
-        if self.timestamp is None:
-            object.__setattr__(self, 'timestamp', datetime.now())
-        
-        if self.metadata is None:
-            object.__setattr__(self, 'metadata', {})
+        # Field default factories handle the initialization now
+        pass
 
 
 @dataclass(frozen=True)
@@ -49,16 +43,14 @@ class CommandResult(ABC):
     success: bool = True
     message: str = ""
     result_data: Optional[Any] = None
-    errors: List[str] = None
-    warnings: List[str] = None
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
     execution_time: Optional[float] = None
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize result with defaults."""
-        if self.errors is None:
-            object.__setattr__(self, 'errors', [])
-        if self.warnings is None:
-            object.__setattr__(self, 'warnings', [])
+        # Field default factories handle the initialization now
+        pass
     
     @property
     def has_errors(self) -> bool:
@@ -75,7 +67,7 @@ TCommand = TypeVar('TCommand', bound=Command)
 TResult = TypeVar('TResult', bound=CommandResult)
 
 
-class CommandHandler(Generic[TResult], ABC):
+class CommandHandler(Generic[TCommand, TResult], ABC):
     """Base interface for command handlers.
     
     Command handlers contain the business logic for executing commands.
@@ -200,8 +192,8 @@ class CommandExecutionError(CommandError):
 class SimpleCommandBus(CommandBus):
     """Simple in-memory command bus implementation."""
     
-    def __init__(self):
-        self._handlers: Dict[type, CommandHandler] = {}
+    def __init__(self) -> None:
+        self._handlers: Dict[type, CommandHandler[Any, Any]] = {}
     
     async def send(self, command: TCommand) -> TResult:
         """Send command for execution."""
@@ -228,7 +220,8 @@ class SimpleCommandBus(CommandBus):
         if not await handler.can_handle(command):
             raise CommandExecutionError(
                 f"Handler cannot execute command: {command_type.__name__}",
-                command
+                inner_exception=None,
+                command=command
             )
         
         try:
