@@ -364,7 +364,9 @@ class CLIPipelineRunner:
             # Handle response selection
             selected_response = await self._handle_response_selection(step, responses)
             
-            if not selected_response:
+            if selected_response == "QUIT":
+                return False  # User chose to quit
+            elif not selected_response:
                 try:
                     return Confirm.ask("Continue despite no selection?", default=False)
                 except EOFError:
@@ -604,11 +606,13 @@ class CLIPipelineRunner:
                     
                     # Track token usage for first response only to avoid double counting
                     if i == 0 and hasattr(response, "usage"):
-                        model_name = (
-                            step.model_preference[0]
-                            if step.model_preference
-                            else "unknown"
-                        )
+                        model_name = "unknown"
+                        if isinstance(step.model_preference, list) and step.model_preference:
+                            model_name = step.model_preference[0]
+                        elif isinstance(step.model_preference, str):
+                            model_name = step.model_preference
+                        elif step.model_preference:
+                            model_name = str(step.model_preference)
                         self.token_tracker.track_step_usage(
                             step.key, step.name, model_name, response
                         )
@@ -666,7 +670,7 @@ class CLIPipelineRunner:
                 elif action == "skip":
                     return None
                 elif action == "quit":
-                    return None
+                    return "QUIT"
         else:
             # Multiple responses - show all and let user choose
             return await self._select_from_multiple_responses(step, responses)
@@ -689,6 +693,7 @@ class CLIPipelineRunner:
             self.console.print(f"  [v] - View full responses")
             self.console.print(f"  [r] - Regenerate all responses")
             self.console.print(f"  [s] - Skip this step")
+            self.console.print(f"  [q] - Quit pipeline")
             
             try:
                 choice = Prompt.ask("Choice", default="1")
@@ -726,6 +731,8 @@ class CLIPipelineRunner:
                         self.console.print(f"\n[cyan]Response {i} (preview):[/cyan] {preview}")
             elif choice.lower() == "s":
                 return None
+            elif choice.lower() == "q":
+                return "QUIT"
             else:
                 self.console.print("[red]Invalid choice. Please try again.[/red]")
     
