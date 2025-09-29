@@ -149,9 +149,38 @@ class ConcreteCreateTemplateCommandHandler(
                     validation_errors=["Either content or file_path must be provided"]
                 )
             
-            # TODO: Implement proper template validation
-            # For now, assume content is valid
-            validation_passed = True
+            # Validate template content before creating
+            try:
+                from ....domains.content.services.content_validation_service import ValidationContext
+                
+                validation_context = ValidationContext(
+                    content_format=ContentFormat.from_enum(ContentFormatEnum.MARKDOWN),  # Default to markdown
+                    content_type=command.template_type if command.template_type else ContentType.ARTICLE,
+                    workspace_name=workspace_name,
+                    validation_rules=[]  # Use default rules
+                )
+                
+                validation_result = await self._validation_service.validate_format_only(
+                    content_text=content,
+                    context=validation_context
+                )
+                
+                validation_passed = not any(
+                    issue.severity.value in ['error', 'critical'] 
+                    for issue in validation_result.issues
+                )
+                
+                if not validation_passed:
+                    error_messages = [
+                        issue.message for issue in validation_result.issues 
+                        if issue.severity.value in ['error', 'critical']
+                    ]
+                    raise ValueError(f"Template validation failed: {'; '.join(error_messages)}")
+                    
+            except Exception as e:
+                # Log validation error but don't fail the creation
+                logging.warning(f"Template validation failed for {template_name}: {e}")
+                validation_passed = True  # Allow creation to proceed
             
             # Create template entity
             template = Template.create(

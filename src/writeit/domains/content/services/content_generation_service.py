@@ -1183,7 +1183,21 @@ class ContentGenerationService:
         workspace_name: Optional[str]
     ) -> None:
         """Initialize analytics tracking for content."""
-        pass  # Placeholder
+        # Set up analytics metadata
+        if hasattr(content, 'metadata') and content.metadata:
+            content.metadata.update({
+                'analytics_enabled': True,
+                'tracking_initialized_at': datetime.now().isoformat(),
+                'quality_assessments': [],
+                'usage_metrics': {
+                    'view_count': 0,
+                    'copy_count': 0,
+                    'edit_count': 0
+                }
+            })
+        
+        # Log analytics initialization
+        logger.debug(f"Analytics tracking initialized for content: {content.id}")
     
     async def _assess_quality_dimension(self, content: GeneratedContent, dimension: str) -> float:
         """Assess specific quality dimension."""

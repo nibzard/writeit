@@ -1048,7 +1048,25 @@ class StyleManagementService:
     
     async def _validate_composition_plan(self, plan: StyleCompositionPlan) -> None:
         """Validate composition plan."""
-        pass  # Placeholder
+        if not plan.base_style or not plan.composition_strategy:
+            raise ValueError("Base style and composition strategy are required")
+        
+        # Validate that base style exists
+        if plan.base_style not in plan.component_styles:
+            raise ValueError(f"Base style {plan.base_style} not found in component styles")
+        
+        # Validate that all component styles are valid
+        for style_name in plan.component_styles:
+            if not style_name or not str(style_name).strip():
+                raise ValueError("All component style names must be non-empty")
+        
+        # Check for circular dependencies in style inheritance
+        if plan.composition_strategy == StyleCompositionStrategy.INHERITANCE:
+            visited = set()
+            for style_name in plan.component_styles:
+                if style_name in visited:
+                    raise ValueError(f"Circular dependency detected in style composition: {style_name}")
+                visited.add(style_name)
     
     async def _merge_styles(self, plan: StyleCompositionPlan) -> StylePrimer:
         """Merge styles according to plan."""

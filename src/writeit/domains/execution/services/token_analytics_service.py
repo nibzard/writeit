@@ -1101,12 +1101,57 @@ class TokenAnalyticsService:
     
     def _analyze_seasonal_patterns(self, records: List[TokenUsageRecord]) -> Dict[str, float]:
         """Analyze seasonal usage patterns."""
-        # Mock implementation
-        return {
-            "weekday_vs_weekend": 1.2,  # 20% higher on weekdays
-            "month_over_month": 1.05,   # 5% monthly growth
-            "hour_peak_factor": 2.0     # 2x higher during peak hours
-        }
+        if not records:
+            return {}
+        
+        # Group records by time patterns
+        weekday_usage = defaultdict(float)
+        weekend_usage = defaultdict(float)
+        hourly_usage = defaultdict(float)
+        monthly_usage = defaultdict(float)
+        
+        for record in records:
+            timestamp = record.timestamp
+            
+            # Weekday vs weekend analysis
+            if timestamp.weekday() < 5:  # Monday = 0, Sunday = 6
+                weekday_usage["count"] += 1
+                weekday_usage["tokens"] += record.token_count.total_tokens
+            else:
+                weekend_usage["count"] += 1
+                weekend_usage["tokens"] += record.token_count.total_tokens
+            
+            # Hourly pattern analysis
+            hour = timestamp.hour
+            hourly_usage[hour] += record.token_count.total_tokens
+            
+            # Monthly pattern analysis
+            month_key = f"{timestamp.year}-{timestamp.month:02d}"
+            monthly_usage[month_key] += record.token_count.total_tokens
+        
+        patterns = {}
+        
+        # Calculate weekday vs weekend ratio
+        if weekend_usage["count"] > 0 and weekday_usage["count"] > 0:
+            weekday_avg = weekday_usage["tokens"] / weekday_usage["count"]
+            weekend_avg = weekend_usage["tokens"] / weekend_usage["count"]
+            patterns["weekday_vs_weekend"] = weekday_avg / weekend_avg if weekend_avg > 0 else 1.0
+        
+        # Calculate peak hour factor
+        if hourly_usage:
+            max_hourly = max(hourly_usage.values())
+            avg_hourly = sum(hourly_usage.values()) / len(hourly_usage)
+            patterns["hour_peak_factor"] = max_hourly / avg_hourly if avg_hourly > 0 else 1.0
+        
+        # Calculate month-over-month growth
+        if len(monthly_usage) >= 2:
+            monthly_values = list(monthly_usage.values())
+            if len(monthly_values) >= 2:
+                latest = monthly_values[-1]
+                previous = monthly_values[-2]
+                patterns["month_over_month"] = latest / previous if previous > 0 else 1.0
+        
+        return patterns
     
     def _analyze_cost_distribution(self, records: List[TokenUsageRecord]) -> Dict[str, float]:
         """Analyze cost distribution."""
@@ -1150,14 +1195,47 @@ class TokenAnalyticsService:
         records: List[TokenUsageRecord]
     ) -> Dict[str, float]:
         """Generate benchmark comparisons."""
-        # Mock benchmarks - would compare against industry standards
+        if not records:
+            return {}
+        
         metrics = self._calculate_usage_metrics(records)
         
-        return {
-            "efficiency_vs_average": metrics.efficiency_score / 0.65,  # Assume 0.65 is average
-            "cost_per_token_vs_average": 0.003 / max(metrics.avg_cost_per_token, 0.001),
-            "cache_hit_rate_vs_average": metrics.cache_hit_rate / 0.7,  # Assume 70% is average
+        # Industry benchmarks (these would typically come from external sources)
+        industry_benchmarks = {
+            "avg_efficiency_score": 0.65,
+            "avg_cost_per_token": 0.003,
+            "avg_cache_hit_rate": 0.7,
+            "avg_tokens_per_request": 500,
+            "avg_response_time_ms": 2000
         }
+        
+        comparisons = {}
+        
+        # Efficiency comparison
+        if metrics.efficiency_score > 0:
+            comparisons["efficiency_vs_average"] = (
+                metrics.efficiency_score / industry_benchmarks["avg_efficiency_score"]
+            )
+        
+        # Cost comparison
+        if metrics.avg_cost_per_token > 0:
+            comparisons["cost_per_token_vs_average"] = (
+                industry_benchmarks["avg_cost_per_token"] / metrics.avg_cost_per_token
+            )
+        
+        # Cache hit rate comparison
+        if metrics.cache_hit_rate >= 0:
+            comparisons["cache_hit_rate_vs_average"] = (
+                metrics.cache_hit_rate / industry_benchmarks["avg_cache_hit_rate"]
+            )
+        
+        # Tokens per request comparison
+        if metrics.avg_tokens_per_request > 0:
+            comparisons["tokens_per_request_vs_average"] = (
+                industry_benchmarks["avg_tokens_per_request"] / metrics.avg_tokens_per_request
+            )
+        
+        return comparisons
     
     def _detect_anomalies(self, records: List[TokenUsageRecord]) -> List[Dict[str, Any]]:
         """Detect usage anomalies."""

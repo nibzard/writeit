@@ -484,11 +484,13 @@ class PipelineRunnerApp(App[None]):
             progress.update(progress=50)
 
             # Get model preference
-            model_name = (
-                step.model_preference[0]
-                if isinstance(step.model_preference, list)
-                else step.model_preference
-            )
+            model_name = None
+            if isinstance(step.model_preference, list):
+                model_name = step.model_preference[0] if step.model_preference else None
+            elif isinstance(step.model_preference, str):
+                model_name = step.model_preference
+            else:
+                model_name = step.model_preference
             if not model_name:
                 model_name = "gpt-4o-mini"  # Default fallback
 

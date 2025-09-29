@@ -16,6 +16,8 @@ from ..entities.execution_context import ExecutionContext
 from ..entities.llm_provider import LLMProvider, ProviderStatus, ProviderType
 from ..value_objects.model_name import ModelName
 from ..value_objects.token_count import TokenCount
+from ....infrastructure.llm.provider_factory import ProviderFactory
+from ....infrastructure.llm.base_provider import LLMRequest, LLMResponse, StreamingChunk
 
 
 class ProviderSelectionStrategy(str, Enum):
@@ -108,6 +110,7 @@ class RequestContext:
     streaming: bool = False
     timeout_seconds: Optional[int] = None
     retry_count: int = 0
+    stop_sequences: Optional[List[str]] = None
     created_at: datetime = field(default_factory=datetime.now)
     started_at: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -221,6 +224,11 @@ class RateLimitExceededError(LLMOrchestrationError):
     pass
 
 
+class ProviderExecutionError(LLMOrchestrationError):
+    """Raised when provider execution fails."""
+    pass
+
+
 class LLMOrchestrationService:
     """Service for orchestrating LLM providers and managing execution.
     
@@ -253,6 +261,7 @@ class LLMOrchestrationService:
     
     def __init__(
         self,
+        provider_factory: Optional[ProviderFactory] = None,
         selection_strategy: ProviderSelectionStrategy = ProviderSelectionStrategy.PERFORMANCE_BASED,
         default_timeout: int = 30,
         max_retries: int = 3,
@@ -261,12 +270,15 @@ class LLMOrchestrationService:
         """Initialize LLM orchestration service.
         
         Args:
+            provider_factory: Factory for creating LLM providers
             selection_strategy: Strategy for provider selection
             default_timeout: Default request timeout in seconds
             max_retries: Maximum retry attempts
             enable_metrics: Whether to collect performance metrics
         """
+        self._provider_factory = provider_factory or ProviderFactory()
         self._providers: Dict[str, LLMProvider] = {}
+        self._infrastructure_providers: Dict[str, Any] = {}  # Actual provider instances
         self._load_balancer = ProviderLoadBalancer(selection_strategy)
         self._default_timeout = default_timeout
         self._max_retries = max_retries
@@ -293,6 +305,17 @@ class LLMOrchestrationService:
         
         self._providers[provider.name] = provider
         
+        # Create and register infrastructure provider
+        try:
+            infrastructure_provider = self._provider_factory.create_provider(
+                provider.provider_type, 
+                provider.configuration or {}
+            )
+            await infrastructure_provider.initialize()
+            self._infrastructure_providers[provider.name] = infrastructure_provider
+        except Exception as e:
+            raise ValueError(f"Failed to initialize provider '{provider.name}': {e}")
+        
         # Initialize metrics
         if self._enable_metrics:
             self._load_balancer.provider_metrics[provider.name] = ProviderMetrics(provider.name)
@@ -308,6 +331,9 @@ class LLMOrchestrationService:
         """
         if provider_name in self._providers:
             del self._providers[provider_name]
+            
+        if provider_name in self._infrastructure_providers:
+            del self._infrastructure_providers[provider_name]
             
         if provider_name in self._load_balancer.provider_metrics:
             del self._load_balancer.provider_metrics[provider_name]
@@ -486,29 +512,56 @@ class LLMOrchestrationService:
         model: ModelName
     ) -> LLMResponse:
         """Execute request on specific provider."""
-        # This would integrate with actual LLM client
-        # For now, return mock response
+        infrastructure_provider = self._infrastructure_providers.get(provider.name)
+        if not infrastructure_provider:
+            raise ProviderUnavailableError(f"Infrastructure provider '{provider.name}' not available")
         
-        # Simulate API call
-        await asyncio.sleep(0.1)  # Simulate network latency
+        start_time = time.time()
         
-        content = f"Mock response from {provider.name} using {model}"
-        usage = TokenCount.create(
-            prompt_tokens=len(request_ctx.prompt.split()),
-            completion_tokens=len(content.split()),
-            total_tokens=len(request_ctx.prompt.split()) + len(content.split())
-        )
-        
-        return LLMResponse(
-            request_id=request_ctx.request_id,
-            provider_name=provider.name,
-            model_name=model,
-            content=content,
-            usage=usage,
-            latency_ms=100.0,
-            cost=0.001,
-            quality_score=0.9
-        )
+        try:
+            # Create infrastructure request
+            llm_request = LLMRequest(
+                prompt=request_ctx.prompt,
+                model=str(model),
+                max_tokens=request_ctx.max_tokens,
+                temperature=request_ctx.temperature,
+                stop_sequences=request_ctx.stop_sequences
+            )
+            
+            # Execute request through infrastructure provider
+            infra_response = await infrastructure_provider.generate(llm_request)
+            
+            # Convert to domain response
+            latency_ms = (time.time() - start_time) * 1000
+            
+            usage = TokenCount.create(
+                prompt_tokens=infra_response.token_usage.prompt_tokens,
+                completion_tokens=infra_response.token_usage.completion_tokens,
+                total_tokens=infra_response.token_usage.total_tokens
+            )
+            
+            # Calculate cost if available
+            model_info = infrastructure_provider.get_model_info(str(model))
+            cost = 0.0
+            if model_info:
+                cost = (
+                    (infra_response.token_usage.prompt_tokens / 1000) * model_info.input_cost_per_1k +
+                    (infra_response.token_usage.completion_tokens / 1000) * model_info.output_cost_per_1k
+                )
+            
+            return LLMResponse(
+                request_id=request_ctx.request_id,
+                provider_name=provider.name,
+                model_name=model,
+                content=infra_response.content,
+                usage=usage,
+                latency_ms=latency_ms,
+                cost=cost,
+                quality_score=0.9  # TODO: Implement quality scoring
+            )
+            
+        except Exception as e:
+            raise ProviderExecutionError(f"Execution failed on provider '{provider.name}': {e}")
     
     async def _execute_streaming_on_provider(
         self, 
@@ -517,12 +570,27 @@ class LLMOrchestrationService:
         model: ModelName
     ) -> AsyncIterator[str]:
         """Execute streaming request on specific provider."""
-        # Mock streaming response
-        content_parts = ["Mock ", "streaming ", "response ", "from ", f"{provider.name}"]
+        infrastructure_provider = self._infrastructure_providers.get(provider.name)
+        if not infrastructure_provider:
+            raise ProviderUnavailableError(f"Infrastructure provider '{provider.name}' not available")
         
-        for part in content_parts:
-            await asyncio.sleep(0.05)  # Simulate streaming delay
-            yield part
+        try:
+            # Create infrastructure request
+            llm_request = LLMRequest(
+                prompt=request_ctx.prompt,
+                model=str(model),
+                max_tokens=request_ctx.max_tokens,
+                temperature=request_ctx.temperature,
+                stop_sequences=request_ctx.stop_sequences
+            )
+            
+            # Execute streaming request through infrastructure provider
+            async for chunk in infrastructure_provider.generate_stream(llm_request):
+                if chunk.content:
+                    yield chunk.content
+                    
+        except Exception as e:
+            raise ProviderExecutionError(f"Streaming execution failed on provider '{provider.name}': {e}")
     
     async def _check_rate_limits(self, provider: LLMProvider) -> bool:
         """Check if provider is within rate limits."""

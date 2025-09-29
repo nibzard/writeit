@@ -1,8 +1,8 @@
 # WriteIt
 
-> LLM-powered writing pipeline application with real-time execution and workspace management
+> AI-powered writing pipeline system with unified UX and workspace management
 
-WriteIt transforms raw content into polished articles through multi-step AI-powered pipelines with human-in-the-loop feedback. Features a complete FastAPI backend with WebSocket streaming, intelligent LLM response caching, and event sourcing for reliable state management. Build better content faster with real-time AI responses, workspace isolation, and comprehensive execution tracking.
+WriteIt transforms ideas into polished content through multi-step AI-powered pipelines with intelligent human guidance. Features an intuitive CLI with unified action menus, automatic output saving, and comprehensive workspace isolation. Create better content faster with guided AI interactions, smart feedback systems, and streamlined user experience.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -12,25 +12,32 @@ WriteIt transforms raw content into polished articles through multi-step AI-powe
 
 ## ✨ Features
 
-### 🏗️ **Complete Backend Architecture**
+### 🏗️ **Production-Ready Backend Architecture**
 - **🚀 FastAPI Server**: REST API + WebSocket streaming for real-time execution
-- **⚡ Async Pipeline Engine**: Multi-step workflows with LLM integration
+- **⚡ Async Pipeline Engine**: Multi-step workflows with integrated LLM orchestration
+- **🔄 LLM Orchestration**: Multi-provider management with intelligent fallback and load balancing
 - **💾 Event Sourcing**: Immutable state management with replay capabilities
-- **🧠 Smart Caching**: Intelligent LLM response caching with workspace isolation
+- **🧠 Smart Caching**: Intelligent LLM response caching with workspace isolation and analytics
+- **📊 Token Analytics**: Comprehensive usage tracking, cost optimization, and performance metrics
 - **🔧 Client Libraries**: Python and JavaScript SDKs for easy integration
 
-### 🎯 **Pipeline Execution**
+### 🎯 **Enhanced Pipeline Execution**
 - **📋 Multi-Step Workflows**: Define complex AI-powered content generation pipelines
-- **🤖 Multi-Model Support**: OpenAI, Anthropic, and local models via llm.datasette.io
-- **⚡ Real-Time Streaming**: Watch content generate live via WebSocket
-- **🔄 Human-in-the-Loop**: Guide AI at every step with feedback and selections
-- **📊 Progress Tracking**: Detailed execution monitoring and error handling
+- **🤖 Multi-Model Support**: OpenAI, Anthropic, local models with intelligent provider orchestration
+- **🔄 Auto-Fallback**: Seamless provider switching on errors, timeouts, or rate limits
+- **⚖️ Load Balancing**: Round Robin, Performance-Based, Cost-Optimized, and Latency-Optimized strategies
+- **🎛️ Unified Action Menus**: Consistent Continue/Guide/Regenerate/Skip/Quit options everywhere
+- **🧭 Intelligent Guidance**: AI applies your instructions intelligently instead of replacing content
+- **💾 Auto-Save**: Automatically saves outputs to workspace with metadata and execution details
+- **📊 Smart UX**: Contextual help, clear mental models, and reduced cognitive load
 
-### 🏠 **Workspace Management**
+### 🏠 **Enterprise Workspace Management**
 - **🌐 Multi-Tenant**: Isolated workspaces with separate storage and caching
-- **📚 Template System**: Global and workspace-specific pipeline templates
-- **🎨 Style Primers**: Reusable style configurations for consistent output
-- **📈 Analytics**: Token usage tracking and performance metrics
+- **📚 Template System**: Global and workspace-specific pipeline templates with dependency management
+- **🎨 Style Primers**: Reusable style configurations with composition and inheritance
+- **✅ Content Validation**: Comprehensive template and content validation with detailed error reporting
+- **📈 Analytics**: Token usage tracking, cost analysis, and performance metrics with trend analysis
+- **👤 User Context**: Full audit trail with user tracking for all operations
 
 ### 🎨 **Developer Experience**  
 - **🖥️ Interactive TUI**: Rich terminal interface with real-time updates
@@ -198,6 +205,9 @@ metadata:
 defaults:
   model: "gpt-4o-mini"
   style: "technical"
+  allow_feedback: true      # Enable enhanced action menus
+  auto_approve: false       # Require user confirmation
+  auto_save: true          # Automatically save outputs
 
 inputs:
   topic:
@@ -289,13 +299,38 @@ steps:
     depends_on: ["content"]
 ```
 
-### Real-Time Execution Flow
+### Enhanced CLI Execution Flow
 
-1. **Input Collection**: Dynamic form based on pipeline inputs
-2. **Step Execution**: Sequential LLM calls with dependency resolution
-3. **Progress Streaming**: WebSocket updates for real-time feedback
-4. **Response Caching**: Intelligent caching to avoid duplicate LLM calls
-5. **State Management**: Event sourcing for reliable execution tracking
+1. **Input Collection**: Dynamic form based on pipeline inputs with smart defaults
+2. **Step Guidance**: Choose Continue/Guide/Skip/Quit with unified action menus
+3. **Response Handling**: Accept/Guide/Regenerate with intelligent AI modifications  
+4. **Auto-Save**: Automatic output saving with rich metadata and execution summaries
+5. **Help System**: Built-in contextual help ([?] option) for confused users
+
+### ✨ Enhanced User Experience Features
+
+**🎛️ Unified Action Menus**
+```
+Choose an action:
+  [c] Continue - Accept and proceed
+  [g] Guide - Add instructions and regenerate
+  [r] Regenerate - Try again with same prompt (when applicable)
+  [s] Skip - Skip this step  
+  [q] Quit - Stop pipeline
+  [?] Help - Show action explanations
+```
+
+**🧭 Intelligent Guidance System**
+- **Old behavior**: "Edit" replaced entire content with user input
+- **New behavior**: "Guide" adds instructions that AI applies intelligently
+- **Example**: User types "Add a section on performance" → AI adds the section instead of replacing everything
+
+**💡 Key UX Improvements**
+- **Cognitive Load Reduction**: Same menu everywhere - learn once, use everywhere
+- **Clear Mental Models**: Each action has distinct, predictable behavior
+- **Smart Defaults**: Continue is default for smooth workflow
+- **Context-Aware Help**: [?] shows relevant action explanations
+- **Non-Interactive Support**: Graceful fallbacks for automation/scripting
 
 ## 🚀 FastAPI Server & WebSocket
 
@@ -351,6 +386,96 @@ ws.onmessage = (event) => {
       break;
   }
 };
+```
+
+## 🏗️ Enterprise Architecture
+
+WriteIt features a production-ready, domain-driven architecture designed for scale and reliability:
+
+### LLM Orchestration Layer
+
+**Multi-Provider Management**: Seamlessly manage OpenAI, Anthropic, local, and mock providers with intelligent routing:
+
+```python
+from writeit.domains.execution.services import LLMOrchestrationService
+
+# Initialize orchestration service
+service = LLMOrchestrationService(
+    selection_strategy="performance_based",  # or cost_optimized, latency_optimized
+    max_retries=3,
+    enable_metrics=True
+)
+
+# Register multiple providers with automatic failover
+await service.register_provider(openai_provider)
+await service.register_provider(anthropic_provider)
+await service.register_provider(local_provider)
+
+# Execute with intelligent provider selection
+response = await service.execute_request(
+    context=execution_context,
+    prompt="Generate technical documentation",
+    model_preference=["gpt-4o", "claude-3-sonnet", "local-model"],
+    priority="high"  # Critical requests get priority routing
+)
+```
+
+**Key Enterprise Features**:
+- **Automatic Failover**: Seamlessly switch providers on errors or rate limits
+- **Load Balancing**: Distribute load across providers using configurable strategies
+- **Performance Monitoring**: Real-time provider health checks and metrics
+- **Cost Optimization**: Route requests to most cost-effective providers
+- **Request Prioritization**: Handle critical requests first with queue management
+
+### Smart Caching System
+
+**Workspace-Aware Caching**: Intelligent response caching with analytics and optimization:
+
+```python
+from writeit.domains.execution.services import CacheManagementService
+
+# Initialize cache management
+cache_service = CacheManagementService(
+    strategy="adaptive",  # Learns from usage patterns
+    enable_analytics=True,
+    auto_optimize=True
+)
+
+# Get comprehensive cache insights
+insights = await cache_service.generate_insights("my-workspace")
+print(f"Cache hit rate: {insights.usage_patterns['avg_hit_rate']:.2%}")
+print(f"Cost savings: ${insights.storage_breakdown['cost_savings']:.2f}")
+
+# Optimize cache performance
+plan = await cache_service.generate_optimization_plan(
+    goal="cost_reduction"  # or hit_rate, latency_reduction, storage_efficiency
+)
+await cache_service.apply_optimization_plan(plan)
+```
+
+### Token Analytics & Cost Management
+
+**Comprehensive Usage Tracking**: Advanced analytics for cost optimization and performance monitoring:
+
+```python
+from writeit.domains.execution.services import TokenAnalyticsService
+
+analytics = TokenAnalyticsService()
+
+# Get detailed usage analytics
+insights = await analytics.generate_usage_insights(
+    workspace_name="production",
+    date_range=(start_date, end_date)
+)
+
+# Monitor costs and predict usage
+forecast = await analytics.predict_usage_trends("production", days=30)
+print(f"Predicted monthly cost: ${forecast.predicted_cost:.2f}")
+
+# Get optimization recommendations
+recommendations = await analytics.generate_optimization_recommendations("production")
+for rec in recommendations:
+    print(f"💡 {rec.title}: {rec.description}")
 ```
 
 ## 🧠 Intelligent Caching
@@ -498,12 +623,15 @@ uv run writeit run pipelines/tech-article.yaml
 ```
 
 ### Tech Stack
-- **Python 3.11+** with async/await
+- **Python 3.12+** with async/await
 - **FastAPI** for REST/WebSocket APIs  
 - **Textual** for the terminal UI
 - **Typer + Rich** for beautiful CLI with completion
 - **LMDB** for efficient storage
-- **llm.datasette.io** for multi-provider AI
+- **llm.datasette.io** for simple LLM access
+- **Custom LLM Orchestration** for enterprise-grade multi-provider management
+- **Domain-Driven Design** with event sourcing and CQRS patterns
+- **Comprehensive Testing** with real LLM integration (no mocks in production code)
 
 ## 🔧 Configuration
 
@@ -581,6 +709,36 @@ uv run writeit validate my-style --type style --detailed
 # Validate multiple files at once (extensions optional)
 uv run writeit validate tech-article quick-article technical-expert --summary-only
 ```
+
+## 🆕 Recent Improvements
+
+**Latest Release - Production-Ready Architecture**
+
+We've significantly enhanced WriteIt's backend architecture for enterprise use:
+
+### ✅ **Eliminated Mock Implementations**
+- **Real LLM Integration**: Replaced all mock responses with actual provider implementations
+- **Proper Content Validation**: Template validation now uses the real validation service
+- **User Context Tracking**: Full audit trail with user tracking for all operations
+- **Dependency Management**: Automatic template dependency resolution and creation
+
+### 🔄 **Enhanced LLM Orchestration**
+- **Multi-Provider Failover**: Automatic switching between OpenAI, Anthropic, and local providers
+- **Intelligent Load Balancing**: Performance-based, cost-optimized, and latency-optimized routing
+- **Real-Time Monitoring**: Provider health checks and performance metrics
+- **Streaming Support**: Full streaming response support with provider fallback
+
+### 📊 **Advanced Analytics & Caching**
+- **Smart Cache Management**: Adaptive caching strategies with pattern analysis
+- **Token Analytics**: Comprehensive usage tracking with cost optimization
+- **Performance Insights**: Detailed metrics for cache hit rates, cost savings, and trends
+- **Predictive Analytics**: Usage forecasting and optimization recommendations
+
+### 🏗️ **Robust Architecture**
+- **Domain-Driven Design**: Clean separation of concerns with domain services
+- **Event Sourcing**: Immutable state management with replay capabilities
+- **CQRS Pattern**: Command Query Responsibility Segregation for scalability
+- **Real Testing**: Integration tests use actual LLM APIs for realistic validation
 
 ## 🤝 Contributing
 

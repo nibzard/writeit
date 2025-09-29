@@ -111,11 +111,9 @@ class StreamingChunk:
     
     content: str
     chunk_index: int
+    timestamp: datetime
     finish_reason: Optional[str] = None
     token_usage: Optional[TokenUsage] = None
-    
-    # Metadata
-    timestamp: datetime
     delta_time_ms: Optional[int] = None
 
 

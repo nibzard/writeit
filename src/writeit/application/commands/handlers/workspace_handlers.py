@@ -134,7 +134,7 @@ class ConcreteCreateWorkspaceCommandHandler(
             event = WorkspaceCreated(
                 workspace_name=workspace_name,
                 workspace_path=workspace_path,
-                created_by=None,  # TODO: Add user context
+                created_by=command.user_id,
                 created_at=datetime.now(),
                 initial_config=command.configuration or {},
                 is_default=False
@@ -233,7 +233,7 @@ class ConcreteSwitchWorkspaceCommandHandler(
             event = WorkspaceActivated(
                 workspace_name=target_workspace_name,
                 workspace_path=target_workspace_path,
-                activated_by=None,  # TODO: Add user context
+                activated_by=command.user_id,
                 activated_at=datetime.now(),
                 previous_workspace=current_workspace.name if current_workspace else None
             )
@@ -331,7 +331,7 @@ class ConcreteDeleteWorkspaceCommandHandler(
             event = WorkspaceDeleted(
                 workspace_name=workspace_name,
                 workspace_path=workspace_path,
-                deleted_by=None,  # TODO: Add user context
+                deleted_by=command.user_id,
                 deleted_at=datetime.now(),
                 reason="User requested deletion",
                 backup_created=command.backup_before_delete,
@@ -460,7 +460,7 @@ class ConcreteConfigureWorkspaceCommandHandler(
             event = WorkspaceConfigUpdated(
                 workspace_name=workspace_name,
                 workspace_path=workspace_path,
-                updated_by=None,  # TODO: Add user context
+                updated_by=command.user_id,
                 updated_at=datetime.now(),
                 config_changes=config_changes,
                 old_config=old_settings,
@@ -558,7 +558,7 @@ class ConcreteInitializeWorkspaceCommandHandler(
             event = WorkspaceInitialized(
                 workspace_name=workspace_name,
                 workspace_path=workspace_path,
-                initialized_by=None,  # TODO: Add user context
+                initialized_by=command.user_id,
                 initialized_at=datetime.now(),
                 directories_created=["templates", "storage", "config"] if command.create_directories else [],
                 templates_installed=[command.template_name] if command.template_name else [],
@@ -648,7 +648,7 @@ class ConcreteArchiveWorkspaceCommandHandler(
             event = WorkspaceArchived(
                 workspace_name=workspace_name,
                 workspace_path=workspace_path,
-                archived_by=None,  # TODO: Add user context
+                archived_by=command.user_id,
                 archived_at=datetime.now(),
                 archive_location=archive_location,
                 archive_format="zip",
@@ -799,7 +799,7 @@ class ConcreteRestoreWorkspaceCommandHandler(
             event = WorkspaceRestored(
                 workspace_name=workspace_name_obj,
                 workspace_path=workspace_path,
-                restored_by=None,  # TODO: Add user context
+                restored_by=command.user_id,
                 restored_at=datetime.now(),
                 archive_source=archive_source,
                 restoration_mode="full",

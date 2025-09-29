@@ -4,6 +4,7 @@ Provides comprehensive template lifecycle operations including
 creation, validation, versioning, dependency analysis, and performance optimization.
 """
 
+import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Set, Tuple
 from datetime import datetime, timedelta
@@ -14,13 +15,15 @@ import asyncio
 from collections import defaultdict
 
 from ....shared.repository import EntityAlreadyExistsError, EntityNotFoundError, RepositoryError
-from ..entities.template import Template
+from ..entities.template import Template, TemplateScope
 from ..value_objects.template_name import TemplateName
 from ..value_objects.content_type import ContentType
 from ..value_objects.content_format import ContentFormat
 from ..value_objects.validation_rule import ValidationRule
 from ..value_objects.content_length import ContentLength
 from ..repositories.content_template_repository import ContentTemplateRepository
+
+logger = logging.getLogger(__name__)
 
 
 class TemplateValidationError(Exception):
@@ -1225,7 +1228,30 @@ class TemplateManagementService:
         workspace_name: Optional[str]
     ) -> None:
         """Create missing template dependencies."""
-        pass  # Placeholder
+        # Extract dependencies from template content
+        dependencies = self._extract_template_dependencies(template.content)
+        
+        if not dependencies:
+            return
+        
+        # Check which dependencies exist
+        missing_deps = []
+        for dep_name in dependencies:
+            try:
+                await self._template_repository.get_by_name(dep_name, workspace_name)
+            except RepositoryError:
+                missing_deps.append(dep_name)
+        
+        if missing_deps:
+            # Log missing dependencies
+            logger.warning(
+                f"Missing template dependencies: {[str(dep) for dep in missing_deps]} "
+                f"for template {template.name} in workspace: {workspace_name or 'global'}"
+            )
+            
+            # Optionally auto-create if enabled
+            if hasattr(self, '_auto_create_dependencies') and getattr(self, '_auto_create_dependencies', False):
+                await self._auto_create_missing_dependencies(missing_deps, workspace_name)
     
     async def _auto_create_missing_dependencies(
         self,
@@ -1233,4 +1259,24 @@ class TemplateManagementService:
         workspace_name: Optional[str]
     ) -> None:
         """Auto-create missing dependency templates."""
-        pass  # Placeholder
+        for dep_name in missing_deps:
+            try:
+                # Create a basic template stub for the missing dependency
+                stub_template = Template.create(
+                    name=dep_name,
+                    content=f"# Auto-generated template stub for {dep_name}\n\n{{{{ content }}}}",
+                    description=f"Auto-generated dependency template for {dep_name}",
+                    template_type=ContentType.TEMPLATE_STUB,
+                    scope=TemplateScope.WORKSPACE if workspace_name else TemplateScope.GLOBAL,
+                    workspace_name=workspace_name,
+                    author="system",
+                    tags=["auto-generated", "dependency-stub"]
+                )
+                
+                await self._template_repository.save(stub_template)
+                
+                logger.info(f"Auto-created template dependency stub: {dep_name}")
+                
+            except Exception as e:
+                logger.error(f"Failed to auto-create template dependency {dep_name}: {e}")
+                # Continue with other dependencies even if one fails
