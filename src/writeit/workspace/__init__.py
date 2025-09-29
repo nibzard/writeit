@@ -278,7 +278,6 @@ class Workspace:
 
 # Import remaining legacy components
 from .config import ConfigLoader, get_writeit_home, get_active_workspace
-from .migration import WorkspaceMigrator, find_and_migrate_workspaces
 
 __all__ = [
     "Workspace",

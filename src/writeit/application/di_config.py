@@ -44,8 +44,6 @@ from .services import (
     WorkspaceApplicationService,
     ContentApplicationService,
     ExecutionApplicationService,
-    MigrationApplicationService,
-    DefaultMigrationApplicationService,
 )
 
 # Repository Interfaces
@@ -430,11 +428,6 @@ class DIConfiguration:
             ExecutionApplicationService
         )
         
-        # Migration Application Service
-        container.register_scoped(
-            MigrationApplicationService,
-            DefaultMigrationApplicationService
-        )
         
         return container
     
@@ -852,8 +845,6 @@ class DIConfiguration:
             "workspace_application_service": WorkspaceApplicationService,
             "content_application_service": ContentApplicationService,
             "execution_application_service": ExecutionApplicationService,
-            "migration_application_service": MigrationApplicationService,
-            "default_migration_application_service": DefaultMigrationApplicationService,
             
             # Repository Interfaces
             "pipeline_template_repository": PipelineTemplateRepository,

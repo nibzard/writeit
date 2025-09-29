@@ -226,66 +226,66 @@ class DeprecateTemplateCommand(Command):
 
 # Content Command Handler Interfaces
 
-class CreateTemplateCommandHandler(CommandHandler[ContentCommandResult]):
+class CreateTemplateCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for creating templates."""
     pass
 
 
-class UpdateTemplateCommandHandler(CommandHandler[ContentCommandResult]):
+class UpdateTemplateCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for updating templates."""
     pass
 
 
-class DeleteTemplateCommandHandler(CommandHandler[ContentCommandResult]):
+class DeleteTemplateCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for deleting templates."""
     pass
 
 
-class ValidateTemplateCommandHandler(CommandHandler[ContentCommandResult]):
+class ValidateTemplateCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for validating templates."""
     pass
 
 
-class CreateStylePrimerCommandHandler(CommandHandler[ContentCommandResult]):
+class CreateStylePrimerCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for creating style primers."""
     pass
 
 
-class UpdateStylePrimerCommandHandler(CommandHandler[ContentCommandResult]):
+class UpdateStylePrimerCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for updating style primers."""
     pass
 
 
-class DeleteStylePrimerCommandHandler(CommandHandler[ContentCommandResult]):
+class DeleteStylePrimerCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for deleting style primers."""
     pass
 
 
-class CreateGeneratedContentCommandHandler(CommandHandler[ContentCommandResult]):
+class CreateGeneratedContentCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for creating generated content."""
     pass
 
 
-class UpdateGeneratedContentCommandHandler(CommandHandler[ContentCommandResult]):
+class UpdateGeneratedContentCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for updating generated content."""
     pass
 
 
-class DeleteGeneratedContentCommandHandler(CommandHandler[ContentCommandResult]):
+class DeleteGeneratedContentCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for deleting generated content."""
     pass
 
 
-class ValidateContentCommandHandler(CommandHandler[ContentCommandResult]):
+class ValidateContentCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for validating content."""
     pass
 
 
-class PublishTemplateCommandHandler(CommandHandler[ContentCommandResult]):
+class PublishTemplateCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for publishing templates."""
     pass
 
 
-class DeprecateTemplateCommandHandler(CommandHandler[ContentCommandResult]):
+class DeprecateTemplateCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Handler interface for deprecating templates."""
     pass

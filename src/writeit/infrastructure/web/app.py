@@ -28,7 +28,7 @@ from .error_handler import (
     http_exception_handler_with_context
 )
 from .validation import handle_pydantic_validation_error
-from .handlers import WorkspaceHandlers, PipelineHandlers, ContentHandlers, HealthHandlers, MigrationEndpoints
+from .handlers import WorkspaceHandlers, PipelineHandlers, ContentHandlers, HealthHandlers
 from .websocket_handlers import WebSocketManager, WebSocketHandler
 from .routes import create_api_router
 
@@ -131,8 +131,6 @@ class WriteItAPIApplication:
         # Include API router
         self.app.include_router(api_router, prefix="/api/v1")
         
-        # Set up migration endpoints
-        self._setup_migration_routes()
         
         # WebSocket endpoints
         self._setup_websocket_routes()
@@ -140,13 +138,6 @@ class WriteItAPIApplication:
         # Root endpoints
         self._setup_root_routes()
     
-    def _setup_migration_routes(self) -> None:
-        """Set up migration routes."""
-        # Create migration endpoints
-        migration_endpoints = MigrationEndpoints(self.container)
-        
-        # Include migration router
-        self.app.include_router(migration_endpoints.router)
     
     def _setup_websocket_routes(self) -> None:
         """Set up WebSocket routes."""
@@ -226,50 +217,11 @@ class WriteItAPIApplication:
     
     async def _start_background_tasks(self) -> None:
         """Start background tasks."""
-        # Check for migration requirements on startup
-        await self._check_migration_requirements()
         
         # Background tasks would be started here
         # For example: periodic cleanup, health checks, etc.
         pass
     
-    async def _check_migration_requirements(self) -> None:
-        """Check for migration requirements on server startup."""
-        try:
-            from ...application.services.migration_application_service import DefaultMigrationApplicationService
-            from ...application.commands.migration_commands import AnalyzeMigrationRequirementsCommand
-            
-            # Get migration service
-            migration_service = self.container.get(DefaultMigrationApplicationService)
-            
-            # Check for migration requirements
-            command = AnalyzeMigrationRequirementsCommand(
-                workspace_name=None,  # Check active workspace
-                include_all_workspaces=False,
-                check_data_formats=True,
-                check_configurations=True,
-                check_cache=True,
-            )
-            
-            required_migrations = await migration_service.analyze_migration_requirements(command)
-            
-            if required_migrations:
-                logger.info(f"Server startup detected {len(required_migrations)} required migrations")
-                for migration_type in required_migrations:
-                    logger.warning(f"Migration required: {migration_type.value}")
-                
-                # Log detailed migration info
-                logger.info("Use the migration CLI commands to perform required migrations:")
-                logger.info("  writeit migration detect     - Detect legacy workspaces")
-                logger.info("  writeit migration analyze    - Analyze migration requirements")
-                logger.info("  writeit migration migrate    - Start migration operations")
-                logger.info("  writeit migration status     - Check migration status")
-            else:
-                logger.info("No migrations required on server startup")
-                
-        except Exception as e:
-            logger.warning(f"Error checking migration requirements on startup: {e}")
-            # Don't fail startup for migration check errors
     
     async def _cleanup_resources(self) -> None:
         """Clean up resources on shutdown."""

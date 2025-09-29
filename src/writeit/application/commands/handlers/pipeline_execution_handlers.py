@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, AsyncGenerator
 import asyncio
 
-from ....shared.command import CommandHandler
+from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
 from ....domains.pipeline.entities import PipelineRun, PipelineTemplate
 from ....domains.pipeline.repositories import PipelineRunRepository, PipelineTemplateRepository
@@ -49,7 +49,7 @@ from ..pipeline_commands import (
 logger = logging.getLogger(__name__)
 
 
-class ConcretePipelineExecutionCommandHandler(CommandHandler[PipelineExecutionCommandResult]):
+class ConcretePipelineExecutionCommandHandler(CommandHandler[Command, PipelineExecutionCommandResult]):
     """Base class for concrete pipeline execution command handlers."""
     
     def __init__(

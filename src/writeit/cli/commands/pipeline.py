@@ -209,7 +209,10 @@ def run(
 
                 console.print("Starting CLI pipeline execution...")
                 result = asyncio.run(run_pipeline_cli(pipeline_path, workspace_name))
-                raise typer.Exit(result)
+                if result == 0:
+                    return  # Success - exit normally without typer.Exit
+                else:
+                    raise typer.Exit(result)
             except Exception as cli_error:
                 print_error(f"CLI execution failed: {cli_error}")
                 return 1

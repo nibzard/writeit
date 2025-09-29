@@ -4,7 +4,6 @@
 import typer
 
 from writeit.workspace.workspace import Workspace
-from writeit.workspace.migration import find_and_migrate_workspaces
 from writeit.cli.output import console, print_success, print_error, create_progress
 
 
@@ -12,24 +11,16 @@ app = typer.Typer(name="init", help="Initialize WriteIt home directory")
 
 
 @app.command()
-def init(
-    migrate: bool = typer.Option(
-        False, "--migrate", help="Auto-migrate found local workspaces"
-    ),
-):
+def init():
     """
     Initialize WriteIt home directory (~/.writeit).
 
     This creates the WriteIt home directory structure and a default workspace.
-    Use --migrate to automatically migrate any existing local workspaces.
 
     [bold cyan]Examples:[/bold cyan]
 
     Basic initialization:
       [dim]$ writeit init[/dim]
-
-    Initialize and migrate existing workspaces:
-      [dim]$ writeit init --migrate[/dim]
     """
     workspace_manager = Workspace()
 
@@ -67,52 +58,6 @@ def init(
         print_success("Created default workspace")
         print_success("Created global configuration")
 
-        # Handle migration if requested
-        if migrate:
-            console.print(
-                "\n[primary]Searching for local workspaces to migrate...[/primary]"
-            )
-
-            with create_progress() as progress:
-                migrate_task = progress.add_task(
-                    "Scanning for workspaces...", total=None
-                )
-
-                results = find_and_migrate_workspaces(
-                    workspace_manager, interactive=False
-                )
-
-                if results:
-                    successful_migrations = [r for r in results if r[1]]
-                    progress.update(
-                        migrate_task,
-                        description=f"[green]✓ Migrated {len(successful_migrations)} workspaces[/green]",
-                    )
-
-                    if successful_migrations:
-                        print_success(
-                            f"Migrated {len(successful_migrations)} workspaces"
-                        )
-                        for workspace_path, success in results:
-                            if success:
-                                console.print(f"  ✓ [path]{workspace_path}[/path]")
-
-                    # Show any failures
-                    failed_migrations = [r for r in results if not r[1]]
-                    if failed_migrations:
-                        console.print(
-                            "\n[warning]Some workspaces could not be migrated:[/warning]"
-                        )
-                        for workspace_path, success in failed_migrations:
-                            console.print(f"  ❌ [path]{workspace_path}[/path]")
-                else:
-                    progress.update(
-                        migrate_task,
-                        description="[secondary]No local workspaces found to migrate[/secondary]",
-                    )
-                    console.print(
-                        "[secondary]No local workspaces found to migrate[/secondary]"
-                    )
 
         # Final success message
         console.print("\n[success]WriteIt initialized successfully![/success]")

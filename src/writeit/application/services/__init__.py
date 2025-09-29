@@ -18,7 +18,6 @@ Manages workspace operations and configurations including:
 - Workspace creation and management
 - Configuration management across domains
 - Analytics and reporting
-- Migration and backup operations
 
 ### ContentApplicationService
 Handles content creation and management workflows including:
@@ -64,7 +63,6 @@ from .workspace_application_service import (
     WorkspaceCreationRequest,
     WorkspaceListingOptions,
     WorkspaceBackupRequest,
-    WorkspaceMigrationRequest,
     WorkspaceReportRequest,
     WorkspaceInitializationMode,
     WorkspaceBackupScope,
@@ -73,7 +71,6 @@ from .workspace_application_service import (
     WorkspaceCreationError,
     WorkspaceNotFoundError,
     WorkspaceBackupError,
-    WorkspaceMigrationError,
 )
 
 from .content_application_service import (
@@ -114,10 +111,6 @@ from .execution_application_service import (
     MonitoringError,
 )
 
-from .migration_application_service import (
-    MigrationApplicationService,
-    DefaultMigrationApplicationService,
-)
 
 __all__ = [
     # Pipeline Application Service
@@ -139,7 +132,7 @@ __all__ = [
     "WorkspaceCreationRequest",
     "WorkspaceListingOptions",
     "WorkspaceBackupRequest",
-    "WorkspaceMigrationRequest", 
+ 
     "WorkspaceReportRequest",
     "WorkspaceInitializationMode",
     "WorkspaceBackupScope",
@@ -148,7 +141,6 @@ __all__ = [
     "WorkspaceCreationError",
     "WorkspaceNotFoundError",
     "WorkspaceBackupError",
-    "WorkspaceMigrationError",
     
     # Content Application Service
     "ContentApplicationService",
@@ -186,7 +178,4 @@ __all__ = [
     "OptimizationError",
     "MonitoringError",
     
-    # Migration Application Service
-    "MigrationApplicationService",
-    "DefaultMigrationApplicationService",
 ]

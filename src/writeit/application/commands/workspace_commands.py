@@ -139,46 +139,46 @@ class ApplyWorkspaceTemplateCommand(Command):
 
 # Workspace Command Handler Interfaces
 
-class CreateWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class CreateWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for creating workspaces."""
     pass
 
 
-class SwitchWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class SwitchWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for switching workspaces."""
     pass
 
 
-class DeleteWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class DeleteWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for deleting workspaces."""
     pass
 
 
-class ConfigureWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class ConfigureWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for configuring workspaces."""
     pass
 
 
-class InitializeWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class InitializeWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for initializing workspaces."""
     pass
 
 
-class ArchiveWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class ArchiveWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for archiving workspaces."""
     pass
 
 
-class RestoreWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class RestoreWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for restoring workspaces."""
     pass
 
 
-class CreateWorkspaceTemplateCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class CreateWorkspaceTemplateCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for creating workspace templates."""
     pass
 
 
-class ApplyWorkspaceTemplateCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class ApplyWorkspaceTemplateCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Handler interface for applying workspace templates."""
     pass

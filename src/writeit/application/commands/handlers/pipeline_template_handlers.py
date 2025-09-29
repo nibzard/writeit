@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from ....shared.command import CommandHandler
+from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
 from ....domains.pipeline.entities import PipelineTemplate
 from ....domains.pipeline.repositories import PipelineTemplateRepository
@@ -35,7 +35,7 @@ from ..pipeline_commands import (
 logger = logging.getLogger(__name__)
 
 
-class ConcretePipelineTemplateCommandHandler(CommandHandler[PipelineTemplateCommandResult]):
+class ConcretePipelineTemplateCommandHandler(CommandHandler[Command, PipelineTemplateCommandResult]):
     """Base class for concrete pipeline template command handlers."""
     
     def __init__(

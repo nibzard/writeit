@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Any
 import zipfile
 import tempfile
 
-from ....shared.command import CommandHandler
+from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
 from ....domains.workspace.entities import Workspace, WorkspaceConfiguration
 from ....domains.workspace.repositories import WorkspaceRepository, WorkspaceConfigRepository
@@ -53,7 +53,7 @@ from ..workspace_commands import (
 logger = logging.getLogger(__name__)
 
 
-class ConcreteWorkspaceCommandHandler(CommandHandler[WorkspaceCommandResult]):
+class ConcreteWorkspaceCommandHandler(CommandHandler[Command, WorkspaceCommandResult]):
     """Base class for concrete workspace command handlers."""
     
     def __init__(

@@ -141,6 +141,3 @@ def completion_command(
         show_completion(shell)
 
 
-# Import and add migration command
-from writeit.cli.commands.migrate import migrate as migrate_command
-app.add_command(typer.main.get_command(migrate_command), "migrate")

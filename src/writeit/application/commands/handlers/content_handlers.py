@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
-from ....shared.command import CommandHandler
+from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
 from ....domains.content.entities import Template, StylePrimer, GeneratedContent
 from ....domains.content.repositories import (
@@ -68,7 +68,7 @@ from ..content_commands import (
 logger = logging.getLogger(__name__)
 
 
-class ConcreteContentCommandHandler(CommandHandler[ContentCommandResult]):
+class ConcreteContentCommandHandler(CommandHandler[Command, ContentCommandResult]):
     """Base class for concrete content command handlers."""
     
     def __init__(

@@ -232,12 +232,12 @@ class PipelineExecutionCommandResult(CommandResult):
 
 # Command Handler Interfaces
 
-class PipelineTemplateCommandHandler(CommandHandler[PipelineTemplateCommandResult], ABC):
+class PipelineTemplateCommandHandler(CommandHandler[Command, PipelineTemplateCommandResult], ABC):
     """Base interface for pipeline template command handlers."""
     pass
 
 
-class PipelineExecutionCommandHandler(CommandHandler[PipelineExecutionCommandResult], ABC):
+class PipelineExecutionCommandHandler(CommandHandler[Command, PipelineExecutionCommandResult], ABC):
     """Base interface for pipeline execution command handlers."""
     pass
 
@@ -344,7 +344,7 @@ class PipelineExecutionProgress:
             object.__setattr__(self, 'timestamp', datetime.now())
 
 
-class StreamingPipelineExecutionCommandHandler(CommandHandler[AsyncGenerator[PipelineExecutionProgress, None]], ABC):
+class StreamingPipelineExecutionCommandHandler(CommandHandler[Command, AsyncGenerator[PipelineExecutionProgress, None]], ABC):
     """Handler for streaming pipeline execution with real-time progress."""
     
     @abstractmethod

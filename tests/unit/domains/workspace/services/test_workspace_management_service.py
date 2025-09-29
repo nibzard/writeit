@@ -1,7 +1,7 @@
 """Unit tests for WorkspaceManagementService.
 
 Tests comprehensive workspace management operations including creation,
-validation, migration, backup/restore, and lifecycle management.
+validation, backup/restore, and lifecycle management.
 """
 
 import pytest
