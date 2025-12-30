@@ -5,7 +5,7 @@ execution state persistence, history tracking, and performance analytics.
 """
 
 from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
 

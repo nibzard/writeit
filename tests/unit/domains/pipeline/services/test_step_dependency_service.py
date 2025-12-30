@@ -10,8 +10,6 @@ Tests comprehensive step dependency resolution logic including:
 """
 
 import pytest
-from typing import Dict, List, Set
-from dataclasses import replace
 
 from src.writeit.domains.pipeline.services.step_dependency_service import (
     StepDependencyService,
@@ -24,7 +22,6 @@ from src.writeit.domains.pipeline.services.step_dependency_service import (
     InvalidDependencyError,
     OptimizationAnalysis
 )
-from src.writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate, PipelineStepTemplate
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 

@@ -11,9 +11,8 @@ Tests comprehensive domain service business logic including:
 
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, Any, List, AsyncGenerator
-from datetime import datetime, timedelta
+from typing import Dict, Any, List
+from datetime import datetime
 
 from src.writeit.domains.pipeline.services.pipeline_execution_service import (
     PipelineExecutionService,
@@ -21,17 +20,14 @@ from src.writeit.domains.pipeline.services.pipeline_execution_service import (
     StepExecutionStrategy,
     ExecutionContext,
     ExecutionResult,
-    ExecutionEvent,
     ExecutionEventType,
     StepExecutor
 )
-from src.writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate, PipelineStepTemplate
+from src.writeit.domains.pipeline.entities.pipeline_template import PipelineStepTemplate
 from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from src.writeit.domains.pipeline.entities.pipeline_step import StepExecution
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
-from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
-from src.writeit.domains.pipeline.value_objects.execution_status import PipelineExecutionStatus, StepExecutionStatus
+from src.writeit.domains.pipeline.value_objects.execution_status import PipelineExecutionStatus
 from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 
 from tests.mocks import (
@@ -939,7 +935,7 @@ class TestPipelineExecutionService:
         execution_time = (datetime.now() - start_time).total_seconds()
         
         # Verify all steps completed
-        event_types = [event.event_type for event in events]
+        [event.event_type for event in events]
         completed_events = [e for e in events if e.event_type == ExecutionEventType.STEP_COMPLETED]
         assert len(completed_events) == 3
         

@@ -3,7 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from writeit.shared.validation import ValidationContext
 from writeit.shared.validation.domain_validators import (

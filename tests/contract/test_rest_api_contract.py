@@ -6,10 +6,7 @@ including proper HTTP status codes, response formats, and error handling.
 """
 
 import pytest
-import json
-import asyncio
 from httpx import AsyncClient, ASGITransport
-from typing import Dict, Any, List, Optional
 from pathlib import Path
 import tempfile
 import shutil

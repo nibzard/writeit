@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Self, Union
-from dataclasses import replace
 
 from src.writeit.domains.pipeline.entities.pipeline_template import (
     PipelineTemplate, PipelineStepTemplate, PipelineInput
@@ -14,7 +13,7 @@ from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 from src.writeit.domains.pipeline.value_objects.model_preference import ModelPreference
-from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus, PipelineExecutionStatus, StepExecutionStatus
+from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus, StepExecutionStatus
 
 
 class PipelineInputBuilder:
@@ -512,24 +511,24 @@ class PipelineRunBuilder:
         return cls().with_id(run_id).with_status(ExecutionStatus.created())
     
     @classmethod
-    def running(cls, run_id: str = "running_run") -> Self:
+    def create_running(cls, run_id: str = "running_run") -> Self:
         """Create a running run builder."""
         builder = cls().with_id(run_id)
         builder._status = ExecutionStatus.running()
         builder._started_at = datetime.now()
         return builder
-    
+
     @classmethod
-    def completed(cls, run_id: str = "completed_run") -> Self:
+    def create_completed(cls, run_id: str = "completed_run") -> Self:
         """Create a completed run builder."""
         now = datetime.now()
         builder = cls().with_id(run_id)
         builder._status = ExecutionStatus.completed()
         builder._completed_at = now
         return builder
-    
+
     @classmethod
-    def failed(cls, run_id: str = "failed_run", error: str = "Test error") -> Self:
+    def create_failed(cls, run_id: str = "failed_run", error: str = "Test error") -> Self:
         """Create a failed run builder."""
         now = datetime.now()
         builder = cls().with_id(run_id)
@@ -654,7 +653,7 @@ class StepExecutionBuilder:
         return cls().with_step_id(step_id).with_step_name(f"{step_id.title()} Step")
     
     @classmethod
-    def completed(cls, step_id: str = "completed_step", output: str = "Test response") -> Self:
+    def create_completed(cls, step_id: str = "completed_step", output: str = "Test response") -> Self:
         """Create a completed execution builder."""
         now = datetime.now()
         builder = cls().with_step_id(step_id).with_step_name(f"{step_id.title()} Step")
@@ -662,9 +661,9 @@ class StepExecutionBuilder:
         builder._outputs = {"result": output}
         builder._completed_at = now
         return builder
-    
+
     @classmethod
-    def failed(cls, step_id: str = "failed_step", error: str = "Test error") -> Self:
+    def create_failed(cls, step_id: str = "failed_step", error: str = "Test error") -> Self:
         """Create a failed execution builder."""
         now = datetime.now()
         builder = cls().with_step_id(step_id).with_step_name(f"{step_id.title()} Step")

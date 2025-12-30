@@ -19,7 +19,7 @@ from ....shared.query import (
 )
 from ..value_objects.pipeline_id import PipelineId
 from ..value_objects.step_id import StepId
-from ..value_objects.execution_status import ExecutionStatus, PipelineExecutionStatus
+from ..value_objects.execution_status import PipelineExecutionStatus
 from ..entities.pipeline_template import PipelineTemplate
 from ..entities.pipeline_run import PipelineRun
 from ..entities.pipeline_step import StepExecution

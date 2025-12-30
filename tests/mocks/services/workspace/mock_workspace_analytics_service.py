@@ -1,10 +1,8 @@
 """Mock workspace analytics service for testing."""
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
-from unittest.mock import AsyncMock
 
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
@@ -17,8 +15,6 @@ from writeit.domains.workspace.services.workspace_analytics_service import (
     HealthDiagnostics,
     BehaviorMetrics,
     AnalyticsReport,
-    AnalyticsScope,
-    MetricType,
     HealthStatus
 )
 

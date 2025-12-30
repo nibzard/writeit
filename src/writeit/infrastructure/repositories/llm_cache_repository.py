@@ -4,11 +4,7 @@ Provides LLM response caching using multi-tier cache storage
 with TTL management and analytics.
 """
 
-import asyncio
-import hashlib
-import json
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
 
 from ...domains.execution.repositories.llm_cache_repository import LLMCacheRepository
 from ...domains.execution.entities.cache_entry import CacheEntry
@@ -16,7 +12,6 @@ from ...domains.execution.value_objects.cache_key import CacheKey
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from ...shared.repository import RepositoryError
 from ..persistence.cache_storage import MultiTierCacheStorage
-from ..base.exceptions import StorageError, CacheError
 
 
 class MultiTierLLMCacheRepository(LLMCacheRepository):

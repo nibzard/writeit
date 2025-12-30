@@ -8,8 +8,6 @@ from enum import Enum
 from typing import Dict, Any, List, Optional
 
 # Import from DDD entities
-from writeit.domains.pipeline.entities import PipelineRun as DomainPipelineRun
-from writeit.domains.pipeline.value_objects import ExecutionStatus
 
 
 class PipelineStatus(str, Enum):

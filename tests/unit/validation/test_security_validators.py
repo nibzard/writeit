@@ -1,9 +1,7 @@
 """Tests for security validators."""
 
 import tempfile
-from pathlib import Path
 
-import pytest
 
 from writeit.shared.validation import ValidationContext
 from writeit.shared.validation.security_validators import (

@@ -3,16 +3,12 @@
 
 import yaml
 import re
-import warnings
 from pathlib import Path
-from typing import Dict, Any, Set, List, Optional
-from dataclasses import dataclass
+from typing import Dict, Any, List
 
 from .interfaces import ValidationContext, ValidationRule, ValidationResult
 from .validation_result import (
     ValidationResult as TemplateValidationResult,
-    ValidationIssue,
-    IssueType,
 )
 
 

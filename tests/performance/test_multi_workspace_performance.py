@@ -14,9 +14,7 @@ import tempfile
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Any, AsyncGenerator, Optional
-import uuid
-import json
+from typing import Dict, List, Any
 
 from tests.performance.test_performance_framework import (
     measure_performance,
@@ -24,7 +22,7 @@ from tests.performance.test_performance_framework import (
     generate_performance_report,
     save_benchmark_results,
     PerformanceMonitor,
-    TestConfiguration,
+    PerformanceMetrics,
     validate_performance_thresholds
 )
 
@@ -39,7 +37,6 @@ class MultiWorkspacePerformanceTest:
     async def multi_workspaces_setup(self):
         """Create multiple workspaces for testing."""
         temp_dir = Path(tempfile.mkdtemp(prefix="multi_workspace_test_"))
-        workspaces = []
         
         try:
             workspace_counts = [5, 10, 25, 50]
@@ -115,7 +112,7 @@ class MultiWorkspacePerformanceTest:
         for count, report in results_by_count.items():
             for metric in creation_times:
                 all_metrics.append(PerformanceMetrics(
-                    operation=f"workspace_creation_scalability",
+                    operation="workspace_creation_scalability",
                     duration_seconds=report.latency_stats["mean"],
                     memory_usage_mb=report.memory_stats["avg_mb"],
                     cpu_usage_percent=report.cpu_stats["avg_percent"],

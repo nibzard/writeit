@@ -8,7 +8,7 @@ including connection management, message formats, and error handling.
 import pytest
 import asyncio
 import json
-from typing import Dict, Any, List, Optional, AsyncGenerator
+from typing import Dict, Any
 from pathlib import Path
 import tempfile
 import shutil
@@ -493,11 +493,11 @@ class TestWebSocketConnectionManagementContract:
         mock_websocket3 = MockWebSocket()
         
         # Should accept first two connections
-        assert await manager.add_connection(mock_websocket1, "conn1") == True
-        assert await manager.add_connection(mock_websocket2, "conn2") == True
+        assert await manager.add_connection(mock_websocket1, "conn1")
+        assert await manager.add_connection(mock_websocket2, "conn2")
         
         # Should reject third connection
-        assert await manager.add_connection(mock_websocket3, "conn3") == False
+        assert not await manager.add_connection(mock_websocket3, "conn3")
 
     @pytest.mark.asyncio
     async def test_connection_cleanup_contract(self, test_app):

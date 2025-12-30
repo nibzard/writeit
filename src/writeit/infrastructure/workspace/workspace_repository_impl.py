@@ -11,10 +11,7 @@ from pathlib import Path
 
 from ...domains.workspace.repositories.workspace_repository import (
     WorkspaceRepository,
-    ByNameSpecification,
-    ByTagSpecification,
-    ActiveWorkspaceSpecification,
-    RecentlyAccessedSpecification
+    ActiveWorkspaceSpecification
 )
 from ...domains.workspace.entities.workspace import Workspace
 from ...domains.workspace.entities.workspace_configuration import WorkspaceConfiguration

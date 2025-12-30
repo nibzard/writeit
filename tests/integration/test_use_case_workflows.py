@@ -13,17 +13,14 @@ Test Categories:
 """
 
 import pytest
-import asyncio
-import tempfile
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Domain entities and value objects (simplified imports)

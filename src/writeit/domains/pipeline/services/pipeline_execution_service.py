@@ -7,17 +7,15 @@ error recovery and state management.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Set, Any, Optional, Callable, Awaitable, AsyncGenerator, Union
+from typing import Dict, List, Set, Any, Optional, AsyncGenerator
 from enum import Enum
 import asyncio
 from datetime import datetime
 
 from ..entities.pipeline_template import PipelineTemplate, PipelineStepTemplate
 from ..entities.pipeline_run import PipelineRun
-from ..entities.pipeline_step import StepExecution, PipelineStep
-from ..value_objects.step_id import StepId
-from ..value_objects.execution_status import ExecutionStatus, StepExecutionStatus, PipelineExecutionStatus
-from ..value_objects.prompt_template import PromptTemplate
+from ..entities.pipeline_step import StepExecution
+from ..value_objects.execution_status import PipelineExecutionStatus
 from ..repositories.pipeline_template_repository import PipelineTemplateRepository
 from ..repositories.pipeline_run_repository import PipelineRunRepository
 from ..repositories.step_execution_repository import StepExecutionRepository

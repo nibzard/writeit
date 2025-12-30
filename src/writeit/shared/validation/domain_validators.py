@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .base_validators import (
-    DirectoryExistsValidator,
     NotNullValidator, 
     PathTraversalValidator,
     RegexValidator,

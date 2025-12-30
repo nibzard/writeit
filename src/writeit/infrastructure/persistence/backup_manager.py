@@ -6,23 +6,18 @@ ensuring data safety and recovery options during migration processes.
 
 import shutil
 import json
-import yaml
 import hashlib
 import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Union, Tuple, Set
+from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from enum import Enum
 from datetime import datetime, timedelta
 import logging
-import asyncio
 import zipfile
 import tarfile
 
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.content.value_objects import TemplateName, StyleName
-from ...domains.pipeline.value_objects import PipelineId, StepId
 
 
 class BackupType(str, Enum):
@@ -236,13 +231,13 @@ class FileSystemBackupStrategy(BackupStrategy):
                 await self._create_tar_backup(source_path, temp_backup_path, config, metadata.compression)
             
             # Calculate checksum
-            checksum = await self._calculate_checksum(temp_backup_path, config.checksum_algorithm)
+            await self._calculate_checksum(temp_backup_path, config.checksum_algorithm)
             
             # Move to final location
             shutil.move(str(temp_backup_path), str(backup_path))
             
             # Get file info
-            size_bytes = backup_path.stat().st_size if backup_path.exists() else 0
+            backup_path.stat().st_size if backup_path.exists() else 0
             
             execution_time = datetime.now() - start_time
             

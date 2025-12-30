@@ -8,7 +8,7 @@ import logging
 from typing import Dict, Type, Any
 from pathlib import Path
 
-from ..shared.dependencies.container import Container, ServiceLifetime
+from ..shared.dependencies.container import Container
 from ..shared.events.event_bus import EventBus, AsyncEventBus
 
 # Domain Services
@@ -917,7 +917,7 @@ class DIConfiguration:
             "get_style_primer_handler": GetStylePrimerQueryHandler,
             "get_content_analytics_handler": GetContentAnalyticsQueryHandler,
             "get_popular_templates_handler": GetPopularTemplatesQueryHandler,
-            "validate_template_handler": ValidateTemplateQueryHandler,
+            "validate_template_query_handler": ValidateTemplateQueryHandler,
             "check_template_exists_handler": CheckTemplateExistsQueryHandler,
             
             # Execution Query Handlers

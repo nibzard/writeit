@@ -5,16 +5,14 @@ and PipelineApplicationService for domain-driven design.
 """
 
 import typer
-from typing import Optional, Dict, Any, AsyncGenerator
+from typing import Optional, Dict, Any
 from pathlib import Path
 from rich.console import Console
-from rich.progress import Progress
 
 from ..base_command import BaseCommand, CommandContext, ValidationCommandError
 from ..error_handler import handle_cli_error
 from ..output_formatter import OutputFormat
 from ....application.services import (
-    PipelineApplicationService,
     PipelineExecutionRequest,
     PipelineCreationRequest,
     PipelineListingOptions,

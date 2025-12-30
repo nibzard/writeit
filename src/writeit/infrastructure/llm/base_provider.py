@@ -5,9 +5,8 @@ Defines the contract for all LLM providers in the WriteIt system.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union
+from typing import Dict, List, Optional, Any, AsyncGenerator
 from enum import Enum
-import asyncio
 from datetime import datetime
 
 

@@ -11,7 +11,6 @@ import tempfile
 import shutil
 from pathlib import Path
 from typer.testing import CliRunner
-from typing import Dict, Any
 
 
 @pytest.fixture

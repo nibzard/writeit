@@ -5,7 +5,6 @@ import typer
 from typing import Optional
 
 from writeit.cli.output import (
-    console,
     print_success,
     print_error,
     print_warning,

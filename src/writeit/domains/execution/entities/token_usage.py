@@ -9,7 +9,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
-from ..value_objects import ModelName, TokenCount
+from ..value_objects import ModelName
 
 
 class UsageType(str, Enum):

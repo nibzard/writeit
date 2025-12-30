@@ -6,7 +6,6 @@ with the dependency injection container.
 
 from typing import Type, Dict, Any
 from ...shared.dependencies.container import Container, ServiceLifetime
-from ...shared.dependencies.registry import ServiceRegistry
 
 from .handlers.pipeline_execution_handlers import (
     ConcreteExecutePipelineCommandHandler,

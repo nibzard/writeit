@@ -2,7 +2,6 @@
 
 Events related to workspace creation, activation, modification, and deletion."""
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, Optional

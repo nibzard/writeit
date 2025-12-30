@@ -1,16 +1,13 @@
 """Comprehensive unit tests for PipelineTemplate entity."""
 
 import pytest
-from datetime import datetime, timedelta
-from typing import Dict, Any
+from datetime import datetime
 
 from src.writeit.domains.pipeline.entities.pipeline_template import (
-    PipelineTemplate, PipelineStepTemplate, PipelineInput
+    PipelineTemplate, PipelineStepTemplate
 )
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
-from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
-from src.writeit.domains.pipeline.value_objects.model_preference import ModelPreference
 
 from tests.builders.pipeline_builders import (
     PipelineTemplateBuilder, PipelineStepTemplateBuilder, PipelineInputBuilder

@@ -1,33 +1,25 @@
 """Test data builders for Value Objects across all domains."""
 
 from typing import Self, List
-from datetime import datetime
 
 # Pipeline domain value objects
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 from src.writeit.domains.pipeline.value_objects.model_preference import ModelPreference
-from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
 
 # Workspace domain value objects
 from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from src.writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from src.writeit.domains.workspace.value_objects.configuration_value import ConfigurationValue
 
 # Content domain value objects
 from src.writeit.domains.content.value_objects.template_name import TemplateName
-from src.writeit.domains.content.value_objects.content_type import ContentType
-from src.writeit.domains.content.value_objects.content_format import ContentFormat
-from src.writeit.domains.content.value_objects.content_id import ContentId
-from src.writeit.domains.content.value_objects.style_name import StyleName
 from src.writeit.domains.content.value_objects.validation_rule import ValidationRule
 
 # Execution domain value objects
 from src.writeit.domains.execution.value_objects.model_name import ModelName
 from src.writeit.domains.execution.value_objects.token_count import TokenCount
 from src.writeit.domains.execution.value_objects.cache_key import CacheKey
-from src.writeit.domains.execution.value_objects.execution_mode import ExecutionMode
 
 
 class PipelineIdBuilder:
@@ -414,22 +406,23 @@ class ValidationRuleBuilder:
         return ValidationRule(
             rule_type=self._rule_type,
             parameters=self._parameters,
-            message=self._message
+            description=self._message  # ValidationRule uses 'description' not 'message'
         )
     
     @classmethod
     def length_rule(cls, min_length: int = 10, max_length: int = 1000) -> Self:
         """Create length validation rule."""
         return (cls()
-                .with_rule_type("length")
+                .with_rule_type("length_min")  # Use valid ValidationRuleType enum value
                 .with_parameters({"min": min_length, "max": max_length})
                 .with_message(f"Content must be between {min_length} and {max_length} characters"))
-    
+
     @classmethod
     def required_rule(cls) -> Self:
         """Create required field validation rule."""
+        # There's no "required" type in ValidationRuleType - use length_min with min=1
         return (cls()
-                .with_rule_type("required")
+                .with_rule_type("length_min")
                 .with_parameters({})
                 .with_message("This field is required"))
     

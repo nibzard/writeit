@@ -5,7 +5,7 @@ workspace isolation, versioning, and template management capabilities.
 """
 
 from typing import List, Optional, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from ...domains.content.repositories.content_template_repository import (
     ContentTemplateRepository,
@@ -24,7 +24,6 @@ from ...domains.content.value_objects.content_format import ContentFormat
 from ...domains.content.value_objects.validation_rule import ValidationRule
 from ...domains.content.value_objects.content_length import ContentLength
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

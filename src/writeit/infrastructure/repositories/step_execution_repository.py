@@ -4,7 +4,6 @@ Provides persistent storage for step executions using LMDB
 with retry management and performance tracking.
 """
 
-import asyncio
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from uuid import UUID

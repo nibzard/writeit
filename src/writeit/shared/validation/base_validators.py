@@ -1,6 +1,5 @@
 """Base validation rules for common scenarios."""
 
-import os
 import re
 from pathlib import Path
 from typing import Any, List, Optional, Pattern, Union

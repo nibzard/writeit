@@ -5,14 +5,12 @@ risks of pickle while maintaining performance and functionality.
 """
 
 import json
-import sys
-from typing import Type, TypeVar, Any, Dict, Optional, Union, List
+from typing import Type, TypeVar, Any, Dict, Optional, List
 from datetime import datetime
 from uuid import UUID
-from dataclasses import is_dataclass, fields, asdict
+from dataclasses import is_dataclass, fields
 from abc import ABC, abstractmethod
 from enum import Enum
-import importlib
 
 # Optional MessagePack support
 try:
@@ -450,7 +448,7 @@ class SafeJSONEntitySerializer(SafeEntitySerializer):
             elif '__dataclass__' in value:
                 # Nested dataclass
                 dc_type_name = value['__dataclass__']
-                dc_module = value.get('__module__')
+                value.get('__module__')
                 
                 if dc_type_name in self._type_registry:
                     dc_type = self._type_registry[dc_type_name]

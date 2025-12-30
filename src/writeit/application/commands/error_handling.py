@@ -5,12 +5,11 @@ utilities for all command handlers in the WriteIt application.
 """
 
 import logging
-from typing import Dict, List, Optional, Any, Type, Union
+from typing import Dict, List, Optional, Any, Type
 from datetime import datetime
 from enum import Enum
 
-from ...shared.errors import BaseApplicationError, ValidationError, NotFoundError, ConflictError
-from ...shared.events.event_bus import EventBus
+from ...shared.errors import BaseApplicationError, ValidationError
 
 logger = logging.getLogger(__name__)
 

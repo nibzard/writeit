@@ -1,11 +1,10 @@
 """Service resolver with advanced resolution capabilities."""
 
-from typing import Type, TypeVar, Any, Optional, List, Dict, Union, get_type_hints, get_origin, get_args
-import inspect
+from typing import Type, TypeVar, Any, Optional, List, Dict, get_origin, get_args
 from abc import ABC, abstractmethod
 
 from .container import Container
-from .exceptions import ServiceNotFoundError, InvalidServiceRegistrationError
+from .exceptions import ServiceNotFoundError
 
 T = TypeVar('T')
 

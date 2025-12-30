@@ -5,14 +5,11 @@ performance monitoring, intelligent cleanup, and cache warming strategies.
 """
 
 import asyncio
-import hashlib
-import time
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set, Any, Tuple, Union
+from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 from collections import defaultdict, OrderedDict
-import json
 
 from ..entities.execution_context import ExecutionContext
 from ..value_objects.cache_key import CacheKey
@@ -24,7 +21,6 @@ from ..repositories.llm_cache_repository import (
     ByModelSpecification,
     ExpiredEntriesSpecification,
     RecentlyAccessedSpecification,
-    HighHitCountSpecification,
     LargeCacheEntrySpecification
 )
 
@@ -492,7 +488,7 @@ class CacheManagementService:
         # This would integrate with analytics to find patterns
         try:
             # Get cache statistics to understand usage patterns
-            stats = await self.get_cache_statistics()
+            await self.get_cache_statistics()
             
             # For now, implement basic warming by looking at recent successful entries
             warmed_count = 0
@@ -1023,7 +1019,7 @@ class CacheManagementService:
         while True:
             try:
                 await asyncio.sleep(86400)  # Run daily
-                plan = await self.generate_optimization_plan()
+                await self.generate_optimization_plan()
                 # Could auto-implement safe optimizations
             except asyncio.CancelledError:
                 break

@@ -6,8 +6,7 @@ conflict detection, and workspace isolation for template operations.
 
 import pytest
 from pathlib import Path
-from typing import List, Optional
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 from writeit.domains.workspace.services.workspace_template_service import (
     WorkspaceTemplateService,
@@ -110,7 +109,7 @@ class TestWorkspaceTemplateService:
         assert result.workspace_name == workspace_name
         assert result.scope == TemplateScope.WORKSPACE_ONLY
         assert not result.is_global
-        assert result.display_name == f"article-template [Workspace: test-workspace]"
+        assert result.display_name == "article-template [Workspace: test-workspace]"
         
         content_template_repository.find_by_name_and_workspace.assert_called_once_with(
             template_name, workspace_name

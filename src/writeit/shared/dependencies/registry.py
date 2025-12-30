@@ -3,8 +3,6 @@
 from typing import Type, Any, Dict, List, Optional
 from dataclasses import dataclass
 import importlib
-import inspect
-from pathlib import Path
 
 from .container import Container, ServiceLifetime
 from .exceptions import InvalidServiceRegistrationError

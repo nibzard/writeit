@@ -8,19 +8,15 @@ storage system errors, network interruptions, validation failures, and automatic
 import pytest
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import AsyncMock, Mock
-from datetime import datetime
-import tempfile
+from unittest.mock import AsyncMock
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from tests.integration.test_use_case_workflows import (
     ExecutionStatus, StepType, WorkspaceInfo, PipelineStepModel, 
-    Pipeline, PipelineRun, StepExecution,
-    MockPipelineService, MockWorkspaceService, MockTemplateService,
-    MockExecutionService, MockContentService, FileStorage
+    Pipeline, PipelineRun, MockPipelineService, MockWorkspaceService, MockTemplateService,
+    MockExecutionService, MockContentService
 )
 
 
@@ -81,7 +77,7 @@ class TestErrorRecoveryScenarios:
             }
         )
         
-        created_pipeline = await env['services']['pipeline'].create_pipeline(fallback_pipeline)
+        await env['services']['pipeline'].create_pipeline(fallback_pipeline)
         
         pipeline_run = PipelineRun(
             id="fallback_run",
@@ -108,7 +104,7 @@ class TestErrorRecoveryScenarios:
                 return f"Fallback provider: {prompt} - Renewable energy is crucial for sustainability..."
             else:
                 # Subsequent calls succeed
-                return f"Enhanced content: Building upon the renewable energy discussion..."
+                return "Enhanced content: Building upon the renewable energy discussion..."
         
         mock_llm.generate.side_effect = failing_then_succeeding_generate
         env['services']['execution']._llm_service = mock_llm
@@ -181,7 +177,7 @@ class TestErrorRecoveryScenarios:
             try:
                 retrieved_template = await env['services']['template'].get_template('storage_test.yaml')
                 break
-            except Exception as e:
+            except Exception:
                 retry_count += 1
                 if retry_count >= max_retries:
                     # After max retries, restore original function and try once more
@@ -409,7 +405,7 @@ class TestErrorRecoveryScenarios:
         
         # Verify fixed template is valid
         assert fixed_id is not None
-        assert fixed_validation.is_valid == True
+        assert fixed_validation.is_valid
         assert len(fixed_validation.errors) == 0
 
     @pytest.mark.asyncio
@@ -450,7 +446,7 @@ class TestErrorRecoveryScenarios:
         
         # Test corruption detection
         try:
-            corrupted_list = await env['services']['template'].list_templates()
+            await env['services']['template'].list_templates()
             assert False, "Should have detected corruption"
         except Exception as e:
             assert "corrupted" in str(e).lower()
@@ -1040,7 +1036,7 @@ class TestErrorRecoveryScenarios:
         
         # Test corruption detection
         try:
-            corrupted_templates = await env['services']['template'].list_templates()
+            await env['services']['template'].list_templates()
             assert False, "Should have detected configuration corruption"
         except Exception as e:
             assert "corrupted" in str(e).lower() or "invalid yaml" in str(e).lower()
@@ -1117,7 +1113,7 @@ class TestErrorRecoveryScenarios:
         generated_events = []
         
         # Mock event storage that gets corrupted
-        original_store_event = getattr(env['services']['execution'], '_store_event', None)
+        getattr(env['services']['execution'], '_store_event', None)
         
         async def corrupted_event_storage(event_data):
             """Simulate event storage corruption."""

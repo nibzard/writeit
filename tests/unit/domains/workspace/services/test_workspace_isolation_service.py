@@ -5,14 +5,12 @@ and preventing cross-workspace data leakage.
 """
 
 import pytest
-from pathlib import Path
 from typing import List, Optional
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
-from writeit.domains.workspace.repositories.workspace_repository import WorkspaceRepository
 from writeit.domains.workspace.services.workspace_isolation_service import (
     WorkspaceIsolationService,
     ValidationResult,

@@ -4,8 +4,6 @@ Provides workspace management using file system operations
 with directory structure and metadata tracking.
 """
 
-import asyncio
-import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
@@ -265,7 +263,7 @@ class FileSystemWorkspaceRepository(WorkspaceRepository):
             # Generate archive filename with timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             archive_name = f"{workspace.name.value}_{timestamp}.tar.gz"
-            archive_path = archive_dir / archive_name
+            archive_dir / archive_name
             
             # For now, we'll just copy the directory
             # In production, you'd want to create a proper archive

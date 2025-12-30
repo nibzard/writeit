@@ -4,9 +4,7 @@ This test file validates that all domain fixtures produce valid entities
 with proper relationships and constraints.
 """
 
-import pytest
 from datetime import datetime, timezone
-from typing import Dict, Any
 
 from tests.utils.domain_fixtures import DomainFixtures
 
@@ -24,7 +22,6 @@ from writeit.domains.execution.entities.token_usage import TokenUsage
 
 # Value object imports for validation
 from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
-from writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.content.value_objects.template_name import TemplateName
 from writeit.domains.execution.value_objects.model_name import ModelName

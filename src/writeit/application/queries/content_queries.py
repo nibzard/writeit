@@ -11,7 +11,6 @@ from typing import Dict, List, Optional, Any
 from enum import Enum
 
 from ...shared.query import Query, QueryHandler, QueryResult, ListQuery, GetByIdQuery, SearchQuery
-from ...domains.workspace.value_objects import WorkspaceName
 from ...domains.content.entities import Template, StylePrimer, GeneratedContent
 from ...domains.content.value_objects import ContentId
 

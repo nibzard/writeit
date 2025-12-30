@@ -10,7 +10,6 @@ Provides common repository patterns including:
 from abc import ABC, abstractmethod
 from typing import Any, Generic, List, Optional, Protocol, TypeVar, Type
 from types import TracebackType
-from uuid import UUID
 
 from ..domains.workspace.value_objects.workspace_name import WorkspaceName
 

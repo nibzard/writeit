@@ -11,32 +11,25 @@ Tests comprehensive LLM orchestration logic including:
 
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import replace
+from typing import Dict, List, Any
 
 from src.writeit.domains.execution.services.llm_orchestration_service import (
     LLMOrchestrationService,
     ProviderSelectionStrategy,
-    FallbackTrigger,
     RequestPriority,
     ProviderMetrics,
     RequestContext,
     LLMResponse,
     ProviderLoadBalancer,
-    LLMOrchestrationError,
     ProviderUnavailableError,
-    ModelNotSupportedError,
-    RateLimitExceededError
+    ModelNotSupportedError
 )
-from src.writeit.domains.execution.entities.llm_provider import LLMProvider, ProviderStatus, ProviderType
-from src.writeit.domains.execution.entities.execution_context import ExecutionContext
+from src.writeit.domains.execution.entities.llm_provider import LLMProvider, ProviderType
 from src.writeit.domains.execution.value_objects.model_name import ModelName
 from src.writeit.domains.execution.value_objects.token_count import TokenCount
 
 from tests.builders.execution_builders import (
-    LLMProviderBuilder,
     ExecutionContextBuilder
 )
 

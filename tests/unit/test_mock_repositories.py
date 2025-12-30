@@ -6,8 +6,7 @@ expected functionality for testing domain logic.
 
 import pytest
 import asyncio
-from datetime import datetime, timedelta
-from uuid import uuid4
+from datetime import datetime
 
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.pipeline.value_objects.pipeline_name import PipelineName
@@ -16,7 +15,7 @@ from writeit.domains.execution.value_objects.cache_key import CacheKey
 from writeit.domains.execution.value_objects.model_name import ModelName
 from writeit.domains.execution.value_objects.token_count import TokenCount
 
-from ..mocks.base_mock_repository import MockRepositoryError, MockEntityNotFoundError
+from ..mocks.base_mock_repository import MockRepositoryError
 
 
 class TestBaseMockRepository:

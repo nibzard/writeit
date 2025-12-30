@@ -5,7 +5,6 @@ Tests entity behavior, state transitions, and business rules for the step execut
 
 import pytest
 from datetime import datetime, timedelta
-from typing import Dict, Any
 
 from writeit.domains.pipeline.entities.pipeline_step import StepExecution
 from writeit.domains.pipeline.value_objects.step_id import StepId

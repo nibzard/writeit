@@ -1,7 +1,6 @@
 """Mock implementation of PipelineTemplateRepository for testing."""
 
 from typing import List, Optional, Any
-from uuid import UUID
 
 from writeit.domains.pipeline.repositories.pipeline_template_repository import PipelineTemplateRepository
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
@@ -10,7 +9,7 @@ from writeit.domains.pipeline.value_objects.pipeline_name import PipelineName
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.shared.repository import Specification
 
-from ..base_mock_repository import BaseMockRepository, MockEntityNotFoundError, MockEntityAlreadyExistsError
+from ..base_mock_repository import BaseMockRepository, MockEntityNotFoundError
 
 
 class MockPipelineTemplateRepository(BaseMockRepository[PipelineTemplate], PipelineTemplateRepository):

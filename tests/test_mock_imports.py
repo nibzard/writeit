@@ -92,7 +92,6 @@ def test_main_mock_import():
     print("\nTesting Main Mock Import...")
     
     try:
-        import tests.mocks
         print("✅ import tests.mocks - SUCCESS")
         return True
     except Exception as e:

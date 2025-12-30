@@ -4,11 +4,7 @@ Provides persistent storage for pipeline templates using LMDB
 with workspace isolation, versioning, and advanced querying.
 """
 
-import asyncio
-import json
-from typing import List, Optional, Dict, Any
-from datetime import datetime
-from pathlib import Path
+from typing import List, Optional
 
 from ...domains.pipeline.repositories.pipeline_template_repository import (
     PipelineTemplateRepository,
@@ -24,7 +20,7 @@ from ...domains.pipeline.value_objects.pipeline_name import PipelineName
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from ...shared.repository import RepositoryError
 from ..persistence.lmdb_storage import LMDBStorage
-from ..base.exceptions import StorageError, ValidationError
+from ..base.exceptions import StorageError
 
 
 class LMDBPipelineTemplateRepository(PipelineTemplateRepository):

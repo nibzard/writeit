@@ -5,9 +5,7 @@ templates, runs, steps, and step executions with various configurations.
 """
 
 import pytest
-from datetime import datetime
 from uuid import uuid4
-from typing import Dict, Any, List, Optional
 
 from writeit.domains.pipeline.entities.pipeline_template import (
     PipelineTemplate, PipelineStepTemplate, PipelineInput
@@ -19,7 +17,6 @@ from writeit.domains.pipeline.value_objects.step_id import StepId
 from writeit.domains.pipeline.value_objects.step_name import StepName
 from writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 from writeit.domains.pipeline.value_objects.model_preference import ModelPreference
-from writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
 
 
 # ============================================================================
@@ -71,7 +68,7 @@ def pipeline_step_template_fixture():
 @pytest.fixture
 def pipeline_template_fixture():
     """Valid pipeline template with single step."""
-    pipeline_id = PipelineId.from_name("test-pipeline")
+    PipelineId.from_name("test-pipeline")
     inputs = [
         PipelineInput(
             key="topic",
@@ -147,7 +144,7 @@ def pipeline_step_fixture():
 @pytest.fixture
 def multi_step_pipeline():
     """Pipeline with multiple dependent steps."""
-    pipeline_id = PipelineId.from_name("multi-step-pipeline")
+    PipelineId.from_name("multi-step-pipeline")
     
     inputs = [
         PipelineInput(
@@ -215,7 +212,7 @@ def multi_step_pipeline():
 @pytest.fixture
 def parallel_step_pipeline():
     """Pipeline with parallel executable steps."""
-    pipeline_id = PipelineId.from_name("parallel-pipeline")
+    PipelineId.from_name("parallel-pipeline")
     
     inputs = [
         PipelineInput(key="topic", type="text", label="Topic", required=True)
@@ -268,7 +265,7 @@ def parallel_step_pipeline():
 @pytest.fixture 
 def conditional_pipeline():
     """Pipeline with conditional step execution."""
-    pipeline_id = PipelineId.from_name("conditional-pipeline")
+    PipelineId.from_name("conditional-pipeline")
     
     inputs = [
         PipelineInput(key="content_type", type="choice", label="Content Type", required=True,

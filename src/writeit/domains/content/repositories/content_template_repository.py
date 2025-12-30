@@ -7,7 +7,6 @@ file management, validation, and template resolution.
 from abc import abstractmethod
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pathlib import Path
 
 from ....shared.repository import WorkspaceAwareRepository, Specification
 from ....domains.workspace.value_objects.workspace_name import WorkspaceName
@@ -348,7 +347,7 @@ class RecentTemplatesSpecification(Specification[Template]):
     
     def __init__(self, days: int = 7):
         self.days = days
-        from datetime import datetime, timedelta
+        from datetime import timedelta
         self.cutoff_date = datetime.now() - timedelta(days=days)
     
     def is_satisfied_by(self, template: Template) -> bool:

@@ -12,7 +12,6 @@ from enum import Enum
 
 from ..entities.pipeline_template import PipelineTemplate, PipelineStepTemplate
 from ..value_objects.step_id import StepId
-from ..value_objects.prompt_template import PromptTemplate
 
 
 class CircularDependencyError(Exception):

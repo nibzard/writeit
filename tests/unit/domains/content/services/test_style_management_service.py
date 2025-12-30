@@ -7,7 +7,6 @@ composition, optimization, compatibility analysis, and recommendation capabiliti
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 
 from src.writeit.domains.content.services.style_management_service import (
     StyleManagementService,

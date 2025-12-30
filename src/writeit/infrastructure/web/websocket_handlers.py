@@ -10,14 +10,14 @@ import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Set, Callable, AsyncGenerator
+from typing import Dict, Any, Optional, Set
 from enum import Enum
 from contextlib import asynccontextmanager
 
-from fastapi import WebSocket, WebSocketDisconnect, status
+from fastapi import WebSocket, WebSocketDisconnect
 from websockets.exceptions import ConnectionClosed
 
-from ...shared.events.bus import EventBus, DomainEvent
+from ...shared.events.bus import EventBus
 from ...domains.execution.events import (
     PipelineExecutionStarted, PipelineExecutionCompleted, PipelineExecutionFailed,
     StepExecutionStarted, StepExecutionCompleted, StepExecutionFailed,
@@ -27,9 +27,9 @@ from ...domains.pipeline.events import (
     PipelineTemplateCreated, PipelineTemplateUpdated, PipelineTemplateDeleted
 )
 from ...domains.workspace.events import (
-    WorkspaceCreated, WorkspaceUpdated, WorkspaceDeleted
+    WorkspaceUpdated
 )
-from .context import APIContextManager, get_current_context
+from .context import get_current_context
 
 
 class WebSocketMessageType(str, Enum):
@@ -417,7 +417,7 @@ class WebSocketManager:
         """Handle user feedback."""
         run_id = message.payload.get("run_id")
         step_id = message.payload.get("step_id")
-        feedback = message.payload.get("feedback", "")
+        message.payload.get("feedback", "")
         
         if not all([run_id, step_id]):
             await connection.send_error(

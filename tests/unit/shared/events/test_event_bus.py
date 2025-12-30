@@ -4,16 +4,13 @@ import asyncio
 import pytest
 from datetime import datetime, timedelta
 from typing import List
-from unittest.mock import AsyncMock, MagicMock
 
 from writeit.shared.events import (
     DomainEvent,
-    EventHandler,
     BaseEventHandler,
     EventHandlerRegistry,
     AsyncEventBus,
     InMemoryEventStore,
-    EventPublishResult,
     RetryPolicy,
     event_handler,
     get_decorated_handlers,
@@ -322,7 +319,7 @@ class TestAsyncEventBus:
         assert stats['handlers_registered'] == 1
         assert stats['failed_attempts'] == 0
         assert stats['dead_letter_queue'] == 0
-        assert stats['running'] == False  # Not started yet
+        assert not stats['running']  # Not started yet
 
 
 class TestEventDecorators:
@@ -421,7 +418,7 @@ class TestIntegration:
             # Verify stats
             stats = event_bus.get_stats()
             assert stats['handlers_registered'] == 2
-            assert stats['running'] == True
+            assert stats['running']
             
         finally:
             await event_bus.stop()

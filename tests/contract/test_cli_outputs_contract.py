@@ -9,12 +9,9 @@ import pytest
 import tempfile
 import shutil
 import json
-import yaml
 from pathlib import Path
 from typer.testing import CliRunner
-from typing import Generator, Dict, Any, List
-import subprocess
-import sys
+from typing import Generator
 
 from writeit.cli.main import app
 from writeit.workspace.workspace import Workspace

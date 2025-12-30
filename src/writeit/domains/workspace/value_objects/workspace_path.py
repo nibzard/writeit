@@ -3,7 +3,6 @@
 Provides safe and validated filesystem path handling for workspaces.
 """
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self, Optional, cast

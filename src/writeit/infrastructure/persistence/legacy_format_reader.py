@@ -10,15 +10,12 @@ import yaml
 import pickle
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, Union, Tuple, Set
+from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
 from enum import Enum
 import logging
 from datetime import datetime
 
-from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.content.value_objects import TemplateName, StyleName
-from ...domains.pipeline.value_objects import PipelineId, StepId
 
 
 class LegacyFormatType(str, Enum):
@@ -372,23 +369,23 @@ class LegacyFormatReaderImpl(LegacyFormatReader):
     def read_data(self, file_path: Path, format_info: LegacyFormatInfo) -> Dict[str, Any]:
         """Read data from the legacy format."""
         try:
-            if format_type.format_type in [LegacyFormatType.LEGACY_CONFIG_YAML, 
+            if format_info.format_type in [LegacyFormatType.LEGACY_CONFIG_YAML,
                                          LegacyFormatType.LEGACY_TEMPLATE_YAML,
                                          LegacyFormatType.LEGACY_STYLE_YAML,
                                          LegacyFormatType.LEGACY_PIPELINE_YAML]:
                 return self._read_yaml_file(file_path)
-            
-            elif format_type.format_type in [LegacyFormatType.LEGACY_CONFIG_JSON,
+
+            elif format_info.format_type in [LegacyFormatType.LEGACY_CONFIG_JSON,
                                              LegacyFormatType.LEGACY_TEMPLATE_JSON,
                                              LegacyFormatType.LEGACY_STYLE_JSON,
                                              LegacyFormatType.LEGACY_PIPELINE_JSON]:
                 return self._read_json_file(file_path)
-            
-            elif format_type.format_type == LegacyFormatType.LEGACY_PICKLE:
+
+            elif format_info.format_type == LegacyFormatType.LEGACY_PICKLE:
                 return self._read_pickle_file(file_path)
-            
+
             else:
-                raise ValueError(f"Unsupported format type: {format_type.format_type}")
+                raise ValueError(f"Unsupported format type: {format_info.format_type}")
                 
         except Exception as e:
             self.logger.error(f"Error reading {file_path}: {e}")

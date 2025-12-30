@@ -15,16 +15,13 @@ These tests validate system behavior under extreme concurrency conditions.
 import pytest
 import asyncio
 import time
-import tempfile
-import shutil
 from pathlib import Path
-from typing import Dict, List, Any, Optional, AsyncGenerator
+from typing import Dict, List, AsyncGenerator
 from datetime import datetime
 import json
 import sys
 import statistics
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from contextlib import asynccontextmanager
 
@@ -33,10 +30,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 try:
     from tests.performance.test_performance_framework import (
-        PerformanceMonitor, PerformanceMetrics, BenchmarkResult,
-        measure_performance, run_concurrent_operations,
-        generate_performance_report, save_benchmark_results,
-        TestConfiguration, validate_performance_thresholds
+        PerformanceMonitor, PerformanceMetrics,
+        measure_performance, run_concurrent_operations
     )
     REAL_IMPLEMENTATION_AVAILABLE = True
 except ImportError as e:
@@ -151,7 +146,7 @@ class ConcurrencyStressTester:
                 total_operations=total_operations
             )
             
-            monitor_results = self.monitor.stop_monitoring()
+            self.monitor.stop_monitoring()
         
         return metrics_list
     
@@ -204,7 +199,7 @@ class ConcurrencyStressTester:
             # Simulate shared resource access (potential contention)
             with self.resource_lock:
                 # Shared resource operation
-                shared_result = len(step_data) * (op_id + 1)
+                len(step_data) * (op_id + 1)
                 await asyncio.sleep(0.0001)
             
             # Clean up step data
@@ -506,9 +501,9 @@ class TestHighConcurrencyExecution:
         
         # Should be able to handle high concurrency
         high_concurrency_result = next(r for r in scalability_results if r["concurrency_level"] == 100)
-        assert high_concurrency_result["throughput_ops_per_sec"] >= 1.0, f"Poor performance at 100 concurrency"
+        assert high_concurrency_result["throughput_ops_per_sec"] >= 1.0, "Poor performance at 100 concurrency"
         
-        print(f"✅ Scalability analysis completed:")
+        print("✅ Scalability analysis completed:")
         print(f"   Baseline throughput: {baseline_throughput:.2f} ops/sec")
         print(f"   Max throughput: {max_throughput:.2f} ops/sec")
         print(f"   Optimal concurrency: {optimal_concurrency}")

@@ -1,8 +1,7 @@
 """Mock implementation of PipelineValidationService for testing."""
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List
 from unittest.mock import Mock
-from dataclasses import dataclass
 
 from writeit.domains.pipeline.services.pipeline_validation_service import (
     PipelineValidationService,
@@ -11,7 +10,6 @@ from writeit.domains.pipeline.services.pipeline_validation_service import (
     ValidationSeverity
 )
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
-from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 
 
 class MockPipelineValidationService(PipelineValidationService):

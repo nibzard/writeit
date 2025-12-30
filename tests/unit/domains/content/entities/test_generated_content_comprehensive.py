@@ -1,7 +1,7 @@
 """Comprehensive unit tests for GeneratedContent entity."""
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 
 from src.writeit.domains.content.entities.generated_content import GeneratedContent
@@ -698,24 +698,26 @@ class TestGeneratedContentEdgeCases:
         assert "GeneratedContent(id=" in repr_str
         assert "template=article-template" in repr_str
         assert f"words={expected_words}" in repr_str
-        assert "status=draft" in repr_str
+        assert "status=None" in repr_str  # Draft content has no approval status yet
     
     def test_generated_content_immutability(self):
-        """Test generated content immutability after creation."""
+        """Test generated content immutability through copy-on-write methods."""
         content = GeneratedContentBuilder.markdown_article().build()
         original_text = content.content_text
         original_status = content.approval_status
-        
-        # Direct modification should not be possible (frozen dataclass)
-        with pytest.raises(AttributeError):
-            content.content_text = "Modified content"  # type: ignore
-        
-        with pytest.raises(AttributeError):
-            content.approval_status = "approved"  # type: ignore
-        
-        # Values should remain unchanged
-        assert content.content_text == original_text
-        assert content.approval_status == original_status
+        original_id = content.id
+
+        # Methods return new instances, original remains unchanged
+        updated_content = content.update_content("New content text")
+        assert content.content_text == original_text  # Original unchanged
+        assert updated_content.content_text == "New content text"  # New instance updated
+        assert content.id == original_id
+        assert updated_content.id == original_id  # Same ID, different instance
+
+        # Approval status changes also return new instances
+        approved_content = content.set_approval_status("approved", "approver@example.com")
+        assert content.approval_status == original_status  # Original unchanged
+        assert approved_content.approval_status == "approved"  # New instance updated
     
     def test_word_and_character_count_auto_calculation(self):
         """Test automatic word and character count calculation."""

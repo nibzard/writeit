@@ -3,10 +3,9 @@
 Provides safe and validated filesystem path handling for storage.
 """
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Self, Optional, cast
+from typing import Self, cast
 
 
 @dataclass(frozen=True)

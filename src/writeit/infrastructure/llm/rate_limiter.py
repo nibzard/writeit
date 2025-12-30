@@ -7,7 +7,6 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
@@ -326,7 +325,7 @@ class LLMRateLimiter:
         if state.token_bucket_tokens < 1.0:
             retry_after = (1.0 - state.token_bucket_tokens) * (60.0 / rate_limit.requests_per_minute)
             raise RateLimitExceededError(
-                f"Rate limit exceeded: insufficient tokens in bucket",
+                "Rate limit exceeded: insufficient tokens in bucket",
                 retry_after=retry_after,
                 provider=state.provider_name
             )

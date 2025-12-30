@@ -6,8 +6,7 @@ and event sourcing patterns in WriteIt's domain-driven architecture.
 
 import asyncio
 from contextlib import asynccontextmanager
-from typing import List, Type, Optional, Dict, Any, Callable, AsyncGenerator
-from unittest.mock import AsyncMock, Mock
+from typing import List, Type, Optional, Dict, Callable, AsyncGenerator
 from datetime import datetime, timedelta
 import pytest
 

@@ -5,21 +5,16 @@ settings validation, defaults management, and inheritance.
 """
 
 from typing import List, Optional, Dict, Any
-import json
 
 from ...domains.workspace.repositories.workspace_config_repository import (
     WorkspaceConfigRepository,
-    ByWorkspaceSpecification,
-    ByWorkspaceNameSpecification,
-    HasConfigKeySpecification,
-    HasConfigValueSpecification,
-    CustomConfigSpecification
+    HasConfigValueSpecification
 )
 from ...domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from ...domains.workspace.entities.workspace import Workspace
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from ...domains.workspace.value_objects.configuration_value import ConfigurationValue
-from ...shared.repository import RepositoryError, EntityNotFoundError
+from ...shared.repository import RepositoryError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

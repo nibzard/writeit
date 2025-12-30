@@ -1,14 +1,12 @@
 """Test data builders for Execution domain entities."""
 
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Self
+from typing import Dict, Any, List, Self
 
 from src.writeit.domains.execution.entities.llm_provider import LLMProvider, ProviderType
 from src.writeit.domains.execution.entities.execution_context import ExecutionContext
 from src.writeit.domains.execution.entities.token_usage import TokenUsage
 from src.writeit.domains.execution.value_objects.model_name import ModelName
-from src.writeit.domains.execution.value_objects.token_count import TokenCount
-from src.writeit.domains.execution.value_objects.cache_key import CacheKey
 from src.writeit.domains.execution.value_objects.execution_mode import ExecutionMode
 
 

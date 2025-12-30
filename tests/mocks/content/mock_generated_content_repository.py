@@ -351,7 +351,7 @@ class MockGeneratedContentRepository(BaseMockRepository[GeneratedContent], Gener
         contents.sort(key=lambda c: c.created_at, reverse=True)
         
         # Keep the most recent content
-        contents_to_keep = contents[:keep_recent_count]
+        contents[:keep_recent_count]
         contents_to_check = contents[keep_recent_count:]
         
         deleted_count = 0

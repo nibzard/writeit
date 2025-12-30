@@ -6,7 +6,6 @@ Provides template string validation and variable substitution capabilities.
 import re
 from dataclasses import dataclass
 from typing import Dict, Any, Set, Self
-from string import Template
 
 
 @dataclass(frozen=True)

@@ -6,7 +6,7 @@ CLI entry points, ensuring backward compatibility while enabling modern TUI feat
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union
+from typing import Optional
 from pathlib import Path
 import asyncio
 import sys
@@ -15,7 +15,6 @@ from .components import (
     ModernWriteItTUI,
     AdvancedPipelineExecutionScreen,
     PipelineTemplateInfo,
-    ExecutionPhase,
 )
 from ...infrastructure.tui.context import (
     TUIContext,
@@ -24,7 +23,6 @@ from ...infrastructure.tui.context import (
     TUIContextManager,
 )
 from ...shared.dependencies.container import Container
-from ...domains.workspace.value_objects import WorkspaceName
 
 
 class TUIIntegrationService:

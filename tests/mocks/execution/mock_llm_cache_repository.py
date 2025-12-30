@@ -2,7 +2,6 @@
 
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
-from uuid import UUID
 
 from writeit.domains.execution.repositories.llm_cache_repository import (
     LLMCacheRepository, CacheEntry
@@ -315,14 +314,14 @@ class MockLLMCacheRepository(BaseMockRepository[CacheEntry], LLMCacheRepository)
         expired_entries = await self.find_expired_entries()
         
         total_size = sum(len(e.response.encode('utf-8')) for e in entries)
-        total_hits = sum(e.hit_count for e in entries)
+        sum(e.hit_count for e in entries)
         
         # Calculate hit rate
         total_requests = self._cache_hits + self._cache_misses
         hit_rate = (self._cache_hits / total_requests * 100) if total_requests > 0 else 0
         
         # Average age
-        now = datetime.now()
+        datetime.now()
         avg_age = sum(e.age_seconds for e in entries) / len(entries) if entries else 0
         
         # Most popular models

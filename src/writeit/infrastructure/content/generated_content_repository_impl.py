@@ -4,7 +4,7 @@ Provides concrete LMDB-backed storage for generated content with
 workspace isolation and content management capabilities.
 """
 
-from typing import List, Optional, Any
+from typing import List, Any
 from datetime import datetime, timedelta
 
 from ...domains.content.repositories.generated_content_repository import GeneratedContentRepository
@@ -13,7 +13,6 @@ from ...domains.content.value_objects.content_id import ContentId
 from ...domains.content.value_objects.content_type import ContentType
 from ...domains.content.value_objects.content_format import ContentFormat
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

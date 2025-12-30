@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, Self
+from typing import Dict, Any, Self
 
 from src.writeit.domains.workspace.entities.workspace import Workspace
 from src.writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
@@ -176,7 +176,6 @@ class WorkspaceBuilder:
     def build(self) -> Workspace:
         """Build the Workspace."""
         from src.writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
-        from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
         
         # Create a default configuration for the workspace
         default_config = WorkspaceConfiguration(

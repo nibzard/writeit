@@ -522,7 +522,7 @@ def browse_templates(
     """
     try:
         # Get workspace manager and ensure WriteIt is initialized
-        workspace_manager = get_workspace_manager()
+        get_workspace_manager()
 
         # Determine target workspace
         workspace_override = get_workspace_override()

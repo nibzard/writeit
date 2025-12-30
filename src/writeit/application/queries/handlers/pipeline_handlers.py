@@ -4,7 +4,7 @@ Concrete implementations of pipeline-related query handlers.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+from typing import List
 from datetime import datetime
 
 from ...queries.pipeline_queries import (
@@ -14,8 +14,6 @@ from ...queries.pipeline_queries import (
     GetPipelineRunQuery,
     ListPipelineRunsQuery,
     GetPipelineAnalyticsQuery,
-    GetPipelineUsageStatsQuery,
-    GetPopularPipelinesQuery,
     PipelineTemplateQueryResult,
     PipelineRunQueryResult,
     PipelineAnalyticsQueryResult,
@@ -29,9 +27,9 @@ from ...queries.pipeline_queries import (
 from ....domains.pipeline.repositories import PipelineTemplateRepository, PipelineRunRepository
 from ....domains.workspace.repositories import WorkspaceRepository
 from ....domains.pipeline.entities import PipelineTemplate, PipelineRun
-from ....domains.pipeline.value_objects import PipelineId, PipelineName
+from ....domains.pipeline.value_objects import PipelineId
 from ....domains.workspace.value_objects import WorkspaceName
-from ....shared.errors import RepositoryError, QueryError
+from ....shared.errors import RepositoryError
 
 logger = logging.getLogger(__name__)
 

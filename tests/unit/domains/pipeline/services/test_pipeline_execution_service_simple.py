@@ -6,9 +6,8 @@ Focuses on the service logic rather than full integration with repositories.
 
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, Mock
-from typing import Dict, Any, List, AsyncGenerator, Optional
-from datetime import datetime, timedelta
+from unittest.mock import AsyncMock
+from typing import Dict, Any, List
 
 from src.writeit.domains.pipeline.services.pipeline_execution_service import (
     PipelineExecutionService,
@@ -16,17 +15,13 @@ from src.writeit.domains.pipeline.services.pipeline_execution_service import (
     StepExecutionStrategy,
     ExecutionContext,
     ExecutionResult,
-    ExecutionEvent,
     ExecutionEventType,
     StepExecutor
 )
-from src.writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate, PipelineStepTemplate
+from src.writeit.domains.pipeline.entities.pipeline_template import PipelineStepTemplate
 from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from src.writeit.domains.pipeline.entities.pipeline_step import StepExecution
 from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
-from src.writeit.domains.pipeline.value_objects.step_id import StepId
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
-from src.writeit.domains.pipeline.value_objects.execution_status import PipelineExecutionStatus, StepExecutionStatus
 
 from tests.builders.pipeline_builders import (
     PipelineTemplateBuilder,

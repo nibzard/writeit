@@ -12,19 +12,17 @@ import asyncio
 import pytest
 import time
 import threading
-from typing import Dict, List, Any, Optional, AsyncGenerator
+from typing import Dict, Any
 import tempfile
 import shutil
 from pathlib import Path
-import uuid
 
 from tests.performance.test_performance_framework import (
-    measure_performance,
     run_concurrent_operations,
     generate_performance_report,
     save_benchmark_results,
     PerformanceMonitor,
-    TestConfiguration,
+    PerformanceMetrics,
     validate_performance_thresholds
 )
 
@@ -70,16 +68,16 @@ class ConcurrentExecutionTest:
         
         if complexity == "simple":
             steps_count = 2
-            step_duration = duration_seconds / 2
+            duration_seconds / 2
         elif complexity == "medium":
             steps_count = 4
-            step_duration = duration_seconds / 4
+            duration_seconds / 4
         elif complexity == "complex":
             steps_count = 6
-            step_duration = duration_seconds / 6
+            duration_seconds / 6
         else:
             steps_count = 3
-            step_duration = duration_seconds / 3
+            duration_seconds / 3
         
         steps = {}
         for i in range(steps_count):

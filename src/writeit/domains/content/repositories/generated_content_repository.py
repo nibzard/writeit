@@ -12,7 +12,6 @@ from uuid import UUID
 from ....shared.repository import WorkspaceAwareRepository, Specification
 from ....domains.workspace.value_objects.workspace_name import WorkspaceName
 from ..entities.generated_content import GeneratedContent
-from ..value_objects.content_id import ContentId
 from ..value_objects.content_type import ContentType
 from ..value_objects.content_format import ContentFormat
 from ..value_objects.template_name import TemplateName

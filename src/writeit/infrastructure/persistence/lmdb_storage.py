@@ -15,7 +15,7 @@ from datetime import datetime
 from threading import RLock
 from weakref import WeakValueDictionary
 
-from ..base.exceptions import StorageError, ConnectionError, TransactionError, ValidationError
+from ..base.exceptions import StorageError, ConnectionError, TransactionError
 from ..base.serialization import DomainEntitySerializer
 
 logger = logging.getLogger(__name__)
@@ -98,12 +98,12 @@ class ConnectionPool:
                     )
             
             # Pool exhausted - create temporary environment
-            logger.warning(f"Connection pool exhausted, creating temporary environment")
+            logger.warning("Connection pool exhausted, creating temporary environment")
             try:
                 return self._create_environment()
             except Exception as e:
                 raise ConnectionError(
-                    f"Failed to create temporary LMDB environment",
+                    "Failed to create temporary LMDB environment",
                     database=str(self.storage_path),
                     cause=e
                 )
@@ -291,8 +291,8 @@ class LMDBStorage:
                     txn.abort()
                     self._stats.aborted_transactions += 1
                     logger.debug(f"Aborted transaction on {db_name} due to error: {e}")
-                except:
-                    pass
+                except Exception:
+                    pass  # Transaction already aborted or in invalid state
             
             raise TransactionError(
                 f"Transaction failed on database {db_name}: {e}",

@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta, UTC
 
-from writeit.storage.adapter import create_storage_adapter
 
 
 @dataclass

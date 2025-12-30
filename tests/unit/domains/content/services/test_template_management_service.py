@@ -7,7 +7,6 @@ versioning, dependency analysis, inheritance management, and performance optimiz
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 
 from src.writeit.domains.content.services.template_management_service import (
     TemplateManagementService,
@@ -25,8 +24,7 @@ from src.writeit.domains.content.entities.template import Template
 from src.writeit.domains.content.value_objects.template_name import TemplateName
 from src.writeit.domains.content.value_objects.content_type import ContentType
 from src.writeit.domains.content.value_objects.content_format import ContentFormat
-from src.writeit.domains.content.value_objects.validation_rule import ValidationRule
-from src.writeit.shared.repository import EntityAlreadyExistsError, EntityNotFoundError, RepositoryError
+from src.writeit.shared.repository import EntityAlreadyExistsError, RepositoryError
 
 
 # Test Fixtures

@@ -5,7 +5,7 @@ Domain entity for managing workspace-specific settings and preferences.
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Self
+from typing import Dict, Any, List, Self
 
 from ..value_objects.configuration_value import (
     ConfigurationValue,

@@ -232,7 +232,7 @@ async def test_concurrent_access_basic():
         
         # Initialize database
         with envs[0].begin(write=True) as txn:
-            main_db = envs[0].open_db(None, txn=txn)
+            envs[0].open_db(None, txn=txn)
         
         # Concurrent writes using different connections
         async def write_data(env, index):

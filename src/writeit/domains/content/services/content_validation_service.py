@@ -9,15 +9,13 @@ import re
 import yaml
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union, Pattern
+from typing import Any, Dict, List, Optional
 from xml.etree import ElementTree as ET
 
 from ..entities.generated_content import GeneratedContent
-from ..entities.template import Template
 from ..value_objects.content_type import ContentType
 from ..value_objects.content_format import ContentFormat, ContentFormatEnum
 from ..value_objects.validation_rule import ValidationRule, ValidationRuleType
-from ....shared.repository import RepositoryError
 
 
 class ValidationSeverity(Enum):

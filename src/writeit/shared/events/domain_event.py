@@ -4,7 +4,6 @@ Provides the foundation for all domain events in the system."""
 
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any
 

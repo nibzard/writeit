@@ -7,7 +7,7 @@ of Command Query Responsibility Segregation (CQRS) pattern.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TypeVar, Generic, Any, Dict, List, Optional, Union
+from typing import TypeVar, Generic, Any, Dict, List, Optional
 from uuid import uuid4
 
 

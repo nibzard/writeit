@@ -6,8 +6,7 @@ abstraction and type safety.
 
 from abc import ABC
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from enum import Enum
 
 from ...shared.query import (
@@ -16,14 +15,11 @@ from ...shared.query import (
     ListQuery,
     GetByIdQuery,
     SearchQuery,
-    PaginationInfo,
     QueryHandler
 )
-from ...domains.workspace.value_objects import WorkspaceName
 from ...domains.workspace.entities import Workspace
 from ...domains.workspace.services.workspace_configuration_service import (
-    ConfigurationScope,
-    ConfigurationSchema
+    ConfigurationScope
 )
 
 

@@ -6,10 +6,9 @@ file system operations, LMDB management, and workspace-aware storage.
 
 import os
 import shutil
-import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, Union, Tuple
+from typing import Dict, List, Optional, Any
 from pathlib import Path
 from enum import Enum
 import logging
@@ -17,8 +16,6 @@ from datetime import datetime
 import asyncio
 
 from ...workspace.value_objects import WorkspaceName
-from ...content.value_objects import TemplateName, StyleName
-from ...pipeline.value_objects import PipelineId, StepId
 
 
 class StorageOperation(str, Enum):

@@ -1,10 +1,7 @@
 """Comprehensive unit tests for TokenUsage entity."""
 
-import pytest
 from datetime import datetime
 from decimal import Decimal
-from src.writeit.domains.execution.entities.token_usage import TokenUsage
-from src.writeit.domains.execution.value_objects.model_name import ModelName
 from tests.builders.execution_builders import TokenUsageBuilder
 
 

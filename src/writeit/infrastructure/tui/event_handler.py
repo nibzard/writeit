@@ -7,19 +7,17 @@ custom event types, event routing, and integration with domain events.
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Callable, Type, Union
+from typing import Dict, Any, List, Optional, Union
 from enum import Enum
-import asyncio
 import logging
 from datetime import datetime
 
-from textual.message import Message
 from textual.widget import Widget
-from textual.events import Key, Click, Focus, Blur
+from textual.events import Key
 
 from ...shared.events import DomainEvent
 from ...shared.events import EventBus
-from .context import TUIContextManager, TUIContext, NavigationState, TUIMode
+from .context import TUIContextManager, NavigationState
 
 logger = logging.getLogger(__name__)
 

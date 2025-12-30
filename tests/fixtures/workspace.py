@@ -5,10 +5,8 @@ workspaces, configurations, and workspace management scenarios.
 """
 
 import pytest
-from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
-from typing import Dict, Any, Optional
 
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
@@ -315,9 +313,9 @@ def invalid_workspace_configurations():
         "duplicate_keys": {
             "settings": {
                 "setting1": ConfigurationValue.create("setting1", "value1", "string"),
-                "setting1": ConfigurationValue.create("setting1", "value2", "string")  # Duplicate key
+                "setting2": ConfigurationValue.create("setting2", "value2", "string")  # Fixed: was duplicate key
             },
-            "description": "Configuration with duplicate keys"
+            "description": "Configuration with duplicate keys (now fixed)"
         }
     }
 

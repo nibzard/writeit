@@ -6,9 +6,7 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 from datetime import datetime, UTC
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 import uvicorn
 
@@ -21,7 +19,6 @@ from ..shared.events.bus import EventBus
 from writeit.pipeline import PipelineExecutor
 from writeit.models import Pipeline, PipelineRun, PipelineStatus, StepStatus
 from writeit.workspace.workspace import Workspace
-from writeit.storage.adapter import create_storage_adapter
 from writeit.storage import StorageManager
 from writeit.shared.errors import ValidationError
 

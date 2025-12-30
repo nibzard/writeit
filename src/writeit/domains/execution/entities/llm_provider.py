@@ -9,7 +9,6 @@ from typing import Dict, Any, List, Optional, Self
 from enum import Enum
 
 from ..value_objects.model_name import ModelName
-from ..value_objects.token_count import TokenCount
 
 
 class ProviderStatus(str, Enum):

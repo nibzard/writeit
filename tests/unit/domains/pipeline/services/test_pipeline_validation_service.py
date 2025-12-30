@@ -4,7 +4,6 @@ Tests domain service logic, business rules, and validation behavior.
 """
 
 import pytest
-from typing import Dict, Any
 
 from writeit.domains.pipeline.services.pipeline_validation_service import (
     PipelineValidationService,
@@ -219,7 +218,7 @@ class TestPipelineValidationService:
     
     def test_validate_circular_dependency_error(self):
         """Test error for circular dependencies."""
-        service = PipelineValidationService()
+        PipelineValidationService()
         
         # Create circular dependency
         step_a = PipelineStepTemplate(
@@ -251,7 +250,7 @@ class TestPipelineValidationService:
     
     def test_validate_missing_dependencies_error(self):
         """Test error for missing step dependencies."""
-        service = PipelineValidationService()
+        PipelineValidationService()
         
         step = PipelineStepTemplate(
             id=StepId("dependent_step"),

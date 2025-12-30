@@ -5,7 +5,7 @@ using repository interfaces and domain services.
 """
 
 import time
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from datetime import datetime, timedelta
 
 from ....shared.query import QueryHandler, QueryExecutionError
@@ -14,14 +14,10 @@ from ..repositories import (
     PipelineRunRepository,
     StepExecutionRepository,
     ByWorkspaceSpecification,
-    ByNameSpecification,
     ByTagSpecification,
     GlobalTemplateSpecification,
     ByTemplateIdSpecification,
     ByStatusSpecification,
-    ActiveRunsSpecification,
-    CompletedRunsSpecification,
-    FailedRunsSpecification,
     DateRangeSpecification,
     ByRunIdSpecification,
     ByStepIdSpecification,

@@ -5,7 +5,6 @@ resource utilization analysis, and health diagnostics for workspaces.
 """
 
 import pytest
-from typing import Dict, Any, List, Tuple
 from datetime import datetime, timedelta
 from unittest.mock import Mock, AsyncMock, patch
 from collections import Counter
@@ -23,8 +22,6 @@ from writeit.domains.workspace.services.workspace_analytics_service import (
     WorkspaceAnalytics,
     AnalyticsReport
 )
-from writeit.domains.workspace.entities.workspace import Workspace
-from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
 

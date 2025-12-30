@@ -8,8 +8,6 @@ Tests the complete service registration workflow including:
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
-from typing import Protocol
 
 from writeit.shared.dependencies import (
     ServiceManager,
@@ -18,9 +16,7 @@ from writeit.shared.dependencies import (
     Container,
     get_service_manager,
     configure_for_environment,
-    create_default_container,
-    ServiceNotFoundError,
-    InvalidServiceRegistrationError
+    create_default_container
 )
 
 
@@ -108,7 +104,7 @@ class TestServiceManager:
     def test_clear_containers(self):
         """Test clearing cached containers."""
         manager = ServiceManager()
-        container = manager.create_container("test-workspace")
+        manager.create_container("test-workspace")
         
         # Container should be cached
         assert len(manager._containers) > 0
@@ -256,7 +252,7 @@ class TestServiceRegistrationIntegration:
         integration testing would work once the infrastructure is complete.
         """
         manager = ServiceManager()
-        container = manager.create_container("test-workspace")
+        manager.create_container("test-workspace")
         
         # These would work once the actual services are implemented
         # from writeit.domains.pipeline.services import PipelineExecutionService

@@ -4,8 +4,7 @@ Provides mechanisms to handle schema version migrations and ensure
 backward compatibility when deserializing data from older versions.
 """
 
-import json
-from typing import Any, Dict, List, Optional, Callable, Type, TypeVar
+from typing import Any, Dict, List, Optional, Callable, TypeVar
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum

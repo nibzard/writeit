@@ -7,9 +7,8 @@ managing template visibility, and coordinating with the content domain.
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Tuple
+from typing import Dict, List, Optional
 
-from ..entities.workspace import Workspace
 from ..value_objects.workspace_name import WorkspaceName
 from ..repositories.workspace_repository import WorkspaceRepository
 from ...content.repositories.content_template_repository import ContentTemplateRepository

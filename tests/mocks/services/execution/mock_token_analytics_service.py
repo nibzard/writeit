@@ -11,7 +11,6 @@ from writeit.domains.execution.services.token_analytics_service import (
     CostOptimizationRecommendation,
     UsageAlert
 )
-from writeit.domains.execution.entities.token_usage import TokenUsage
 from writeit.domains.execution.value_objects.token_count import TokenCount
 
 

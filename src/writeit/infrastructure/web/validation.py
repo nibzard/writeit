@@ -7,18 +7,16 @@ while maintaining proper separation of concerns and error handling.
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Type, Union, Callable
+from typing import Dict, Any, List, Optional, Callable
 from enum import Enum
 import re
-from pathlib import Path
 
 from pydantic import BaseModel, validator, ValidationError as PydanticValidationError
 from fastapi import HTTPException, status
 
 from ...domains.workspace.value_objects import WorkspaceName
-from ...domains.pipeline.value_objects import PipelineId, StepId, PipelineName, PipelineVersion
-from ...domains.content.value_objects import ContentId, TemplateId, StyleId
-from ...shared.errors.base import ValidationError
+from ...domains.pipeline.value_objects import PipelineId, PipelineName, PipelineVersion
+from ...domains.content.value_objects import ContentId
 
 
 class ValidationType(str, Enum):

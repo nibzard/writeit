@@ -5,13 +5,12 @@ including settings persistence, defaults, and validation.
 """
 
 from abc import abstractmethod
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 
 from ....shared.repository import Repository, Specification
 from ..entities.workspace_configuration import WorkspaceConfiguration
 from ..entities.workspace import Workspace
 from ..value_objects.workspace_name import WorkspaceName
-from ..value_objects.configuration_value import ConfigurationValue
 
 
 class WorkspaceConfigRepository(Repository[WorkspaceConfiguration]):

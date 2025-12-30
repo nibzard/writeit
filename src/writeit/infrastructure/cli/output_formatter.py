@@ -4,7 +4,7 @@ Provides comprehensive output formatting capabilities for different data types
 and output formats (table, JSON, YAML) with rich styling and user-friendly display.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 from enum import Enum
 import json
@@ -13,7 +13,6 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
 from rich.tree import Tree
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 from rich.syntax import Syntax
@@ -21,8 +20,6 @@ from rich.columns import Columns
 
 from ...application.services import (
     PipelineExecutionResult,
-    WorkspaceCreationRequest,
-    ContentGenerationRequest,
 )
 
 

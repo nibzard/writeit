@@ -4,7 +4,7 @@ Concrete implementations of content-related query handlers.
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+from typing import List
 from datetime import datetime
 
 from ...queries.content_queries import (
@@ -45,10 +45,10 @@ from ....domains.content.repositories import (
     GeneratedContentRepository
 )
 from ....domains.content.entities import Template, StylePrimer, GeneratedContent
-from ....domains.content.value_objects import TemplateName, ContentId
+from ....domains.content.value_objects import ContentId
 from ....domains.workspace.value_objects import WorkspaceName
-from ....domains.content.services import TemplateRenderingService, ContentValidationService
-from ....shared.errors import RepositoryError, QueryError
+from ....domains.content.services import ContentValidationService
+from ....shared.errors import RepositoryError
 
 logger = logging.getLogger(__name__)
 

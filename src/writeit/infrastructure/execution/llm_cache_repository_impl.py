@@ -11,7 +11,6 @@ from ...domains.execution.repositories.llm_cache_repository import LLMCacheRepos
 from ...domains.execution.value_objects.cache_key import CacheKey
 from ...domains.execution.value_objects.model_name import ModelName
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

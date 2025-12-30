@@ -3,7 +3,6 @@
 Integrates with OpenAI's API for text generation using GPT models.
 """
 
-import asyncio
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any, AsyncGenerator
@@ -235,7 +234,7 @@ class OpenAIProvider(BaseLLMProvider):
                         break
             
         except Exception as e:
-            error_response = await self._handle_api_error(e)
+            await self._handle_api_error(e)
             # Convert error to streaming format
             yield StreamingChunk(
                 content="",

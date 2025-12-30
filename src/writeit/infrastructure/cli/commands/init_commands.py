@@ -9,11 +9,9 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 from rich.console import Console
 
-from ..base_command import BaseCommand, CommandContext, ValidationCommandError
+from ..base_command import BaseCommand, CommandContext
 from ..error_handler import handle_cli_error
-from ..output_formatter import OutputFormat
 from ....application.services import (
-    WorkspaceApplicationService,
     WorkspaceCreationRequest,
     WorkspaceInitializationMode,
 )

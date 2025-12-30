@@ -8,14 +8,13 @@ import time
 import asyncio
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Callable, Union
+from typing import Any, Dict, List, Optional, Set, Callable
 from pathlib import Path
 import json
 import logging
 from collections import defaultdict, deque
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.errors import SecurityError
 
 
 class SecurityEventType(Enum):

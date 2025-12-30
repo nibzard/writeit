@@ -5,26 +5,22 @@ import asyncio
 import yaml
 import uuid
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 
 import llm
 from jinja2 import Template
 from rich.console import Console
-from rich.prompt import Prompt, Confirm, IntPrompt
+from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
-from rich.table import Table
-from rich.text import Text
-from rich.columns import Columns
 
 from writeit.workspace.workspace import Workspace
 from writeit.llm.token_usage import TokenUsageTracker
 from writeit.domains.content.services.output_export_service import (
     OutputExportService, 
-    ExportMetadata, 
-    ExportResult
+    ExportMetadata
 )
 
 
@@ -475,7 +471,7 @@ class CLIPipelineRunner:
                 return "continue"
         
         while True:
-            self.console.print(f"\n[bold]Choose an action:[/bold]")
+            self.console.print("\n[bold]Choose an action:[/bold]")
             self.console.print("  [cyan][c][/cyan] Continue - Accept and proceed")
             self.console.print("  [cyan][g][/cyan] Guide - Add instructions and regenerate")
             
@@ -550,7 +546,7 @@ class CLIPipelineRunner:
     
     async def _collect_response_guidance(self) -> Optional[str]:
         """Collect user guidance for response modification."""
-        self.console.print(f"\n[bold yellow]Provide guidance to improve the response:[/bold yellow]")
+        self.console.print("\n[bold yellow]Provide guidance to improve the response:[/bold yellow]")
         self.console.print("[dim]Your instructions will guide the AI to modify the output.[/dim]")
         self.console.print("[dim]Press Enter twice when finished, or just Enter to skip.[/dim]")
         
@@ -690,10 +686,10 @@ class CLIPipelineRunner:
             self.console.print("\nOptions:")
             for i in range(len(responses)):
                 self.console.print(f"  [{i+1}] - Select response {i+1}")
-            self.console.print(f"  [v] - View full responses")
-            self.console.print(f"  [r] - Regenerate all responses")
-            self.console.print(f"  [s] - Skip this step")
-            self.console.print(f"  [q] - Quit pipeline")
+            self.console.print("  [v] - View full responses")
+            self.console.print("  [r] - Regenerate all responses")
+            self.console.print("  [s] - Skip this step")
+            self.console.print("  [q] - Quit pipeline")
             
             try:
                 choice = Prompt.ask("Choice", default="1")
@@ -764,7 +760,7 @@ class CLIPipelineRunner:
             self.console.print(f"  Total Tokens: {token_usage['total']:,}")
 
         # Show step results summary
-        self.console.print(f"\n[bold]Steps completed:[/bold]")
+        self.console.print("\n[bold]Steps completed:[/bold]")
         for step_key, result in self.step_results.items():
             status = "✅ Completed" if result.get("approved", True) else "⚠️  Not approved"
             feedback_count = len(result.get("user_feedback", []))
@@ -815,11 +811,11 @@ class CLIPipelineRunner:
             )
             
             if result.success and result.file_path:
-                self.console.print(f"\n[bold green]✅ Output saved to:[/bold green]")
+                self.console.print("\n[bold green]✅ Output saved to:[/bold green]")
                 self.console.print(f"   [cyan]{result.file_path}[/cyan]")
                 
                 # Show workspace and pipeline info
-                self.console.print(f"\n[bold cyan]Execution Summary:[/bold cyan]")
+                self.console.print("\n[bold cyan]Execution Summary:[/bold cyan]")
                 self.console.print(f"  Pipeline: {pipeline_name}")
                 self.console.print(f"  Workspace: {self.workspace_name}")
                 self.console.print(f"  File: {result.file_path.name}")

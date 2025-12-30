@@ -6,7 +6,7 @@ cache management, TTL handling, and cache analytics.
 
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 
 from ....shared.repository import Repository, Specification
 from ..value_objects.cache_key import CacheKey

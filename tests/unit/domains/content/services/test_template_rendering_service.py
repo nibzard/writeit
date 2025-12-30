@@ -5,8 +5,6 @@ validation, and context-aware template processing.
 """
 
 import pytest
-from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import Mock
 
 from writeit.domains.content.entities.template import Template
@@ -20,7 +18,6 @@ from writeit.domains.content.services.template_rendering_service import (
     TemplateRenderingError,
     VariableValidationError,
     MissingVariableError,
-    TemplateCompilationError,
 )
 from writeit.domains.content.value_objects.content_id import ContentId
 from writeit.domains.content.value_objects.template_name import TemplateName

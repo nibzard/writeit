@@ -7,15 +7,11 @@ testing data integrity, serialization, concurrency, and performance.
 import asyncio
 import pytest
 import tempfile
-import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Dict, Any
 from uuid import uuid4
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.base.storage_manager import LMDBStorageManager
@@ -35,7 +31,6 @@ from writeit.infrastructure.execution.token_usage_repository_impl import LMDBTok
 # Domain entities and value objects
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate, PipelineInput, PipelineStepTemplate
 from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from writeit.domains.pipeline.entities.step_execution import StepExecution
 from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
 from writeit.domains.pipeline.value_objects.pipeline_name import PipelineName
 from writeit.domains.pipeline.value_objects.step_id import StepId
@@ -47,23 +42,15 @@ from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from writeit.domains.workspace.value_objects.configuration_value import ConfigurationValue
 
 from writeit.domains.content.entities.template import Template as ContentTemplate
 from writeit.domains.content.entities.style_primer import StylePrimer
-from writeit.domains.content.entities.generated_content import GeneratedContent
 from writeit.domains.content.value_objects.template_name import TemplateName
 from writeit.domains.content.value_objects.content_id import ContentId
 from writeit.domains.content.value_objects.content_type import ContentType
 from writeit.domains.content.value_objects.content_format import ContentFormat
 from writeit.domains.content.value_objects.style_name import StyleName
 
-from writeit.domains.execution.entities.llm_provider import LLMProvider
-from writeit.domains.execution.entities.execution_context import ExecutionContext
-from writeit.domains.execution.entities.token_usage import TokenUsage as TokenUsageEntity
-from writeit.domains.execution.value_objects.model_name import ModelName
-from writeit.domains.execution.value_objects.token_count import TokenCount
-from writeit.domains.execution.value_objects.cache_key import CacheKey
 from writeit.domains.execution.value_objects.execution_mode import ExecutionMode
 
 
@@ -487,7 +474,7 @@ class TestComprehensiveLMDBPersistence:
                     )
                     for j in range(5)  # 5 steps per template
                 },
-                tags=[f"perf", f"test_{i}", f"category_{i % 10}"],
+                tags=["perf", f"test_{i}", f"category_{i % 10}"],
                 author=f"perf_author_{i % 5}"
             )
             templates.append(template)

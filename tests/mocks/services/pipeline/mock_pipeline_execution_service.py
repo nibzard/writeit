@@ -1,21 +1,17 @@
 """Mock implementation of PipelineExecutionService for testing."""
 
-from typing import Dict, List, Any, Optional, AsyncGenerator, Callable, Awaitable
-from unittest.mock import Mock, AsyncMock
+from typing import Dict, List, Any, Optional, AsyncGenerator, Callable
+from unittest.mock import AsyncMock
 from datetime import datetime
 
 from writeit.domains.pipeline.services.pipeline_execution_service import (
     PipelineExecutionService,
     ExecutionMode,
     ExecutionContext,
-    ExecutionResult,
-    ExecutionEvent,
-    ExecutionEventType
+    ExecutionResult
 )
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
-from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
 from writeit.domains.pipeline.entities.pipeline_step import StepExecution
-from writeit.domains.pipeline.value_objects.step_id import StepId
 from writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
 
 

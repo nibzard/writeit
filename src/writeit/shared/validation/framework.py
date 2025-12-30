@@ -1,6 +1,6 @@
 """Validation framework implementation."""
 
-from typing import Any, Dict, List, TypeVar, Union
+from typing import Any, Dict, List, TypeVar
 
 from .interfaces import ValidationContext, ValidationResult, ValidationRule
 

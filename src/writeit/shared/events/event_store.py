@@ -3,12 +3,10 @@
 Provides event persistence for debugging, audit trails, and event replay."""
 
 import asyncio
-import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import List, Optional, Dict, Any, AsyncIterator
-from uuid import uuid4
 
 from .domain_event import DomainEvent
 

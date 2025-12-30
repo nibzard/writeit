@@ -114,7 +114,37 @@ class ContentType:
     def readme(cls) -> Self:
         """Create README content type."""
         return cls(ContentTypeEnum.README.value)
-    
+
+    @classmethod
+    def email(cls) -> Self:
+        """Create email content type."""
+        return cls(ContentTypeEnum.EMAIL.value)
+
+    @classmethod
+    def api_docs(cls) -> Self:
+        """Create API documentation content type."""
+        return cls(ContentTypeEnum.API_DOCS.value)
+
+    @classmethod
+    def user_guide(cls) -> Self:
+        """Create user guide content type."""
+        return cls(ContentTypeEnum.USER_GUIDE.value)
+
+    @classmethod
+    def meeting_notes(cls) -> Self:
+        """Create meeting notes content type."""
+        return cls(ContentTypeEnum.MEETING_NOTES.value)
+
+    @classmethod
+    def proposal(cls) -> Self:
+        """Create proposal content type."""
+        return cls(ContentTypeEnum.PROPOSAL.value)
+
+    @classmethod
+    def report(cls) -> Self:
+        """Create report content type."""
+        return cls(ContentTypeEnum.REPORT.value)
+
     def display_name(self) -> str:
         """Get human-readable display name."""
         try:

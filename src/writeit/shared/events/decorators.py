@@ -129,7 +129,6 @@ def _class_handler_decorator(
     if event_type is not None:
         handler_class._decorator_event_type = event_type
         
-        original_event_type = handler_class.event_type
         
         @property
         def new_event_type(self) -> Type[DomainEvent]:

@@ -12,8 +12,7 @@ from typing import Dict, List, Optional, Any, AsyncGenerator
 from enum import Enum
 
 from ...shared.command import Command, CommandHandler, CommandResult
-from ...domains.pipeline.value_objects import PipelineId, StepId, PipelineName
-from ...domains.workspace.value_objects import WorkspaceName
+from ...domains.pipeline.value_objects import PipelineId, StepId
 from ...domains.pipeline.entities import PipelineTemplate, PipelineRun
 
 

@@ -11,20 +11,15 @@ This test suite validates file system operations including:
 import asyncio
 import pytest
 import tempfile
-import shutil
 from pathlib import Path
-from typing import List, Dict, Any
 import time
 import threading
-from concurrent.futures import ThreadPoolExecutor
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.persistence.file_storage import FileStorage
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
-from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
 from writeit.domains.content.entities.template import Template as ContentTemplate
 from writeit.domains.content.value_objects.template_name import TemplateName
 from writeit.domains.content.value_objects.content_id import ContentId
@@ -159,7 +154,7 @@ class TestFileSystemIntegration:
         """Test concurrent file operations for thread safety."""
         
         workspace_name = WorkspaceName("concurrent_file_test")
-        workspace_path = await file_storage.create_workspace_structure(workspace_name)
+        await file_storage.create_workspace_structure(workspace_name)
         
         # Create templates for concurrent operations
         def create_template(index: int) -> ContentTemplate:
@@ -213,7 +208,7 @@ class TestFileSystemIntegration:
             # Load and verify content
             loaded_template = await file_storage.load_template_file(file_path)
             assert loaded_template is not None
-            assert f"Content for template" in loaded_template.content
+            assert "Content for template" in loaded_template.content
         
         # Verify file listing consistency
         all_template_files = await file_storage.list_template_files(workspace_name)
@@ -307,7 +302,7 @@ class TestFileSystemIntegration:
         """Test operations with large files."""
         
         workspace_name = WorkspaceName("large_file_test")
-        workspace_path = await file_storage.create_workspace_structure(workspace_name)
+        await file_storage.create_workspace_structure(workspace_name)
         
         # Create large template content (100KB)
         large_content = "# Large Template\n\n" + ("This is a large template with lots of content. " * 2000)
@@ -409,7 +404,7 @@ class TestFileSystemIntegration:
 if __name__ == "__main__":
     async def run_filesystem_tests():
         """Run file system integration tests manually."""
-        test_instance = TestFileSystemIntegration()
+        TestFileSystemIntegration()
         
         print("📁 Running File System Integration Tests...\n")
         

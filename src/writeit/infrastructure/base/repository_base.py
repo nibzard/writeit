@@ -4,10 +4,10 @@ Provides common functionality for all domain repositories including
 CRUD operations, specification queries, and workspace isolation.
 """
 
-from typing import List, Optional, Type, TypeVar, Any, cast
+from typing import List, Optional, Type, TypeVar, Any
 from abc import ABC, abstractmethod
 
-from ...shared.repository import Repository, WorkspaceAwareRepository, Specification, RepositoryError, EntityNotFoundError
+from ...shared.repository import WorkspaceAwareRepository, Specification, EntityNotFoundError
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from .storage_manager import LMDBStorageManager
 from .serialization import DomainEntitySerializer

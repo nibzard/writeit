@@ -5,7 +5,7 @@ and aggregates for testing WriteIt's domain-driven architecture.
 """
 
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from uuid import uuid4
 import pytest
 from pathlib import Path

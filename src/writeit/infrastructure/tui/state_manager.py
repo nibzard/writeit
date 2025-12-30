@@ -5,9 +5,8 @@ reactive state updates, state persistence, and undo/redo functionality.
 """
 
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Callable, TypeVar, Generic, Union
+from typing import Dict, Any, List, Optional, Callable, TypeVar
 from enum import Enum
 import asyncio
 import json
@@ -16,9 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from copy import deepcopy
 
-from ...shared.events import EventBus
-from .context import TUIContextManager, TUIContext
-from .event_handler import TUIEventBus, UIStateChangeEvent
+from .event_handler import TUIEventBus
 
 logger = logging.getLogger(__name__)
 

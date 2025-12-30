@@ -10,7 +10,6 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ....shared.repository import Repository, Specification
-from ..entities.pipeline_step import PipelineStep
 from ..value_objects.step_id import StepId
 from ..value_objects.execution_status import ExecutionStatus
 

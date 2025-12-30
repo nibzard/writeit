@@ -32,16 +32,16 @@ def test_repository_mock_instantiation():
         )
         
         # Test instantiation
-        workspace_repo = MockWorkspaceRepository()
-        config_repo = MockWorkspaceConfigRepository()
-        content_template_repo = MockContentTemplateRepository()
-        style_repo = MockStylePrimerRepository()
-        generated_content_repo = MockGeneratedContentRepository()
-        pipeline_template_repo = MockPipelineTemplateRepository()
-        pipeline_run_repo = MockPipelineRunRepository()
-        step_exec_repo = MockStepExecutionRepository()
-        cache_repo = MockLLMCacheRepository()
-        token_repo = MockTokenUsageRepository()
+        MockWorkspaceRepository()
+        MockWorkspaceConfigRepository()
+        MockContentTemplateRepository()
+        MockStylePrimerRepository()
+        MockGeneratedContentRepository()
+        MockPipelineTemplateRepository()
+        MockPipelineRunRepository()
+        MockStepExecutionRepository()
+        MockLLMCacheRepository()
+        MockTokenUsageRepository()
         
         print("✅ All 10 repository mocks instantiated successfully")
         return True
@@ -75,22 +75,22 @@ def test_service_mock_instantiation():
         )
         
         # Test instantiation
-        pipeline_exec = MockPipelineExecutionService()
-        pipeline_val = MockPipelineValidationService()
-        step_dep = MockStepDependencyService()
-        ws_isolation = MockWorkspaceIsolationService()
-        ws_template = MockWorkspaceTemplateService()
-        ws_mgmt = MockWorkspaceManagementService()
-        ws_config = MockWorkspaceConfigurationService()
-        ws_analytics = MockWorkspaceAnalyticsService()
-        template_render = MockTemplateRenderingService()
-        content_val = MockContentValidationService()
-        content_gen = MockContentGenerationService()
-        template_mgmt = MockTemplateManagementService()
-        style_mgmt = MockStyleManagementService()
-        llm_orch = MockLLMOrchestrationService()
-        cache_mgmt = MockCacheManagementService()
-        token_analytics = MockTokenAnalyticsService()
+        MockPipelineExecutionService()
+        MockPipelineValidationService()
+        MockStepDependencyService()
+        MockWorkspaceIsolationService()
+        MockWorkspaceTemplateService()
+        MockWorkspaceManagementService()
+        MockWorkspaceConfigurationService()
+        MockWorkspaceAnalyticsService()
+        MockTemplateRenderingService()
+        MockContentValidationService()
+        MockContentGenerationService()
+        MockTemplateManagementService()
+        MockStyleManagementService()
+        MockLLMOrchestrationService()
+        MockCacheManagementService()
+        MockTokenAnalyticsService()
         
         print("✅ All 16 service mocks instantiated successfully")
         return True
@@ -108,7 +108,7 @@ def test_base_mock_behavior():
         
         # Test workspace isolation
         repo1 = MockWorkspaceRepository("workspace1")
-        repo2 = MockWorkspaceRepository("workspace2")
+        MockWorkspaceRepository("workspace2")
         
         # Test behavior configuration
         repo1.behavior.set_error_condition("find_by_id", Exception("Mock error"))

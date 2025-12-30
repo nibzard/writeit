@@ -4,11 +4,10 @@ Manages workspace operations, configuration management, analytics, and user
 interactions. Coordinates workspace domain services with other domains.
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, Set, Union
+from typing import Dict, List, Optional, Any
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from ...domains.workspace.services import (
@@ -18,14 +17,9 @@ from ...domains.workspace.services import (
     WorkspaceCreationOptions,
     WorkspaceMigrationPlan,
     WorkspaceBackupInfo,
-    ConfigurationScope,
-    WorkspaceAnalytics,
     AnalyticsReport,
-    AnalyticsScope,
-    MetricType,
-    HealthStatus,
 )
-from ...domains.workspace.entities import Workspace, WorkspaceConfiguration
+from ...domains.workspace.entities import Workspace
 from ...domains.workspace.value_objects import WorkspaceName
 from ...domains.content.services import (
     TemplateManagementService,

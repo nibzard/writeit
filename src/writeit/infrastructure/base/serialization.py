@@ -9,10 +9,10 @@ which provides enhanced security and removes pickle dependencies.
 
 import json
 import warnings
-from typing import Type, TypeVar, Any, Dict, Optional
+from typing import Type, TypeVar, Any, Dict
 from datetime import datetime
 from uuid import UUID
-from dataclasses import is_dataclass, fields, asdict
+from dataclasses import is_dataclass, fields
 from abc import ABC, abstractmethod
 
 from ...shared.repository import RepositoryError

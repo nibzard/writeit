@@ -6,22 +6,15 @@ configuration, switching, isolation, backup, and deletion scenarios.
 """
 
 import pytest
-import asyncio
 from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import AsyncMock
-from datetime import datetime
-import tempfile
 import shutil
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from tests.integration.test_use_case_workflows import (
-    ExecutionStatus, StepType, WorkspaceInfo, PipelineStepModel, 
-    Pipeline, PipelineRun, StepExecution,
-    MockPipelineService, MockWorkspaceService, MockTemplateService,
-    MockExecutionService, MockContentService, FileStorage
+    WorkspaceInfo, Pipeline, MockPipelineService, MockWorkspaceService, MockTemplateService,
+    MockExecutionService, MockContentService
 )
 
 
@@ -326,7 +319,7 @@ class TestWorkspaceManagementScenarios:
         
         # Test template validation
         validation_result = await template_service.validate_template("blog_post.yaml")
-        assert validation_result.is_valid == True
+        assert validation_result.is_valid
         assert len(validation_result.errors) == 0
 
     @pytest.mark.asyncio

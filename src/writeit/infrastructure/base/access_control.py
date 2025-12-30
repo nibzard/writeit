@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, List, Optional, Set, Union
-from uuid import UUID, uuid4
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from ...shared.errors import DomainError

@@ -17,7 +17,6 @@ from writeit.domains.content.services.content_validation_service import (
     ValidationContext,
     ContentValidationError,
     ValidationConfigurationError,
-    FormatValidationError,
 )
 from writeit.domains.content.value_objects.content_id import ContentId
 from writeit.domains.content.value_objects.template_name import TemplateName

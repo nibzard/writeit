@@ -1,9 +1,7 @@
 """Comprehensive unit tests for Content domain value objects."""
 
 import pytest
-from pathlib import Path
 import uuid
-import re
 
 from src.writeit.domains.content.value_objects.template_name import TemplateName
 from src.writeit.domains.content.value_objects.content_type import ContentType

@@ -1,7 +1,7 @@
 """Comprehensive unit tests for LLMProvider entity."""
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 
 from src.writeit.domains.execution.entities.llm_provider import (
@@ -36,7 +36,7 @@ class TestLLMProvider:
     
     def test_llm_provider_creation_with_custom_data(self):
         """Test creating LLM provider with custom data."""
-        custom_models = [ModelName.from_string("custom-model")]
+        [ModelName.from_string("custom-model")]
         custom_capabilities = {"custom_feature": True, "streaming": False}
         custom_rate_limits = {"custom_limit": 100}
         custom_metadata = {"version": "2.0", "region": "us-west"}
@@ -184,7 +184,7 @@ class TestLLMProvider:
     
     def test_provider_model_support(self):
         """Test provider model support checks."""
-        models = [ModelName.from_string("gpt-4o"), ModelName.from_string("gpt-3.5-turbo")]
+        [ModelName.from_string("gpt-4o"), ModelName.from_string("gpt-3.5-turbo")]
         provider = (LLMProviderBuilder.openai()
                    .with_supported_models(["gpt-4o", "gpt-3.5-turbo"])
                    .build())

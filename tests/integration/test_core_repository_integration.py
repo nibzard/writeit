@@ -14,7 +14,6 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.base.storage_manager import LMDBStorageManager
-from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 
 
 async def test_basic_storage_operations():

@@ -4,19 +4,15 @@ Provides comprehensive style primer management including validation,
 inheritance, composition, optimization, and comparison capabilities.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Set, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-import re
-import asyncio
-from collections import defaultdict
 
-from ....shared.repository import EntityAlreadyExistsError, EntityNotFoundError, RepositoryError
+from ....shared.repository import EntityAlreadyExistsError
 from ..entities.style_primer import StylePrimer
 from ..value_objects.style_name import StyleName
 from ..value_objects.content_type import ContentType
-from ..value_objects.content_format import ContentFormat
 from ..repositories.style_primer_repository import StylePrimerRepository
 
 
@@ -1048,25 +1044,25 @@ class StyleManagementService:
     
     async def _validate_composition_plan(self, plan: StyleCompositionPlan) -> None:
         """Validate composition plan."""
-        if not plan.base_style or not plan.composition_strategy:
-            raise ValueError("Base style and composition strategy are required")
-        
-        # Validate that base style exists
-        if plan.base_style not in plan.component_styles:
-            raise ValueError(f"Base style {plan.base_style} not found in component styles")
-        
-        # Validate that all component styles are valid
-        for style_name in plan.component_styles:
-            if not style_name or not str(style_name).strip():
-                raise ValueError("All component style names must be non-empty")
-        
+        if not plan.composition_strategy:
+            raise ValueError("Composition strategy is required")
+
+        # Validate source styles
+        if not plan.source_styles:
+            raise ValueError("At least one source style is required")
+
+        # Validate that all source styles are valid
+        for style in plan.source_styles:
+            if not style or not style.name:
+                raise ValueError("All source styles must be valid with non-empty names")
+
         # Check for circular dependencies in style inheritance
-        if plan.composition_strategy == StyleCompositionStrategy.INHERITANCE:
+        if plan.composition_strategy == "inheritance":
             visited = set()
-            for style_name in plan.component_styles:
-                if style_name in visited:
-                    raise ValueError(f"Circular dependency detected in style composition: {style_name}")
-                visited.add(style_name)
+            for style in plan.source_styles:
+                if style.name in visited:
+                    raise ValueError(f"Circular dependency detected in style composition: {style.name}")
+                visited.add(style.name)
     
     async def _merge_styles(self, plan: StyleCompositionPlan) -> StylePrimer:
         """Merge styles according to plan."""

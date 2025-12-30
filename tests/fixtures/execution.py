@@ -5,19 +5,17 @@ LLM providers, execution contexts, token usage, and execution scenarios.
 """
 
 import pytest
-from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
-from typing import Dict, Any, List, Optional
 
 from writeit.domains.execution.entities.llm_provider import (
-    LLMProvider, ProviderType, ProviderStatus
+    LLMProvider, ProviderType
 )
 from writeit.domains.execution.entities.execution_context import (
     ExecutionContext, ExecutionPriority
 )
 from writeit.domains.execution.entities.token_usage import (
-    TokenUsage, TokenMetrics, CostBreakdown, UsageCategory
+    TokenUsage, UsageCategory
 )
 from writeit.domains.execution.value_objects.model_name import ModelName
 from writeit.domains.execution.value_objects.token_count import TokenCount

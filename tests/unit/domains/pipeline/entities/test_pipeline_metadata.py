@@ -4,8 +4,7 @@ Tests entity behavior, validation, and business rules for pipeline metadata doma
 """
 
 import pytest
-from datetime import datetime, timedelta
-from typing import Dict, Any
+from datetime import datetime
 
 from writeit.domains.pipeline.entities.pipeline_metadata import (
     PipelineMetadata,

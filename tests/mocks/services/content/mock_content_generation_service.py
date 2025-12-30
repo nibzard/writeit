@@ -1,11 +1,10 @@
 """Mock content generation service for testing."""
 
+import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Set, Tuple, Union
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
 from enum import Enum
-from unittest.mock import AsyncMock
-import hashlib
 
 from writeit.domains.content.entities.generated_content import GeneratedContent
 from writeit.domains.content.entities.template import Template
@@ -13,9 +12,7 @@ from writeit.domains.content.entities.style_primer import StylePrimer
 from writeit.domains.content.value_objects.content_id import ContentId
 from writeit.domains.content.value_objects.content_type import ContentType
 from writeit.domains.content.value_objects.content_format import ContentFormat
-from writeit.domains.content.value_objects.content_length import ContentLength
 from writeit.domains.content.value_objects.validation_rule import ValidationRule
-from writeit.shared.repository import EntityAlreadyExistsError, EntityNotFoundError
 
 
 # Mock enums and classes for ContentGenerationService
@@ -639,8 +636,8 @@ Common issues and solutions:
             original_quality = await self.assess_content_quality(original_content)
             new_quality = await self.assess_content_quality(new_content)
             quality_delta = new_quality.overall_score - original_quality.overall_score
-        except:
-            quality_delta = 0.0
+        except Exception:
+            quality_delta = 0.0  # Mock: Unable to assess quality
         
         # Determine recommendation
         if quality_delta > 0.1:

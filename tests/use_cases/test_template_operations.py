@@ -6,21 +6,15 @@ validation, versioning, inheritance, composition, and lifecycle management.
 """
 
 import pytest
-import asyncio
 from pathlib import Path
-from typing import Dict, Any, List
-from unittest.mock import AsyncMock
 from datetime import datetime
-import json
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from tests.integration.test_use_case_workflows import (
-    ExecutionStatus, StepType, WorkspaceInfo, PipelineStepModel, 
-    Pipeline, PipelineRun, StepExecution,
-    MockPipelineService, MockWorkspaceService, MockTemplateService,
-    MockExecutionService, MockContentService, FileStorage
+    WorkspaceInfo, MockPipelineService, MockWorkspaceService, MockTemplateService,
+    MockExecutionService, MockContentService
 )
 
 
@@ -175,15 +169,15 @@ class TestTemplateOperations:
                 }
         
         # Verify simple template is valid
-        assert validation_results['simple_template.yaml']['created'] == True
-        assert validation_results['simple_template.yaml']['validation'].is_valid == True
+        assert validation_results['simple_template.yaml']['created']
+        assert validation_results['simple_template.yaml']['validation'].is_valid
         
         # Verify complex template is valid
-        assert validation_results['complex_template.yaml']['created'] == True
-        assert validation_results['complex_template.yaml']['validation'].is_valid == True
+        assert validation_results['complex_template.yaml']['created']
+        assert validation_results['complex_template.yaml']['validation'].is_valid
         
         # Note: Invalid template still gets created in mock, but would fail validation in real system
-        assert validation_results['invalid_template.yaml']['created'] == True
+        assert validation_results['invalid_template.yaml']['created']
 
     @pytest.mark.asyncio
     async def test_template_versioning_and_updates(self, template_environment):
@@ -527,7 +521,7 @@ class TestTemplateOperations:
         # In a real implementation, we would verify the specific validation errors
         for template_name, result in validation_results.items():
             # Mock always returns valid, but in real system these would be invalid
-            assert result['is_valid'] == True  # Mock behavior
+            assert result['is_valid']  # Mock behavior
             # Real system would have: assert result['is_valid'] == False
             # Real system would have: assert result['error_count'] > 0
 

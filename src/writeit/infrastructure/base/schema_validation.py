@@ -4,7 +4,6 @@ Provides validation for serialized data structures to ensure data integrity
 and prevent malicious payloads.
 """
 
-import json
 from typing import Any, Dict, List, Union, Optional, Type, TypeVar
 from dataclasses import is_dataclass, fields
 from abc import ABC, abstractmethod
@@ -339,39 +338,39 @@ class DomainEntitySchemaBuilder:
     def _build_field_schema(self, field_type: Type) -> SchemaField:
         """Build schema for a field type."""
         # Handle basic types
-        if field_type == str:
+        if field_type is str:
             return SchemaField(SchemaType.STRING, constraints=[
                 LengthConstraint(max_length=1_000_000)  # 1MB string limit
             ])
-        elif field_type == int:
+        elif field_type is int:
             return SchemaField(SchemaType.INTEGER)
-        elif field_type == float:
+        elif field_type is float:
             return SchemaField(SchemaType.FLOAT)
-        elif field_type == bool:
+        elif field_type is bool:
             return SchemaField(SchemaType.BOOLEAN)
-        elif field_type == UUID:
+        elif field_type is UUID:
             return SchemaField(SchemaType.UUID)
-        elif field_type == datetime:
+        elif field_type is datetime:
             return SchemaField(SchemaType.DATETIME)
-        
+
         # Handle generic types
         if hasattr(field_type, '__origin__'):
             origin = field_type.__origin__
             args = getattr(field_type, '__args__', ())
-            
-            if origin == list:
+
+            if origin is list:
                 item_type = args[0] if args else Any
                 return SchemaField(
                     schema_type=SchemaType.ARRAY,
                     items_schema=self._build_field_schema(item_type),
                     constraints=[LengthConstraint(max_length=10_000)]  # 10k items max
                 )
-            elif origin == dict:
+            elif origin is dict:
                 # For simplicity, treat as generic object
                 return SchemaField(SchemaType.OBJECT)
-            elif origin == Union:
+            elif origin is Union:
                 # Handle Optional types (Union[X, None])
-                non_none_types = [arg for arg in args if arg != type(None)]
+                non_none_types = [arg for arg in args if arg is not type(None)]
                 if len(non_none_types) == 1:
                     schema = self._build_field_schema(non_none_types[0])
                     schema.nullable = True

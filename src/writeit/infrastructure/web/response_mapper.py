@@ -6,21 +6,19 @@ while maintaining proper abstraction boundaries and data transformation.
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import Dict, Any, List, Optional, TypeVar, Generic, Type, Union
 from datetime import datetime
-from enum import Enum
 
 from pydantic import BaseModel
 
 from ...domains.workspace.entities import Workspace, WorkspaceConfiguration
 from ...domains.workspace.value_objects import WorkspaceName
 from ...domains.pipeline.entities import PipelineTemplate, PipelineRun, StepExecution
-from ...domains.pipeline.value_objects import PipelineId, StepId, PipelineName, PipelineVersion
-from ...domains.content.entities import Content, Template, Style
-from ...domains.content.value_objects import ContentId, TemplateId, StyleId
-from ...domains.execution.entities import ExecutionContext, ExecutionResult
-from ...domains.execution.value_objects import ExecutionId, ExecutionStatus
+from ...domains.pipeline.value_objects import PipelineId, PipelineName, PipelineVersion
+from ...domains.content.entities import Content, Template
+from ...domains.content.value_objects import ContentId, TemplateId
+from ...domains.execution.value_objects import ExecutionStatus
 
 T = TypeVar('T')
 D = TypeVar('D', bound=BaseModel)

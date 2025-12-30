@@ -5,9 +5,8 @@ visual error displays, error recovery, and user-friendly messaging.
 """
 
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Callable, Type, Union
+from typing import Dict, Any, List, Optional, Callable, Type
 from enum import Enum
 import traceback
 import logging
@@ -15,13 +14,12 @@ from datetime import datetime
 from pathlib import Path
 
 from textual.app import App
-from textual.widgets import Static, Button, TextArea, Label
+from textual.widgets import Static, Button, TextArea
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual import events
 from textual.binding import Binding
 
-from ...shared.errors import DomainError, ValidationError, NotFoundError, ConflictError
+from ...shared.errors import ValidationError, NotFoundError, ConflictError
 from ...shared.dependencies.exceptions import (
     ServiceNotFoundError,
     CircularDependencyError,
@@ -42,9 +40,10 @@ from ...domains.pipeline.errors import (
     StepExecutionError
 )
 from ...domains.content.errors import (
-    TemplateNotFoundError,
-    ContentValidationError,
-    ContentGenerationError
+    ContentValidationError
+)
+from ...application.services.content_application_service import (
+    ContentNotFoundError
 )
 from .context import TUIContextManager, TUIContext
 
@@ -355,7 +354,6 @@ class TUIErrorHandler:
         # Execution errors
         self.error_mappers[PipelineExecutionError] = self._map_execution_error
         self.error_mappers[StepExecutionError] = self._map_step_execution_error
-        self.error_mappers[TemplateProcessingError] = self._map_template_processing_error
         
         # Service errors
         self.error_mappers[ServiceNotFoundError] = self._map_service_not_found_error
@@ -688,20 +686,6 @@ class TUIErrorHandler:
             recoverable=True
         )
     
-    def _map_template_processing_error(self, exc: TemplateProcessingError) -> TUIErrorInfo:
-        """Map template processing error."""
-        return TUIErrorInfo(
-            title="Template Processing Failed",
-            message=f"Template processing failed: {exc}",
-            severity=ErrorSeverity.ERROR,
-            suggestions=[
-                "Check template syntax",
-                "Verify template variables",
-                "Check template file format"
-            ],
-            available_actions=[ErrorAction.RETRY, ErrorAction.CANCEL],
-            recoverable=True
-        )
     
     def _map_service_not_found_error(self, exc: ServiceNotFoundError) -> TUIErrorInfo:
         """Map service not found error."""

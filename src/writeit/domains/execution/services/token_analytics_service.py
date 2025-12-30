@@ -4,10 +4,9 @@ Provides comprehensive token usage analytics including cost analysis, optimizati
 recommendations, usage tracking, and predictive analytics for token consumption.
 """
 
-import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Set, Any, Tuple, Union
+from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 from collections import defaultdict
 import statistics
@@ -18,12 +17,7 @@ from ..value_objects.token_count import TokenCount
 from ..repositories.token_usage_repository import (
     TokenUsageRepository,
     TokenUsageRecord,
-    ByWorkspaceSpecification,
-    DateRangeSpecification,
-    ByPipelineRunSpecification,
-    CacheHitSpecification,
-    HighCostSpecification,
-    HighTokenUsageSpecification
+    ByWorkspaceSpecification
 )
 
 
@@ -753,11 +747,11 @@ class TokenAnalyticsService:
         """Generate usage trends over time."""
         # Group records by time buckets
         if period in [AnalyticsPeriod.HOUR, AnalyticsPeriod.DAY]:
-            bucket_size = timedelta(hours=1)
+            timedelta(hours=1)
         elif period == AnalyticsPeriod.WEEK:
-            bucket_size = timedelta(days=1)
+            timedelta(days=1)
         else:
-            bucket_size = timedelta(days=7)
+            timedelta(days=7)
         
         # This is a simplified implementation
         # Real implementation would bucket data properly

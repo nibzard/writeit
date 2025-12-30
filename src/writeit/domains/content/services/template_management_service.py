@@ -7,20 +7,16 @@ creation, validation, versioning, dependency analysis, and performance optimizat
 import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Set, Tuple
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import datetime
 import re
 import yaml
-import asyncio
-from collections import defaultdict
 
-from ....shared.repository import EntityAlreadyExistsError, EntityNotFoundError, RepositoryError
-from ..entities.template import Template, TemplateScope
+from ....shared.repository import EntityAlreadyExistsError, RepositoryError
+from ..entities.template import Template
 from ..value_objects.template_name import TemplateName
 from ..value_objects.content_type import ContentType
 from ..value_objects.content_format import ContentFormat
 from ..value_objects.validation_rule import ValidationRule
-from ..value_objects.content_length import ContentLength
 from ..repositories.content_template_repository import ContentTemplateRepository
 
 logger = logging.getLogger(__name__)
@@ -1262,13 +1258,12 @@ class TemplateManagementService:
         for dep_name in missing_deps:
             try:
                 # Create a basic template stub for the missing dependency
+                # TODO: Implement proper template stub creation when needed
                 stub_template = Template.create(
                     name=dep_name,
-                    content=f"# Auto-generated template stub for {dep_name}\n\n{{{{ content }}}}",
+                    content_type=ContentType.generic(),
+                    yaml_content=f"# Auto-generated template stub for {dep_name}\n\n{{{{ content }}}}",
                     description=f"Auto-generated dependency template for {dep_name}",
-                    template_type=ContentType.TEMPLATE_STUB,
-                    scope=TemplateScope.WORKSPACE if workspace_name else TemplateScope.GLOBAL,
-                    workspace_name=workspace_name,
                     author="system",
                     tags=["auto-generated", "dependency-stub"]
                 )

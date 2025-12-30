@@ -6,57 +6,29 @@ configuration interface, and pipeline execution with DDD integration.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union
-from dataclasses import dataclass, field
-from enum import Enum
-import asyncio
-from pathlib import Path
-from datetime import datetime
+from typing import Optional
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Container as TextualContainer, Horizontal
 from textual.widgets import (
-    Header,
-    Footer,
     Static,
     Button,
     TextArea,
     Select,
-    ProgressBar,
     Input,
-    Tabs,
-    Tab,
-    TabPane,
     DataTable,
     Tree,
-    Log,
     Switch,
-    Checkbox,
-    RadioButton,
-    RadioSet,
-    Label,
-    Markdown,
     ListItem,
     ListView,
 )
-from textual.reactive import reactive
-from textual.binding import Binding
 from textual.screen import Screen
-from textual.message import Message
-from textual.timer import Timer
-import asyncio
 
 from ..context import (
     TUIContext,
-    TUIMode,
-    NavigationState,
-    require_tui_context,
 )
 from .modern_tui import (
-    TUIComponentMessage,
     PipelineTemplateInfo,
-    PipelineInputData,
-    PipelineStepData,
 )
 
 from ....application.services.workspace_application_service import (
@@ -70,9 +42,6 @@ from ....application.services.pipeline_application_service import (
 )
 
 from ....domains.workspace.value_objects import WorkspaceName
-from ....domains.pipeline.value_objects import PipelineId
-from ....domains.pipeline.value_objects.execution_status import ExecutionStatus
-from ....shared.dependencies.container import Container
 
 
 class WorkspaceManagementScreen(Screen):
@@ -163,9 +132,9 @@ class WorkspaceManagementScreen(Screen):
     def compose(self) -> ComposeResult:
         """Create the workspace management layout."""
         
-        with Container(classes="workspace-management"):
+        with TextualContainer(classes="workspace-management"):
             # Workspace list
-            with Container(classes="workspace-list"):
+            with TextualContainer(classes="workspace-list"):
                 yield Static("📁 Workspaces", classes="section-header")
                 yield ListView(id="workspace-list-view", classes="workspace-list")
                 
@@ -174,16 +143,16 @@ class WorkspaceManagementScreen(Screen):
                     yield Button("Refresh", id="refresh-workspaces", variant="primary")
             
             # Workspace details
-            with Container(classes="workspace-details"):
+            with TextualContainer(classes="workspace-details"):
                 yield Static("📋 Workspace Details", classes="section-header")
                 
-                with Container(id="workspace-info", classes="workspace-info"):
+                with TextualContainer(id="workspace-info", classes="workspace-info"):
                     yield Static("Select a workspace to view details")
                 
-                with Container(id="workspace-form", classes="workspace-form"):
+                with TextualContainer(id="workspace-form", classes="workspace-form"):
                     yield Static("Workspace actions will appear here")
                 
-                with Container(id="workspace-stats", classes="workspace-stats"):
+                with TextualContainer(id="workspace-stats", classes="workspace-stats"):
                     yield Static("Workspace statistics will appear here")
     
     async def on_mount(self) -> None:
@@ -408,12 +377,12 @@ class TemplateBrowserScreen(Screen):
     def compose(self) -> ComposeResult:
         """Create the template browser layout."""
         
-        with Container(classes="template-browser"):
+        with TextualContainer(classes="template-browser"):
             # Template sources
-            with Container(classes="template-sources"):
+            with TextualContainer(classes="template-sources"):
                 yield Static("📂 Sources", classes="section-header")
                 
-                with Container(classes="source-tree"):
+                with TextualContainer(classes="source-tree"):
                     yield Tree("Template Sources", id="source-tree")
                 
                 with Horizontal(classes="action-buttons"):
@@ -421,10 +390,10 @@ class TemplateBrowserScreen(Screen):
                     yield Button("Refresh", id="refresh-sources", variant="primary")
             
             # Template list
-            with Container(classes="template-list"):
+            with TextualContainer(classes="template-list"):
                 yield Static("📋 Templates", classes="section-header")
                 
-                with Container(classes="template-table"):
+                with TextualContainer(classes="template-table"):
                     yield DataTable(id="template-table")
                 
                 with Horizontal(classes="action-buttons"):
@@ -434,10 +403,10 @@ class TemplateBrowserScreen(Screen):
                     yield Button("Run", id="run-template", variant="success", disabled=True)
             
             # Template preview
-            with Container(classes="template-preview"):
+            with TextualContainer(classes="template-preview"):
                 yield Static("👁️ Preview", classes="section-header")
                 
-                with Container(classes="preview-area"):
+                with TextualContainer(classes="preview-area"):
                     yield TextArea(
                         id="template-preview",
                         read_only=True,
@@ -684,12 +653,12 @@ class ConfigurationScreen(Screen):
     def compose(self) -> ComposeResult:
         """Create the configuration layout."""
         
-        with Container(classes="configuration"):
+        with TextualContainer(classes="configuration"):
             # Settings categories
-            with Container(classes="settings-categories"):
+            with TextualContainer(classes="settings-categories"):
                 yield Static("⚙️ Settings", classes="section-header")
                 
-                with Container(classes="category-list"):
+                with TextualContainer(classes="category-list"):
                     yield ListView(id="category-list")
                 
                 with Horizontal(classes="action-buttons"):
@@ -697,13 +666,13 @@ class ConfigurationScreen(Screen):
                     yield Button("Export Config", id="export-config", variant="primary")
             
             # Settings panel
-            with Container(classes="settings-panel"):
+            with TextualContainer(classes="settings-panel"):
                 yield Static("📋 Configuration", classes="section-header")
                 
-                with Container(id="settings-form", classes="settings-form"):
+                with TextualContainer(id="settings-form", classes="settings-form"):
                     yield Static("Select a category to configure settings")
                 
-                with Container(id="settings-preview", classes="settings-preview"):
+                with TextualContainer(id="settings-preview", classes="settings-preview"):
                     yield Static("Configuration preview will appear here")
     
     async def on_mount(self) -> None:

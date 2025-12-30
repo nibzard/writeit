@@ -19,17 +19,15 @@ Tests include:
 import pytest
 import asyncio
 import tempfile
-import shutil
 import psutil
-import tracemalloc
 from pathlib import Path
 from typing import Dict, List, Any, Optional, AsyncGenerator
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 import sys
 import time
 import statistics
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from contextlib import asynccontextmanager
 
 # Add src to path
@@ -63,9 +61,7 @@ try:
     from writeit.domains.execution.value_objects.execution_mode import ExecutionMode
     
     from writeit.domains.pipeline.services.pipeline_execution_service import PipelineExecutionService
-    from writeit.domains.pipeline.services.pipeline_validation_service import PipelineValidationService
     from writeit.infrastructure.persistence.lmdb_storage import LMDBStorage, StorageConfig
-    from writeit.shared.events.event_bus import AsyncEventBus
     
     REAL_IMPLEMENTATION_AVAILABLE = True
     
@@ -187,11 +183,11 @@ class PerformanceBenchmarkSuite:
                 workspaces.append(workspace)
             
             # Initialize simplified environment
-            from writeit.infrastructure.persistence.lmdb_storage import LMDBStorage, StorageConfig, StorageConfig
             
             # Create simple LMDB storage for testing
             storage_dirs = [self.temp_dir / f"storage_{i}" for i in range(5)]
-            event_bus = AsyncEventBus()
+            # Note: AsyncEventBus not imported in this test - use mock if needed
+            event_bus = None  # Mock event bus for testing
             
             yield {
                 'workspaces': workspaces,

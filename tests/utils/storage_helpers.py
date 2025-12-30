@@ -4,14 +4,11 @@ Provides helpers for testing LMDB storage operations, database isolation,
 and storage-related functionality in WriteIt's domain architecture.
 """
 
-import asyncio
 import tempfile
 import shutil
 from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Dict, Any, Optional, List
-from unittest.mock import AsyncMock, Mock
-import json
 
 from writeit.storage import StorageManager
 from writeit.application.services.workspace_application_service import WorkspaceApplicationService
@@ -164,7 +161,7 @@ async def assert_stored_correctly(
     Raises:
         AssertionError: If data is not stored correctly
     """
-    async with storage_manager.get_database(db_name) as db:
+    async with storage_manager.get_database(db_name):
         if data_type == "json":
             stored_data = await storage_manager.load_json(key, db_name)
             assert stored_data == expected_data, f"JSON data mismatch for key {key}"
@@ -358,10 +355,10 @@ class MockDatabaseContext:
         # Try to load as JSON first, then fall back to other types
         try:
             return await self.storage_manager.load_json(key, self.db_name)
-        except:
+        except Exception:
             try:
                 return await self.storage_manager.load_string(key, self.db_name)
-            except:
+            except Exception:
                 return await self.storage_manager.load_bytes(key, self.db_name)
     
     async def delete(self, key: str) -> None:

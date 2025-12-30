@@ -5,21 +5,14 @@ memory pressure handling, and multi-tier storage support.
 """
 
 import asyncio
-import time
-import json
-import hashlib
-from typing import Optional, Dict, Any, List, Tuple, Set
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
+from datetime import datetime
 from collections import OrderedDict
 from threading import RLock
 import logging
-from pathlib import Path
-import weakref
-import psutil
 from contextlib import asynccontextmanager
 
-from ..base.exceptions import CacheError, CapacityError
 from .lmdb_storage import LMDBStorage
 
 logger = logging.getLogger(__name__)

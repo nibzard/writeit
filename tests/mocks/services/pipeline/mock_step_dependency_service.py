@@ -1,13 +1,11 @@
 """Mock implementation of StepDependencyService for testing."""
 
-from typing import Dict, List, Set, Any, Optional, Tuple
+from typing import Dict, List, Set, Any, Optional
 from unittest.mock import Mock
 
 from writeit.domains.pipeline.services.step_dependency_service import (
     StepDependencyService,
-    DependencyGraph,
-    DependencyIssue,
-    ParallelExecutionPlan
+    DependencyGraph
 )
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
 from writeit.domains.pipeline.value_objects.step_id import StepId

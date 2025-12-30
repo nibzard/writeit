@@ -15,19 +15,18 @@ These tests validate system behavior under production-level stress.
 import pytest
 import asyncio
 import tempfile
+import shutil
 import psutil
 import time
 from pathlib import Path
-from typing import Dict, List, Any, Optional, AsyncGenerator
-from datetime import datetime, timedelta
+from typing import Dict, List, AsyncGenerator
+from datetime import datetime
 import json
 import sys
 import statistics
 from dataclasses import dataclass
 from contextlib import asynccontextmanager
 import aiohttp
-import requests
-from concurrent.futures import ThreadPoolExecutor
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -35,10 +34,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 try:
     # Import performance framework
     from tests.performance.test_performance_framework import (
-        PerformanceMonitor, PerformanceMetrics, BenchmarkResult, 
-        measure_performance, run_concurrent_operations, 
+        PerformanceMonitor, PerformanceMetrics, BenchmarkResult,
+        measure_performance, run_concurrent_operations,
         generate_performance_report, save_benchmark_results,
-        TestConfiguration, validate_performance_thresholds
+        validate_performance_thresholds
     )
     
     # Import domain components
@@ -60,10 +59,7 @@ try:
     from writeit.domains.execution.value_objects.execution_mode import ExecutionMode
     
     from writeit.domains.pipeline.services.pipeline_execution_service import PipelineExecutionService
-    from writeit.domains.workspace.services.workspace_isolation_service import WorkspaceIsolationService
-    from writeit.infrastructure.persistence.lmdb_storage import LMDBStorage
     from writeit.shared.dependencies.container import Container
-    from writeit.shared.events.event_bus import AsyncEventBus
     
     # Import server components for API testing
     from writeit.server.app import app
@@ -159,7 +155,7 @@ class AdvancedLoadTestSuite:
             return
             
         workspaces = []
-        container = Container()
+        Container()
         
         for i in range(count):
             workspace_dir = self.temp_dir / f"load_workspace_{i}"
@@ -192,7 +188,7 @@ class TestMultipleWorkspaceLoad:
         config = LoadTestConfiguration()
         metrics_list = []
         
-        async with load_suite.setup_multiple_workspaces(0) as existing_workspaces:
+        async with load_suite.setup_multiple_workspaces(0):
             for concurrency in config.WORKSPACE_CONCURRENCY:
                 print(f"\n--- Testing Workspace Creation at {concurrency} concurrent ---")
                 
@@ -876,7 +872,7 @@ class TestAPIStressTesting:
             load_suite.monitor.stop_monitoring()
         )
         
-        validation = validate_performance_thresholds(report)
+        validate_performance_thresholds(report)
         
         # Add burst-specific analysis
         successful_ops = sum(1 for m in metrics_list if m.success)
@@ -969,7 +965,7 @@ class TestAPIStressTesting:
             load_suite.monitor.stop_monitoring()
         )
         
-        validation = validate_performance_thresholds(report)
+        validate_performance_thresholds(report)
         
         # Save results
         output_path = load_suite.temp_dir / "api_sustained_load_results.json"
@@ -991,7 +987,7 @@ class TestAPIStressTesting:
         metrics_list = []
         
         async with load_suite.setup_server():
-            print(f"\n--- Testing WebSocket Connection Load ---")
+            print("\n--- Testing WebSocket Connection Load ---")
             
             # Test different WebSocket connection patterns
             connection_patterns = [
@@ -1049,7 +1045,7 @@ class TestAPIStressTesting:
             load_suite.monitor.stop_monitoring()
         )
         
-        validation = validate_performance_thresholds(report)
+        validate_performance_thresholds(report)
         
         # Add WebSocket-specific analysis
         successful_connections = sum(1 for m in metrics_list if m.success)
@@ -1101,7 +1097,7 @@ class TestAPIStressTesting:
         metrics_list = []
         
         async with load_suite.setup_server():
-            print(f"\n--- Testing Mixed Protocol Load ---")
+            print("\n--- Testing Mixed Protocol Load ---")
             
             # Define mixed load scenarios
             mixed_scenarios = [
@@ -1165,7 +1161,7 @@ class TestAPIStressTesting:
             load_suite.monitor.stop_monitoring()
         )
         
-        validation = validate_performance_thresholds(report)
+        validate_performance_thresholds(report)
         
         # Add mixed protocol analysis
         http_metrics = [m for m in metrics_list if "mixed_http" in m.operation]
@@ -1447,11 +1443,11 @@ class TestLargeTemplateProcessing:
         base_prompt = f"Process step {step_id} with input size {input_size_kb}KB"
         
         complexity_additions = {
-            "simple": f" using simple processing.",
-            "medium": f" using medium complexity processing with multiple variables.",
-            "complex": f" using complex processing with advanced logic and conditional branches.",
-            "very_complex": f" using very complex processing with error handling, retries, and optimization.",
-            "extreme": f" using extreme processing with full error handling, retries, optimization, parallel processing, and advanced validation."
+            "simple": " using simple processing.",
+            "medium": " using medium complexity processing with multiple variables.",
+            "complex": " using complex processing with advanced logic and conditional branches.",
+            "very_complex": " using very complex processing with error handling, retries, and optimization.",
+            "extreme": " using extreme processing with full error handling, retries, optimization, parallel processing, and advanced validation."
         }
         
         return base_prompt + complexity_additions.get(complexity, "")
@@ -1569,7 +1565,6 @@ class TestExtendedExecutionStability:
         test_duration_seconds = 300  # 5 minutes
         check_interval = 30  # Check every 30 seconds
         
-        metrics_history = []
         performance_samples = []
         
         load_suite.monitor.start_monitoring()

@@ -8,18 +8,15 @@ to result generation, covering all aspects of end-to-end pipeline workflows.
 import pytest
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, List
 from unittest.mock import AsyncMock
-from datetime import datetime
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from tests.integration.test_use_case_workflows import (
-    ExecutionStatus, StepType, WorkspaceInfo, PipelineStepModel, 
-    Pipeline, PipelineRun, StepExecution,
-    MockPipelineService, MockWorkspaceService, MockTemplateService,
-    MockExecutionService, MockContentService, FileStorage
+    ExecutionStatus, StepType, PipelineStepModel, 
+    Pipeline, PipelineRun, MockPipelineService, MockWorkspaceService, MockTemplateService,
+    MockExecutionService, MockContentService
 )
 
 
@@ -166,7 +163,7 @@ class TestPipelineExecutionFlows:
             config={"enable_streaming": True}
         )
         
-        created_pipeline = await env['services']['pipeline'].create_pipeline(streaming_pipeline)
+        await env['services']['pipeline'].create_pipeline(streaming_pipeline)
         
         pipeline_run = PipelineRun(
             id="streaming_run",
@@ -240,7 +237,7 @@ class TestPipelineExecutionFlows:
             }
         )
         
-        created_pipeline = await env['services']['pipeline'].create_pipeline(multi_provider_pipeline)
+        await env['services']['pipeline'].create_pipeline(multi_provider_pipeline)
         
         pipeline_run = PipelineRun(
             id="multi_provider_run",
@@ -294,7 +291,7 @@ class TestPipelineExecutionFlows:
             config={"timeout_seconds": 1}  # Very short timeout
         )
         
-        created_pipeline = await env['services']['pipeline'].create_pipeline(long_pipeline)
+        await env['services']['pipeline'].create_pipeline(long_pipeline)
         
         pipeline_run = PipelineRun(
             id="long_run",
@@ -359,7 +356,7 @@ class TestPipelineExecutionFlows:
             config={"retry_count": 3}
         )
         
-        created_pipeline = await env['services']['pipeline'].create_pipeline(failure_pipeline)
+        await env['services']['pipeline'].create_pipeline(failure_pipeline)
         
         pipeline_run = PipelineRun(
             id="failure_run",

@@ -1,19 +1,10 @@
 """Mock workspace configuration service for testing."""
 
-from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
-from unittest.mock import AsyncMock
 
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
-from writeit.domains.workspace.value_objects.configuration_value import (
-    ConfigurationValue,
-    StringConfigValue,
-    IntConfigValue,
-    BoolConfigValue,
-    ListConfigValue
-)
 from writeit.domains.workspace.services.workspace_configuration_service import (
     WorkspaceConfigurationService,
     ConfigurationValidationIssue,
@@ -21,8 +12,7 @@ from writeit.domains.workspace.services.workspace_configuration_service import (
     ConfigurationSchema,
     ConfigurationScope,
     ConfigurationValidationError,
-    ConfigurationMergeError,
-    ConfigurationSchemaError
+    ConfigurationMergeError
 )
 
 

@@ -9,19 +9,17 @@ import shutil
 import yaml
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set, AsyncIterator
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent, FileCreatedEvent, FileDeletedEvent
 import logging
-from contextlib import asynccontextmanager
 from tempfile import NamedTemporaryFile
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
-import os
 
-from ..base.exceptions import StorageError, ValidationError, ConfigurationError
+from ..base.exceptions import StorageError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -288,7 +286,7 @@ class FileSystemStorage:
                 
                 logger.debug(f"Wrote file: {absolute_path}")
                 
-            except Exception as e:
+            except Exception:
                 # Clean up temp file on error
                 if temp_file and temp_file.exists():
                     temp_file.unlink()

@@ -8,14 +8,13 @@ This module provides comprehensive performance testing for:
 - Database performance under stress
 """
 
-import asyncio
 import pytest
 import tempfile
 import shutil
 import lmdb
 import json
 from pathlib import Path
-from typing import Dict, List, Any, AsyncGenerator, Optional
+from typing import Dict, List, Any
 import uuid
 import time
 
@@ -25,11 +24,11 @@ from tests.performance.test_performance_framework import (
     generate_performance_report,
     save_benchmark_results,
     PerformanceMonitor,
+    PerformanceMetrics,
     TestConfiguration,
     validate_performance_thresholds
 )
 
-from tests.utils.workspace_helpers import create_test_workspace
 
 
 class LMDBPerformanceTest:
@@ -201,7 +200,7 @@ class LMDBPerformanceTest:
                     value = txn.get(key, db=db)
                     if value:
                         # Parse the JSON to simulate real usage
-                        parsed_data = json.loads(value.decode())
+                        json.loads(value.decode())
                 
                 read_times.append(metrics)
         
@@ -235,7 +234,7 @@ class LMDBPerformanceTest:
             key = f"concurrent_key_{op_id}".encode()
             value = json.dumps(data).encode()
             
-            async with measure_performance(f"concurrent_op_{op_id}", monitor) as metrics:
+            async with measure_performance(f"concurrent_op_{op_id}", monitor):
                 with performance_lmdb_env.begin(write=True) as txn:
                     db = txn.open_db(name="concurrent_test")
                     txn.put(key, value, db=db)
@@ -400,7 +399,7 @@ class LMDBPerformanceTest:
         for sample in performance_samples:
             for _ in range(100):  # 100 samples per growth point
                 all_metrics.append(PerformanceMetrics(
-                    operation=f"growth_analysis",
+                    operation="growth_analysis",
                     duration_seconds=sample["mean_latency"],
                     memory_usage_mb=monitor_results.get("current_memory_mb", 0),
                     cpu_usage_percent=monitor_results.get("cpu_usage_percent", 0),

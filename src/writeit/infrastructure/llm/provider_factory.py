@@ -5,7 +5,6 @@ Manages creation, registration, and selection of LLM providers.
 
 import logging
 from typing import Dict, List, Optional, Any, Type
-from enum import Enum
 
 from .base_provider import BaseLLMProvider, ProviderType, ProviderError
 from .mock_provider import MockLLMProvider
@@ -51,7 +50,7 @@ class ProviderRegistry:
             provider_class: Provider implementation class
         """
         if not issubclass(provider_class, BaseLLMProvider):
-            raise ValueError(f"Provider class must inherit from BaseLLMProvider")
+            raise ValueError("Provider class must inherit from BaseLLMProvider")
         
         self._providers[provider_type] = provider_class
         logger.info(f"Registered provider: {provider_type.value} -> {provider_class.__name__}")

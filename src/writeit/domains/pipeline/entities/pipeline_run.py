@@ -6,7 +6,7 @@ Domain entity representing an instance of pipeline execution.
 import uuid
 from dataclasses import dataclass, field, replace
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Self
+from typing import Dict, Any, Optional, Self
 
 from ..value_objects.pipeline_id import PipelineId
 from ..value_objects.step_id import StepId
@@ -433,7 +433,7 @@ class PipelineRun:
         Returns:
             Updated pipeline run
         """
-        execution_status = ExecutionStatus.completed()
+        ExecutionStatus.completed()
         
         updated_run = self.complete(results)
         if metrics:

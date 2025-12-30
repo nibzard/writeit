@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 import logging
-import os
 
 from .container import Container
 from .configuration import DIConfiguration, Environment
@@ -16,7 +15,6 @@ from .registry import ServiceRegistry
 from .exceptions import (
     ServiceNotFoundError,
     InvalidServiceRegistrationError,
-    ServiceLifetimeError,
     CircularDependencyError
 )
 

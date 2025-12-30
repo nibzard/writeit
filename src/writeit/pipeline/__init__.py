@@ -5,14 +5,9 @@
 import warnings
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional
-from datetime import datetime, UTC
 
 # Import from DDD structure
-from writeit.domains.pipeline.entities import PipelineTemplate, PipelineRun
-from writeit.domains.pipeline.value_objects import PipelineId, StepId
-from writeit.application.services.pipeline_application_service import PipelineApplicationService
-from writeit.application.services.execution_application_service import ExecutionApplicationService
-from writeit.infrastructure.factory import InfrastructureFactory
+from writeit.domains.pipeline.value_objects import PipelineId
 
 # Issue deprecation warning
 warnings.warn(
@@ -93,7 +88,7 @@ class PipelineExecutor:
                 results.append(result)
             
             return results
-        except Exception as e:
+        except Exception:
             # Fallback to legacy execution if DDD fails
             from .legacy_executor import PipelineExecutor as LegacyPipelineExecutor
             legacy_executor = LegacyPipelineExecutor()

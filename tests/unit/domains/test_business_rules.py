@@ -4,16 +4,12 @@ Tests complex business rules that span multiple domain entities
 and ensure invariants are maintained across the system.
 """
 
-import pytest
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, Any
+from datetime import datetime
 
 # Import builders for creating test objects
 from tests.builders.pipeline_builders import (
     PipelineTemplateBuilder,
-    PipelineRunBuilder,
-    PipelineStepTemplateBuilder
+    PipelineRunBuilder
 )
 from tests.builders.workspace_builders import WorkspaceBuilder
 from tests.builders.content_builders import (
@@ -21,41 +17,14 @@ from tests.builders.content_builders import (
     GeneratedContentBuilder
 )
 from tests.builders.execution_builders import (
-    TokenUsageBuilder,
-    ExecutionContextBuilder
-)
-from tests.builders.value_object_builders import (
-    ValidationRuleBuilder
+    TokenUsageBuilder
 )
 
 # Import domain objects for type annotations and direct usage
-from src.writeit.domains.pipeline.entities.pipeline_template import (
-    PipelineTemplate,
-    PipelineStepTemplate,
-    PipelineInput
-)
-from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
-from src.writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
-from src.writeit.domains.pipeline.value_objects.step_id import StepId
-from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
-from src.writeit.domains.pipeline.value_objects.model_preference import ModelPreference
-from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
 
-from src.writeit.domains.workspace.entities.workspace import Workspace
 from src.writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
-from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
-from src.writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from src.writeit.domains.workspace.value_objects.configuration_value import ConfigurationValue
 
-from src.writeit.domains.content.entities.template import Template
-from src.writeit.domains.content.entities.generated_content import GeneratedContent
-from src.writeit.domains.content.value_objects.template_name import TemplateName
-from src.writeit.domains.content.value_objects.content_id import ContentId
-from src.writeit.domains.content.value_objects.content_type import ContentType
-from src.writeit.domains.content.value_objects.content_format import ContentFormat
 
-from src.writeit.domains.execution.entities.token_usage import TokenUsage
-from src.writeit.domains.execution.value_objects.model_name import ModelName
 from src.writeit.domains.execution.value_objects.token_count import TokenCount
 
 
@@ -65,7 +34,7 @@ class TestPipelineBusinessRules:
     def test_pipeline_execution_requires_valid_workspace(self):
         """Test that pipeline execution requires a valid workspace."""
         # Create a pipeline template using builder
-        template = PipelineTemplateBuilder().simple().build()
+        PipelineTemplateBuilder().simple().build()
         
         # Create a valid workspace using builder
         valid_workspace = WorkspaceBuilder().default("valid-workspace").build()
@@ -437,7 +406,7 @@ class TestCrossdomainBusinessRules:
         """Test that pipeline execution is properly scoped to workspace."""
         # Create workspace and pipeline using builders
         workspace = WorkspaceBuilder().default("execution_workspace").build()
-        template = PipelineTemplateBuilder().simple().build()
+        PipelineTemplateBuilder().simple().build()
         
         # Create pipeline run in workspace context
         pipeline_run = (PipelineRunBuilder()

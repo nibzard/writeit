@@ -5,7 +5,6 @@ Tests entity behavior, state transitions, and business rules for the pipeline ru
 
 import pytest
 from datetime import datetime, timedelta
-from typing import Dict, Any
 
 from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
 from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId

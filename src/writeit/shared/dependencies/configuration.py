@@ -8,8 +8,7 @@ import json
 from enum import Enum
 
 from .registry import ServiceRegistry
-from .container import Container, ServiceLifetime
-from .exceptions import InvalidServiceRegistrationError
+from .container import Container
 
 
 class Environment(str, Enum):
@@ -241,7 +240,7 @@ class DIConfiguration:
             {
                 "service_type": "writeit.infrastructure.persistence.backup_manager.BackupManager",
                 "implementation_type": "writeit.infrastructure.persistence.backup_manager.create_backup_manager",
-                "factory": true,
+                "factory": True,
                 "lifetime": "singleton"
             },
             

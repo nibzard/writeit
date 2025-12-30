@@ -6,21 +6,13 @@ including screen navigation, data display, user input handling, and error displa
 """
 
 import pytest
-import asyncio
 import tempfile
 import shutil
 from pathlib import Path
-from typing import Generator, Dict, Any, List, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, UTC
 
-from textual.app import App, ComposeResult
-from textual.widgets import Button, Input, Select, TextArea, Static, DataTable
-from textual.containers import Container, Horizontal, Vertical
-from textual.screen import Screen
-from textual.reactive import reactive
-from textual.message import Message
-from textual.binding import Binding
+from textual.widgets import Button, DataTable
 
 from writeit.tui.main import WriteItApp
 from writeit.workspace.workspace import Workspace

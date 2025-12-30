@@ -6,74 +6,45 @@ step-by-step execution, token tracking, and comprehensive monitoring.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union
-from dataclasses import dataclass, field
+from typing import Dict, Optional, Any
+from dataclasses import dataclass
 from enum import Enum
 import asyncio
 import uuid
-from pathlib import Path
 from datetime import datetime, timedelta
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Container as TextualContainer, Horizontal
 from textual.widgets import (
-    Header,
-    Footer,
     Static,
     Button,
     TextArea,
-    Select,
     ProgressBar,
-    Input,
-    Tabs,
-    Tab,
-    TabPane,
     DataTable,
-    Tree,
     Log,
-    Switch,
     Checkbox,
-    RadioButton,
-    RadioSet,
-    Label,
     Markdown,
-    ListItem,
-    ListView,
     ContentSwitcher,
 )
-from textual.reactive import reactive
 from textual.binding import Binding
 from textual.screen import Screen
-from textual.message import Message
+from textual.worker import Worker
 from textual.timer import Timer
-import asyncio
 from textual.css.query import NoMatches
 
 from ..context import (
     TUIContext,
-    TUIMode,
     NavigationState,
-    require_tui_context,
 )
 from .modern_tui import (
-    TUIComponentMessage,
     PipelineTemplateInfo,
-    PipelineInputData,
-    PipelineStepData,
 )
 
 from ....application.services.pipeline_application_service import (
     PipelineApplicationService,
-    PipelineExecutionRequest,
-    PipelineExecutionResult,
-    PipelineExecutionMode,
-    PipelineSource,
 )
 
-from ....domains.workspace.value_objects import WorkspaceName
-from ....domains.pipeline.value_objects import PipelineId
 from ....domains.pipeline.value_objects.execution_status import ExecutionStatus
-from ....shared.dependencies.container import Container
 
 
 class ExecutionPhase(str, Enum):
@@ -365,9 +336,9 @@ class AdvancedPipelineExecutionScreen(Screen):
     def compose(self) -> ComposeResult:
         """Create the advanced execution layout."""
         
-        with Container(classes="advanced-execution"):
+        with TextualContainer(classes="advanced-execution"):
             # Header
-            with Container(classes="execution-header"):
+            with TextualContainer(classes="execution-header"):
                 with Horizontal():
                     yield Static(f"🚀 {self.template.name}", classes="section-header")
                     yield Static(f"ID: {self.execution_id[:8]}...", classes="execution-id")
@@ -380,7 +351,7 @@ class AdvancedPipelineExecutionScreen(Screen):
                     )
                 
                 # Progress bar
-                with Container(classes="progress-container"):
+                with TextualContainer(classes="progress-container"):
                     yield ProgressBar(
                         id="execution-progress",
                         total=100,
@@ -389,11 +360,11 @@ class AdvancedPipelineExecutionScreen(Screen):
                     )
             
             # Main content area
-            with Container(classes="execution-main"):
+            with TextualContainer(classes="execution-main"):
                 # Left sidebar - Steps and metrics
-                with Container(classes="execution-sidebar"):
+                with TextualContainer(classes="execution-sidebar"):
                     # Pipeline info
-                    with Container(classes="pipeline-info"):
+                    with TextualContainer(classes="pipeline-info"):
                         yield Static("📋 Pipeline Info", classes="section-header")
                         yield Static(f"Name: {self.template.name}")
                         yield Static(f"Steps: {self.template.steps_count}")
@@ -402,7 +373,7 @@ class AdvancedPipelineExecutionScreen(Screen):
                             yield Static(f"Est. Duration: {self.template.estimated_duration}s")
                     
                     # Execution metrics
-                    with Container(classes="metrics-panel"):
+                    with TextualContainer(classes="metrics-panel"):
                         yield Static("📊 Metrics", classes="section-header")
                         yield Static("Duration: ", classes="metric-label")
                         yield Static("0:00", id="duration-metric", classes="metric-value")
@@ -415,19 +386,19 @@ class AdvancedPipelineExecutionScreen(Screen):
                     
                     # Step list
                     yield Static("📝 Steps", classes="section-header")
-                    with Container(classes="step-list"):
+                    with TextualContainer(classes="step-list"):
                         yield DataTable(id="step-table")
                 
                 # Center - Main execution area
-                with Container(classes="execution-center"):
+                with TextualContainer(classes="execution-center"):
                     # Content switcher for different phases
                     with ContentSwitcher(id="execution-content", initial="input-phase"):
                         # Input collection phase
-                        with Container(id="input-phase"):
+                        with TextualContainer(id="input-phase"):
                             yield Static("📝 Pipeline Inputs", classes="section-header")
                             yield Static(self.template.description)
                             
-                            with Container(classes="input-panel", id="input-panel"):
+                            with TextualContainer(classes="input-panel", id="input-panel"):
                                 yield Static("Input fields will be rendered here...")
                             
                             with Horizontal(classes="action-buttons"):
@@ -435,13 +406,13 @@ class AdvancedPipelineExecutionScreen(Screen):
                                 yield Button("Back", id="back-to-templates", variant="default")
                         
                         # Step execution phase
-                        with Container(id="step-phase"):
+                        with TextualContainer(id="step-phase"):
                             yield Static("⚡ Step Execution", classes="section-header")
                             
-                            with Container(id="current-step-info"):
+                            with TextualContainer(id="current-step-info"):
                                 yield Static("Select a step to execute")
                             
-                            with Container(classes="output-area"):
+                            with TextualContainer(classes="output-area"):
                                 yield TextArea(
                                     id="step-output",
                                     read_only=True,
@@ -454,10 +425,10 @@ class AdvancedPipelineExecutionScreen(Screen):
                                 yield Button("Retry Step", id="retry-step", variant="default", disabled=True)
                         
                         # Result generation phase
-                        with Container(id="result-phase"):
+                        with TextualContainer(id="result-phase"):
                             yield Static("🎯 Result Generation", classes="section-header")
                             
-                            with Container(classes="output-area"):
+                            with TextualContainer(classes="output-area"):
                                 yield TextArea(
                                     id="final-output",
                                     read_only=True,
@@ -470,10 +441,10 @@ class AdvancedPipelineExecutionScreen(Screen):
                                 yield Button("New Pipeline", id="new-pipeline", variant="default")
                         
                         # Completion phase
-                        with Container(id="completion-phase"):
+                        with TextualContainer(id="completion-phase"):
                             yield Static("✅ Execution Complete", classes="section-header")
                             
-                            with Container(id="completion-summary"):
+                            with TextualContainer(id="completion-summary"):
                                 yield Static("Execution summary will appear here...")
                             
                             with Horizontal(classes="action-buttons"):
@@ -483,14 +454,14 @@ class AdvancedPipelineExecutionScreen(Screen):
                     
                     # Execution log (toggleable)
                     if self.show_log_panel:
-                        with Container(classes="execution-log"):
+                        with TextualContainer(classes="execution-log"):
                             yield Static("📋 Execution Log", classes="section-header")
                             yield Log(id="execution-log", classes="log-content")
                 
                 # Right sidebar - Controls and info
-                with Container(classes="execution-right"):
+                with TextualContainer(classes="execution-right"):
                     # Controls panel
-                    with Container(classes="controls-panel"):
+                    with TextualContainer(classes="controls-panel"):
                         yield Static("🎮 Controls", classes="section-header")
                         
                         with Horizontal(classes="action-buttons"):
@@ -506,7 +477,7 @@ class AdvancedPipelineExecutionScreen(Screen):
                         yield Checkbox("Verbose Logging", id="verbose-logging", value=False)
                     
                     # Execution info
-                    with Container(classes="execution-status"):
+                    with TextualContainer(classes="execution-status"):
                         yield Static("ℹ️ Execution Info", classes="section-header")
                         yield Static("Phase: ", id="execution-phase-display")
                         yield Static("Current Step: ", id="current-step-display")
@@ -514,7 +485,7 @@ class AdvancedPipelineExecutionScreen(Screen):
                         yield Static("ETA: ", id="eta-display")
                     
                     # Help and shortcuts
-                    with Container(classes="help-panel"):
+                    with TextualContainer(classes="help-panel"):
                         yield Static("❓ Keyboard Shortcuts", classes="section-header")
                         yield Static("Ctrl+C: Quit")
                         yield Static("Ctrl+P: Pause/Resume")
@@ -524,7 +495,7 @@ class AdvancedPipelineExecutionScreen(Screen):
                         yield Static("F1: Help")
             
             # Footer
-            with Container(classes="execution-footer"):
+            with TextualContainer(classes="execution-footer"):
                 yield Static("Press F1 for help | Use mouse or keyboard to navigate", classes="footer-info")
     
     async def on_mount(self) -> None:
@@ -584,7 +555,7 @@ class AdvancedPipelineExecutionScreen(Screen):
             # Update status displays
             await self.update_status_displays()
             
-        except Exception as e:
+        except Exception:
             # Don't let UI updates crash the execution
             pass
     
@@ -635,7 +606,7 @@ class AdvancedPipelineExecutionScreen(Screen):
             try:
                 # Update status
                 status_text = self.get_step_status_text(detail.status)
-                status_class = f"step-{detail.status.value.lower()}"
+                f"step-{detail.status.value.lower()}"
                 
                 # Update duration
                 duration_str = "-"
@@ -851,7 +822,7 @@ class AdvancedPipelineExecutionScreen(Screen):
         # Update step detail in output
         output_widget = self.query_one("#step-output", TextArea)
         output_widget.text = f"Step {step_detail.step_name} completed successfully.\n\n"
-        output_widget.text += f"Model: gpt-4o-mini\n"
+        output_widget.text += "Model: gpt-4o-mini\n"
         output_widget.text += f"Tokens: {step_detail.input_tokens} → {step_detail.output_tokens}\n"
         output_widget.text += f"Cost: ${step_detail.cost:.3f}\n"
         output_widget.text += f"Duration: {step_detail.duration}\n\n"

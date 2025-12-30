@@ -7,7 +7,7 @@ coordinating between domain services, repositories, and the event bus.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import List
 
 from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
@@ -18,7 +18,7 @@ from ....domains.content.repositories import (
     GeneratedContentRepository
 )
 from ....domains.content.services import TemplateRenderingService, ContentValidationService
-from ....domains.content.value_objects import TemplateName, StyleName, ContentId, ContentType, ContentFormat
+from ....domains.content.value_objects import TemplateName, StyleName, ContentId, ContentType, ContentFormat, ContentFormatEnum
 from ....domains.workspace.value_objects import WorkspaceName
 from ....domains.content.events import (
     TemplateCreated, 
@@ -48,7 +48,6 @@ from ..content_commands import (
     PublishTemplateCommand,
     DeprecateTemplateCommand,
     ContentCommandResult,
-    ContentValidationLevel,
     TemplateScope,
     CreateTemplateCommandHandler,
     UpdateTemplateCommandHandler,
@@ -320,7 +319,6 @@ class ConcreteUpdateTemplateCommandHandler(
             if content:
                 # TODO: Implement proper template validation
                 # For now, assume content is valid
-                validation_passed = True
                 
                 updated_template = updated_template.update_content(content, author=command.author)
             
@@ -362,7 +360,7 @@ class ConcreteUpdateTemplateCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Template updated successfully",
+                message="Template updated successfully",
                 template_name=str(template.name),
                 template=updated_template
             )
@@ -471,7 +469,7 @@ class ConcreteDeleteTemplateCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Template deleted successfully",
+                message="Template deleted successfully",
                 template_name=str(template.name)
             )
             
@@ -791,13 +789,11 @@ class ConcreteCreateGeneratedContentCommandHandler(
         
         try:
             # Parse workspace
-            workspace_name = None
             if command.workspace_name:
-                workspace_name = WorkspaceName.from_string(command.workspace_name)
+                WorkspaceName.from_string(command.workspace_name)
             
             # TODO: Implement proper content validation
             # For now, assume content is valid
-            validation_passed = True
             
             # Create generated content entity
             template_name = TemplateName.from_string("unknown")  # TODO: Get actual template name
@@ -839,7 +835,7 @@ class ConcreteCreateGeneratedContentCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Generated content created successfully",
+                message="Generated content created successfully",
                 content_id=str(generated_content.id),
                 content=generated_content,
                 validation_warnings=[]  # TODO: Get from actual validation
@@ -967,7 +963,7 @@ class ConcreteUpdateStylePrimerCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Style primer updated successfully",
+                message="Style primer updated successfully",
                 style_name=str(style_primer.name),
                 style_primer=updated_style_primer
             )
@@ -1064,7 +1060,7 @@ class ConcreteDeleteStylePrimerCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Style primer deleted successfully",
+                message="Style primer deleted successfully",
                 style_name=str(style_primer.name)
             )
             
@@ -1137,7 +1133,6 @@ class ConcreteUpdateGeneratedContentCommandHandler(
             if command.raw_content:
                 # TODO: Implement proper content validation
                 # For now, assume content is valid
-                validation_passed = True
                 
                 updated_content = updated_content.update_content(command.raw_content)
             
@@ -1156,7 +1151,7 @@ class ConcreteUpdateGeneratedContentCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Generated content updated successfully",
+                message="Generated content updated successfully",
                 content_id=str(content_id),
                 content=updated_content
             )
@@ -1223,7 +1218,7 @@ class ConcreteDeleteGeneratedContentCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Generated content deleted successfully",
+                message="Generated content deleted successfully",
                 content_id=str(content_id)
             )
             
@@ -1258,13 +1253,11 @@ class ConcreteValidateContentCommandHandler(
         
         try:
             # Parse workspace
-            workspace_name = None
             if command.workspace_name:
-                workspace_name = WorkspaceName.from_string(command.workspace_name)
+                WorkspaceName.from_string(command.workspace_name)
             
             # Get content to validate
             content = command.content
-            content_type = command.content_type
             
             # Load content from ID if provided
             if command.content_id and not content:
@@ -1277,7 +1270,6 @@ class ConcreteValidateContentCommandHandler(
                         errors=[f"Content with ID {command.content_id} does not exist"]
                     )
                 content = generated_content.raw_content
-                content_type = generated_content.content_type
             
             if not content:
                 return ContentCommandResult(
@@ -1376,7 +1368,6 @@ class ConcretePublishTemplateCommandHandler(
             
             # TODO: Implement proper template validation before publishing
             # For now, assume template is valid
-            validation_passed = True
             
             # Create published template
             published_template = template.publish(published_by=None)  # TODO: Get from execution context
@@ -1508,7 +1499,7 @@ class ConcreteDeprecateTemplateCommandHandler(
             
             return ContentCommandResult(
                 success=True,
-                message=f"Template deprecated successfully",
+                message="Template deprecated successfully",
                 template_name=str(template.name),
                 template=deprecated_template
             )

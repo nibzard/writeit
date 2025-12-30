@@ -9,24 +9,19 @@ import asyncio
 import pytest
 import tempfile
 from pathlib import Path
-from typing import List, Dict, Any
 from uuid import uuid4
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Infrastructure imports
-from writeit.infrastructure.base.storage_manager import LMDBStorageManager
 from writeit.shared.dependencies.container import Container
 from writeit.shared.events.event_bus import EventBus
 
 # Domain service imports
 from writeit.domains.pipeline.services.pipeline_validation_service import PipelineValidationService
 from writeit.domains.pipeline.services.pipeline_execution_service import PipelineExecutionService
-from writeit.domains.pipeline.services.step_dependency_service import StepDependencyService
 from writeit.domains.workspace.services.workspace_management_service import WorkspaceManagementService
-from writeit.domains.workspace.services.workspace_isolation_service import WorkspaceIsolationService
 from writeit.domains.workspace.services.workspace_template_service import WorkspaceTemplateService
 from writeit.domains.content.services.template_rendering_service import TemplateRenderingService
 from writeit.domains.content.services.content_validation_service import ContentValidationService
@@ -55,8 +50,6 @@ from writeit.domains.content.value_objects.content_type import ContentType
 from writeit.domains.content.value_objects.content_format import ContentFormat
 
 from writeit.domains.execution.value_objects.execution_mode import ExecutionMode
-from writeit.domains.execution.value_objects.model_name import ModelName
-from writeit.domains.execution.value_objects.cache_key import CacheKey
 
 # Events
 from writeit.domains.pipeline.events.pipeline_events import (
@@ -239,8 +232,8 @@ class TestServiceIntegration:
         # Get services from container
         pipeline_validation_service = await di_container.resolve(PipelineValidationService)
         pipeline_execution_service = await di_container.resolve(PipelineExecutionService)
-        llm_orchestration_service = await di_container.resolve(LLMOrchestrationService)
-        cache_management_service = await di_container.resolve(CacheManagementService)
+        await di_container.resolve(LLMOrchestrationService)
+        await di_container.resolve(CacheManagementService)
         event_bus = await di_container.resolve(EventBus)
         
         # Event tracking
@@ -319,7 +312,7 @@ class TestServiceIntegration:
         assert execution_result_2.status == ExecutionStatus.COMPLETED
         
         # Should have cache hits for repeated requests
-        event_types_2 = [type(event).__name__ for event in events_received]
+        [type(event).__name__ for event in events_received]
         # Note: Cache behavior depends on cache implementation
         # Just verify execution completed successfully
 
@@ -460,7 +453,7 @@ class TestServiceIntegration:
         event_bus.subscribe_all(all_event_handler)
         
         # Perform operations that should trigger events
-        workspace1 = await workspace_management_service.create_workspace(
+        await workspace_management_service.create_workspace(
             WorkspaceName("event_test_1"), WorkspacePath("/tmp/event_test_1")
         )
         
@@ -558,7 +551,7 @@ class TestServiceIntegration:
 if __name__ == "__main__":
     async def run_service_integration_tests():
         """Run service integration tests manually."""
-        test_instance = TestServiceIntegration()
+        TestServiceIntegration()
         
         print("🧪 Running Service Integration Tests...\n")
         
@@ -574,7 +567,7 @@ if __name__ == "__main__":
                     def get_workspace_path(self, workspace_name: str) -> Path:
                         return self.base_path / "workspaces" / workspace_name
 
-                mock_workspace_manager = MockWorkspaceManager(temp_db_path)
+                MockWorkspaceManager(temp_db_path)
                 
                 # Create DI container (simplified for manual testing)
                 di_container = Container()

@@ -1,10 +1,6 @@
 """Tests for access control infrastructure."""
 
-import asyncio
 import pytest
-import time
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock
 
 from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from src.writeit.infrastructure.base.access_control import (
@@ -12,7 +8,6 @@ from src.writeit.infrastructure.base.access_control import (
     ResourceType,
     AccessRequest,
     AccessResult,
-    ResourceLimit,
     WorkspaceAccessController,
     RateLimitController,
     ResourceLimitController,

@@ -320,7 +320,7 @@ class MockStepExecutionRepository(BaseMockRepository[StepExecution], StepExecuti
         executions.sort(key=lambda e: e.started_at or datetime.min, reverse=True)
         
         # Keep the most recent executions
-        executions_to_keep = executions[:keep_recent_count]
+        executions[:keep_recent_count]
         executions_to_check = executions[keep_recent_count:]
         
         deleted_count = 0

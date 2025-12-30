@@ -4,7 +4,6 @@ Provides persistent storage for pipeline runs using LMDB
 with execution state management and performance tracking.
 """
 
-import asyncio
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from uuid import UUID

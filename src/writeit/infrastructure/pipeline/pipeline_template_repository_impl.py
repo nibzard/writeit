@@ -22,7 +22,6 @@ from ...domains.pipeline.value_objects.step_id import StepId
 from ...domains.pipeline.value_objects.prompt_template import PromptTemplate
 from ...domains.pipeline.value_objects.model_preference import ModelPreference
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

@@ -6,12 +6,10 @@ CRUD operations, workspace-aware queries, and template validation.
 
 from abc import abstractmethod
 from typing import List, Optional
-from uuid import UUID
 
 from ....shared.repository import WorkspaceAwareRepository, Specification
 from ....domains.workspace.value_objects.workspace_name import WorkspaceName
 from ..entities.pipeline_template import PipelineTemplate
-from ..value_objects.pipeline_id import PipelineId
 from ..value_objects.pipeline_name import PipelineName
 
 

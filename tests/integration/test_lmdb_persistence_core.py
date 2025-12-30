@@ -9,11 +9,9 @@ import pytest
 import tempfile
 import time
 from pathlib import Path
-from typing import List, Dict, Any
 from uuid import uuid4
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.base.storage_manager import LMDBStorageManager
@@ -558,7 +556,7 @@ class TestLMDBPersistenceCore:
                         model_preference=ModelPreference(["gpt-4"])
                     )
                 },
-                tags=[f"persistence", f"test_{i}"],
+                tags=["persistence", f"test_{i}"],
                 author=f"persistence_author_{i}"
             )
             templates.append(template)

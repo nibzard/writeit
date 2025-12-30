@@ -6,8 +6,7 @@ from unittest.mock import Mock
 from writeit.domains.content.services.content_validation_service import (
     ContentValidationService,
     ValidationResult,
-    ValidationRule,
-    ValidationIssue
+    ValidationRule
 )
 from writeit.domains.content.entities.generated_content import GeneratedContent
 from writeit.domains.content.entities.style_primer import StylePrimer

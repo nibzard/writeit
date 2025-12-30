@@ -6,8 +6,7 @@ error handling, and integration with the CQRS application layer.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Any, Dict, List, Union
-from pathlib import Path
+from typing import Optional, Any, Dict, List
 import asyncio
 import typer
 from rich.console import Console
@@ -21,7 +20,6 @@ from ...application.services import (
     ContentApplicationService,
     ExecutionApplicationService,
 )
-from ..persistence.exceptions import StorageError
 from ...domains.workspace.value_objects import WorkspaceName
 
 

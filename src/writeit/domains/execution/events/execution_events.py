@@ -2,14 +2,12 @@
 
 Events related to LLM operations, caching, token usage, and execution lifecycle management."""
 
-import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 
 from ....shared.events import DomainEvent
 from ..value_objects.model_name import ModelName
-from ..value_objects.token_count import TokenCount
 from ..value_objects.cache_key import CacheKey
 from ..value_objects.execution_mode import ExecutionMode
 

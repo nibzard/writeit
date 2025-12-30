@@ -12,7 +12,6 @@ from ...domains.execution.repositories.token_usage_repository import TokenUsageR
 from ...domains.execution.value_objects.model_name import ModelName
 from ...domains.execution.value_objects.token_count import TokenCount
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

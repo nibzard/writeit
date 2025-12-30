@@ -201,7 +201,7 @@ class LoggingService:
         
         # Replace the logger temporarily
         original_logger_class = logging.getLoggerClass()
-        logging.setLoggerClass(StructureduredDataLogger)
+        logging.setLoggerClass(StructuredDataLogger)
         
         try:
             # Get new logger instance

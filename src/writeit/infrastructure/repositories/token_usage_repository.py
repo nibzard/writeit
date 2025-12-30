@@ -4,7 +4,6 @@ Provides persistent storage for token usage metrics using LMDB
 with analytics and billing support.
 """
 
-import asyncio
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from uuid import UUID

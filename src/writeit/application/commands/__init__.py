@@ -122,9 +122,13 @@ from .content_commands import (
 )
 
 __all__ = [
+    # Registration functions
+    "register_command_handlers",
+    "get_command_handler_registrations",
+
     # Pipeline Template Commands
     "CreatePipelineTemplateCommand",
-    "UpdatePipelineTemplateCommand", 
+    "UpdatePipelineTemplateCommand",
     "DeletePipelineTemplateCommand",
     "PublishPipelineTemplateCommand",
     "ValidatePipelineTemplateCommand",

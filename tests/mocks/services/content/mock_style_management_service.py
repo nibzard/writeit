@@ -1,17 +1,12 @@
 """Mock style management service for testing."""
 
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Set, Tuple
-from datetime import datetime, timedelta
-from enum import Enum
-from unittest.mock import AsyncMock
+from datetime import datetime
 
 from writeit.domains.content.entities.style_primer import StylePrimer
 from writeit.domains.content.value_objects.style_name import StyleName
 from writeit.domains.content.value_objects.content_type import ContentType
-from writeit.domains.content.value_objects.content_format import ContentFormat
 from writeit.domains.content.services.style_management_service import (
-    StyleManagementService,
     StyleCreationOptions,
     StyleInheritanceChain,
     StyleCompatibilityMatrix,
@@ -19,10 +14,9 @@ from writeit.domains.content.services.style_management_service import (
     StyleCompatibilityLevel,
     StyleOptimizationLevel,
     StyleValidationError,
-    StyleInheritanceError,
-    StyleCompositionError
+    StyleInheritanceError
 )
-from writeit.shared.repository import EntityAlreadyExistsError, EntityNotFoundError
+from writeit.shared.repository import EntityAlreadyExistsError
 
 
 class MockStyleManagementService:

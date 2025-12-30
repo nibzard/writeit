@@ -5,7 +5,7 @@ Provides type-safe configuration handling for workspace settings.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar, Union, Dict, List, Optional
+from typing import Any, Generic, TypeVar, Dict, List, Optional
 
 
 T = TypeVar('T')

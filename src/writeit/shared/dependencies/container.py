@@ -1,12 +1,11 @@
 """Main dependency injection container."""
 
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import (
-    Any, Type, TypeVar, Generic, Optional, Dict, List, Callable, 
-    Union, get_type_hints, get_origin, get_args, cast
+    Any, Type, TypeVar, Optional, Dict, List, Callable, 
+    Union, get_type_hints
 )
 import inspect
 import asyncio
@@ -602,7 +601,7 @@ class Container:
         
         else:
             raise InvalidServiceRegistrationError(
-                f"Invalid service descriptor"
+                "Invalid service descriptor"
             )
     
     def _resolve_dependencies(self, dependencies: List[Type[Any]]) -> List[Any]:

@@ -5,9 +5,7 @@ query handlers, integrating with repositories and domain services.
 """
 
 import logging
-from datetime import datetime
 from typing import List, Optional, Dict, Any
-from uuid import UUID
 
 from ....domains.execution.entities import (
     LLMProvider,
@@ -23,7 +21,6 @@ from ....domains.execution.services import (
     CacheManagementService,
     TokenAnalyticsService
 )
-from ....domains.execution.value_objects import ExecutionMode
 from ..execution_queries import (
     # Query classes
     GetLLMProvidersQuery,

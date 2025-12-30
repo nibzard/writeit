@@ -7,8 +7,7 @@ coordinating between domain services, repositories, and the event bus.
 import logging
 import uuid
 from datetime import datetime
-from typing import Dict, Any, Optional, AsyncGenerator
-import asyncio
+from typing import Optional, AsyncGenerator
 
 from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
@@ -21,20 +20,14 @@ from ....domains.pipeline.events import (
     PipelineExecutionStarted, 
     PipelineExecutionCompleted, 
     PipelineExecutionFailed,
-    PipelineExecutionCancelled,
-    StepExecutionStarted,
-    StepExecutionCompleted,
-    StepExecutionFailed
+    PipelineExecutionCancelled
 )
 
 from ..pipeline_commands import (
     ExecutePipelineCommand,
     CancelPipelineExecutionCommand,
     RetryPipelineExecutionCommand,
-    ResumePipelineExecutionCommand,
     StopPipelineCommand,
-    ExecuteStepCommand,
-    RetryStepExecutionCommand,
     PipelineExecutionCommandResult,
     PipelineExecutionProgress,
     ExecutePipelineCommandHandler,
@@ -43,7 +36,6 @@ from ..pipeline_commands import (
     StopPipelineCommandHandler,
     StreamingPipelineExecutionCommandHandler,
     PipelineSource,
-    PipelineExecutionMode,
 )
 
 logger = logging.getLogger(__name__)

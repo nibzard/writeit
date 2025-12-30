@@ -11,8 +11,6 @@ Tests domain business rules across all domains to ensure:
 import pytest
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
-from unittest.mock import Mock
 
 # Pipeline Domain Imports
 from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
@@ -26,11 +24,8 @@ from src.writeit.domains.pipeline.value_objects.execution_status import (
 from src.writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 
 # Workspace Domain Imports
-from src.writeit.domains.workspace.entities.workspace import Workspace
 from src.writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
-from src.writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from src.writeit.domains.workspace.value_objects.configuration_value import ConfigurationValue
 
 # Content Domain Imports
 from src.writeit.domains.content.entities.template import Template
@@ -43,17 +38,16 @@ from src.writeit.domains.content.value_objects.content_format import ContentForm
 from src.writeit.domains.content.value_objects.style_name import StyleName
 
 # Execution Domain Imports
-from src.writeit.domains.execution.entities.llm_provider import LLMProvider
 from src.writeit.domains.execution.entities.token_usage import TokenUsage
 from src.writeit.domains.execution.value_objects.model_name import ModelName
 from src.writeit.domains.execution.value_objects.token_count import TokenCount
 
 # Test builders
 from tests.builders.pipeline_builders import (
-    PipelineTemplateBuilder, PipelineRunBuilder, StepExecutionBuilder
+    PipelineRunBuilder, StepExecutionBuilder
 )
 from tests.builders.workspace_builders import WorkspaceBuilder
-from tests.builders.content_builders import TemplateBuilder, StylePrimerBuilder
+from tests.builders.content_builders import TemplateBuilder
 from tests.builders.execution_builders import LLMProviderBuilder, TokenUsageBuilder
 
 
@@ -157,7 +151,7 @@ class TestPipelineBusinessRules:
             dependencies=["step1"]
         )
         
-        template = PipelineTemplate(
+        PipelineTemplate(
             id=PipelineId("test-pipeline"),
             name="Test Pipeline",
             description="Test pipeline",
@@ -263,7 +257,7 @@ class TestWorkspaceBusinessRules:
     
     def test_workspace_template_scope_rules(self):
         """Test template scope resolution business rules."""
-        workspace = WorkspaceBuilder().with_name("test-workspace").build()
+        WorkspaceBuilder().with_name("test-workspace").build()
         
         # Rule: Workspace templates take precedence over global templates
         # This would be tested with actual TemplateRepository integration

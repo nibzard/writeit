@@ -23,7 +23,6 @@ from writeit.domains.pipeline.value_objects.prompt_template import PromptTemplat
 from writeit.domains.pipeline.value_objects.model_preference import ModelPreference
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 
-from writeit.shared.repository import RepositoryError, EntityNotFoundError
 
 
 async def test_basic_repository_operations():

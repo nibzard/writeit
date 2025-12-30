@@ -4,18 +4,17 @@ Self-contained storage manager that provides LMDB functionality
 specifically for the infrastructure layer without dependencies on legacy storage.
 """
 
-import lmdb
+import lmdb  # type: ignore[import-untyped]
 from pathlib import Path
-from typing import Optional, Dict, Any, List, AsyncContextManager, Type, TypeVar
+from typing import Optional, Dict, Any, List, AsyncIterator, Type, TypeVar, TYPE_CHECKING, Iterator, Generator
 from contextlib import asynccontextmanager, contextmanager
 from uuid import UUID
-import json
-import warnings
-from datetime import datetime
 
-from ...shared.repository import RepositoryError, EntityNotFoundError, EntityAlreadyExistsError
+from ...shared.repository import RepositoryError
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from .safe_serialization import SafeDomainEntitySerializer, SerializationFormat
+
+if TYPE_CHECKING:
+    from ...shared.serializer import DomainEntitySerializer  # type: ignore[import-untyped]
 
 T = TypeVar('T')
 
@@ -33,11 +32,11 @@ class LMDBStorageManager:
     
     def __init__(
         self,
-        workspace_manager=None,
+        workspace_manager: Any = None,
         workspace_name: Optional[str] = None,
         map_size_mb: int = 500,  # Increased default for domain entities
         max_dbs: int = 20,  # More databases for domain separation
-    ):
+    ) -> None:
         """Initialize independent storage manager.
         
         Args:
@@ -50,8 +49,8 @@ class LMDBStorageManager:
         self.workspace_name = workspace_name
         self.map_size = map_size_mb * 1024 * 1024  # Convert to bytes
         self.max_dbs = max_dbs
-        self._connections: Dict[str, lmdb.Environment] = {}
-        self._serializer = None
+        self._connections: Dict[str, Any] = {}
+        self._serializer: Optional['DomainEntitySerializer'] = None
 
     def set_serializer(self, serializer: 'DomainEntitySerializer') -> None:
         """Set the domain entity serializer."""
@@ -68,7 +67,7 @@ class LMDBStorageManager:
             # Fallback to local storage for testing
             return Path.cwd() / ".writeit"
 
-        workspace_path = self.workspace_manager.get_workspace_path(self.workspace_name)
+        workspace_path: Path = self.workspace_manager.get_workspace_path(self.workspace_name)
         return workspace_path
 
     def get_db_path(self, db_name: str) -> Path:
@@ -83,7 +82,7 @@ class LMDBStorageManager:
         return self.storage_path / f"{db_name}.lmdb"
 
     @contextmanager
-    def get_connection(self, db_name: str = "main", readonly: bool = False):
+    def get_connection(self, db_name: str = "main", readonly: bool = False) -> Iterator[Any]:
         """Get LMDB connection context manager.
 
         Args:
@@ -124,7 +123,7 @@ class LMDBStorageManager:
     @contextmanager
     def get_transaction(
         self, db_name: str = "main", write: bool = True, db_key: Optional[str] = None
-    ):
+    ) -> Iterator[tuple[Any, Any]]:
         """Get LMDB transaction context manager.
 
         Args:
@@ -149,35 +148,33 @@ class LMDBStorageManager:
             env.close()
         self._connections.clear()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup connections on deletion."""
         self.close()
 
     @asynccontextmanager
     async def transaction(
-        self, 
-        db_name: str = "main", 
-        write: bool = True, 
+        self,
+        db_name: str = "main",
+        write: bool = True,
         db_key: Optional[str] = None
-    ) -> AsyncContextManager[tuple[lmdb.Transaction, lmdb._Database]]:
+    ) -> AsyncIterator[tuple[Any, Any]]:
         """Async transaction context manager.
-        
+
         Args:
             db_name: Database name
             write: Whether this is a write transaction
             db_key: Specific sub-database key
-            
+
         Yields:
             Tuple of (transaction, database)
-            
+
         Raises:
             RepositoryError: If transaction fails
         """
         try:
             with self.get_transaction(db_name, write, db_key) as (txn, db):
                 yield txn, db
-        except lmdb.Error as e:
-            raise RepositoryError(f"LMDB transaction failed: {e}") from e
         except Exception as e:
             raise RepositoryError(f"Transaction error: {e}") from e
 
@@ -201,9 +198,10 @@ class LMDBStorageManager:
         """
         if not self._serializer:
             raise RepositoryError("No serializer configured")
-            
+
+        serializer = self._serializer  # Type narrowing
         try:
-            serialized = self._serializer.serialize(entity)
+            serialized = serializer.serialize(entity)
             async with self.transaction(db_name, write=True, db_key=db_key) as (txn, db):
                 key_bytes = self._make_key(entity_id).encode('utf-8')
                 txn.put(key_bytes, serialized, db=db)
@@ -233,16 +231,18 @@ class LMDBStorageManager:
         """
         if not self._serializer:
             raise RepositoryError("No serializer configured")
-            
+
+        serializer = self._serializer  # Type narrowing
         try:
             async with self.transaction(db_name, write=False, db_key=db_key) as (txn, db):
                 key_bytes = self._make_key(entity_id).encode('utf-8')
                 data = txn.get(key_bytes, db=db)
-                
+
                 if data is None:
                     return None
-                    
-                return self._serializer.deserialize(data, entity_type)
+
+                result: T = serializer.deserialize(data, entity_type)
+                return result
         except Exception as e:
             raise RepositoryError(f"Failed to load entity {entity_id}: {e}") from e
 
@@ -294,7 +294,8 @@ class LMDBStorageManager:
         try:
             async with self.transaction(db_name, write=True, db_key=db_key) as (txn, db):
                 key_bytes = self._make_key(entity_id).encode('utf-8')
-                return txn.delete(key_bytes, db=db)
+                result: bool = txn.delete(key_bytes, db=db)
+                return result
         except Exception as e:
             raise RepositoryError(f"Failed to delete entity {entity_id}: {e}") from e
 
@@ -323,30 +324,31 @@ class LMDBStorageManager:
         """
         if not self._serializer:
             raise RepositoryError("No serializer configured")
-            
+
+        serializer = self._serializer  # Type narrowing
         try:
             entities = []
             async with self.transaction(db_name, write=False, db_key=db_key) as (txn, db):
                 cursor = txn.cursor(db=db)
                 prefix_bytes = prefix.encode('utf-8')
-                
+
                 if cursor.set_range(prefix_bytes):
                     count = 0
                     for key, value in cursor:
                         if not key.startswith(prefix_bytes):
                             break
-                            
+
                         try:
-                            entity = self._serializer.deserialize(value, entity_type)
+                            entity = serializer.deserialize(value, entity_type)
                             entities.append(entity)
                             count += 1
-                            
+
                             if limit and count >= limit:
                                 break
                         except Exception as e:
                             # Log deserialization error but continue
                             print(f"Warning: Failed to deserialize entity {key}: {e}")
-                            
+
             return entities
         except Exception as e:
             raise RepositoryError(f"Failed to find entities by prefix {prefix}: {e}") from e
@@ -387,4 +389,5 @@ class LMDBStorageManager:
         """Get storage path for workspace."""
         if self.workspace_manager is None:
             return Path.cwd() / ".writeit" / "workspaces" / workspace.value
-        return self.workspace_manager.get_workspace_path(workspace.value)
+        path: Path = self.workspace_manager.get_workspace_path(workspace.value)
+        return path

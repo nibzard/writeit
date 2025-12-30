@@ -4,8 +4,7 @@ Provides persistent storage for workspace configuration using LMDB
 with defaults management and inheritance.
 """
 
-import asyncio
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime
 
 from ...domains.workspace.repositories.workspace_config_repository import WorkspaceConfigRepository

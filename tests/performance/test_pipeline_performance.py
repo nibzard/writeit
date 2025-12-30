@@ -14,7 +14,7 @@ import time
 import tempfile
 import shutil
 from pathlib import Path
-from typing import Dict, List, Any, AsyncGenerator
+from typing import Dict, Any
 import uuid
 
 from tests.performance.test_performance_framework import (
@@ -27,7 +27,6 @@ from tests.performance.test_performance_framework import (
     validate_performance_thresholds
 )
 
-from tests.fixtures.pipeline import create_test_pipeline_template
 from tests.utils.workspace_helpers import create_test_workspace
 from tests.utils.storage_helpers import setup_test_storage
 
@@ -61,16 +60,12 @@ class PipelinePerformanceTest:
         """Create pipeline template with configurable complexity."""
         
         if complexity == "simple":
-            prompt_length = 50
             variables_count = 2
         elif complexity == "medium":
-            prompt_length = 200
             variables_count = 5
         elif complexity == "complex":
-            prompt_length = 500
             variables_count = 10
         else:
-            prompt_length = 100
             variables_count = 3
         
         # Generate steps
@@ -125,7 +120,7 @@ class PipelinePerformanceTest:
         loading_times = []
         
         for i in range(TestConfiguration.PIPELINE_ITERATIONS):
-            template = await self.create_performance_pipeline_template(steps_count=3)
+            await self.create_performance_pipeline_template(steps_count=3)
             
             async with measure_performance(f"pipeline_load_{i}", monitor) as metrics:
                 # Simulate pipeline loading and validation

@@ -1,9 +1,7 @@
 """Mock workspace management service for testing."""
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock
 
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
@@ -18,7 +16,7 @@ from writeit.domains.workspace.services.workspace_management_service import (
     WorkspaceAccessError,
     WorkspaceMigrationError
 )
-from writeit.shared.repository import EntityAlreadyExistsError, EntityNotFoundError
+from writeit.shared.repository import EntityAlreadyExistsError
 
 
 class MockWorkspaceManagementService(WorkspaceManagementService):

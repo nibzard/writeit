@@ -9,11 +9,8 @@ infrastructure components.
 
 import pytest
 import asyncio
-import tempfile
 from pathlib import Path
-from typing import Dict, Any, List, Optional
 from datetime import datetime
-import json
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -23,7 +20,6 @@ try:
     from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
     from writeit.domains.pipeline.entities.pipeline_run import PipelineRun
     from writeit.domains.pipeline.entities.pipeline_step import PipelineStep
-    from writeit.domains.pipeline.entities.step_execution import StepExecution
     from writeit.domains.pipeline.entities.pipeline_metadata import PipelineMetadata
     from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
     from writeit.domains.pipeline.value_objects.step_id import StepId
@@ -35,20 +31,12 @@ try:
     from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
     from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
     
-    from writeit.domains.content.entities.template import Template as ContentTemplate
-    from writeit.domains.content.value_objects.template_name import TemplateName
-    from writeit.domains.content.value_objects.content_type import ContentType
-    
     from writeit.domains.execution.entities.execution_context import ExecutionContext
-    from writeit.domains.execution.value_objects.model_name import ModelName
     from writeit.domains.execution.value_objects.execution_mode import ExecutionMode
-    
+
     # Import domain services
     from writeit.domains.pipeline.services.pipeline_execution_service import PipelineExecutionService
     from writeit.domains.pipeline.services.pipeline_validation_service import PipelineValidationService
-    from writeit.domains.workspace.services.workspace_isolation_service import WorkspaceIsolationService
-    from writeit.domains.content.services.template_rendering_service import TemplateRenderingService
-    from writeit.domains.execution.services.llm_orchestration_service import LLMOrchestrationService
     
     # Import shared components
     from writeit.shared.container import Container
@@ -62,10 +50,9 @@ except ImportError as e:
     
     # Fallback to mock implementation for now
     from tests.integration.test_use_case_workflows import (
-        ExecutionStatus, StepType, WorkspaceInfo, PipelineStepModel, 
-        Pipeline, PipelineRun, StepExecution,
-        MockPipelineService, MockWorkspaceService, MockTemplateService,
-        MockExecutionService, MockContentService, FileStorage
+        ExecutionStatus, StepType, PipelineStepModel, 
+        Pipeline, PipelineRun, MockPipelineService, MockWorkspaceService, MockTemplateService,
+        MockExecutionService, MockContentService
     )
 
 

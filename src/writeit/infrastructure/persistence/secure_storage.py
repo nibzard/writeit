@@ -4,7 +4,6 @@ Provides a secure layer over the storage manager that enforces workspace isolati
 access controls, and security policies.
 """
 
-import asyncio
 import warnings
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -18,7 +17,6 @@ from ..base.access_control import (
     ResourceType, 
     enforce_workspace_access,
     get_access_control_manager,
-    AccessRequest,
     WorkspaceAccessDeniedError
 )
 from ...shared.errors import SecurityError

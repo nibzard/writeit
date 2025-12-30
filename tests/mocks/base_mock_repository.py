@@ -8,8 +8,7 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set, Type, TypeVar, Callable, Generic
-from unittest.mock import Mock
+from typing import Any, Dict, List, Optional, TypeVar, Callable, Generic
 from copy import deepcopy
 
 from writeit.shared.repository import Specification

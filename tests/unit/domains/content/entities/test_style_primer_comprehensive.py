@@ -1,7 +1,7 @@
 """Comprehensive unit tests for StylePrimer entity."""
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 
 from src.writeit.domains.content.entities.style_primer import StylePrimer

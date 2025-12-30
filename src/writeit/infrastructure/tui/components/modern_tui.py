@@ -7,56 +7,35 @@ and comprehensive pipeline execution interface.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any, AsyncGenerator, Union
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
-from enum import Enum
 import asyncio
 import uuid
-from pathlib import Path
 from datetime import datetime
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
+from textual.containers import Container as TextualContainer, Horizontal
 from textual.widgets import (
-    Header,
-    Footer,
     Static,
     Button,
-    TextArea,
-    Select,
     ProgressBar,
-    Input,
     Tabs,
     Tab,
     TabPane,
     DataTable,
-    Tree,
     Log,
-    Switch,
-    Checkbox,
-    RadioButton,
-    RadioSet,
-    Label,
     Markdown,
 )
-from textual.reactive import reactive
 from textual.binding import Binding
 from textual.screen import Screen
 from textual.message import Message
-from textual.timer import Timer
-import asyncio
 
 from ..context import (
     TUIContext,
     TUIContextManager,
     TUIMode,
     NavigationState,
-    get_current_tui_context,
-    require_tui_context,
 )
-from ..event_handler import TUIEventHandler
-from ..state_manager import TUIStateManager
-from ..error_handler import TUIErrorHandler
 
 from ....application.services.pipeline_application_service import (
     PipelineApplicationService,
@@ -74,7 +53,7 @@ from ....application.services.content_application_service import (
 
 from ....domains.workspace.value_objects import WorkspaceName
 from ....domains.pipeline.value_objects import PipelineId
-from ....domains.pipeline.value_objects.execution_status import ExecutionStatus, StepExecutionStatus
+from ....domains.pipeline.value_objects.execution_status import ExecutionStatus
 from ....shared.dependencies.container import Container
 
 
@@ -295,19 +274,19 @@ class ModernPipelineRunnerScreen(Screen):
     def compose(self) -> ComposeResult:
         """Create the pipeline runner layout."""
         
-        with Container(classes="pipeline-runner"):
+        with TextualContainer(classes="pipeline-runner"):
             # Header section
-            with Container(classes="header-section"):
+            with TextualContainer(classes="header-section"):
                 yield Static("🚀 Modern Pipeline Runner", classes="title")
                 yield Static(f"Workspace: {self.context.workspace_name}", classes="workspace-name")
                 yield Static(f"Session: {self.context.session_id[:8]}...", classes="session-id")
             
             # Main content area
-            with Container(classes="content-section"):
+            with TextualContainer(classes="content-section"):
                 # Sidebar
-                with Container(classes="sidebar"):
+                with TextualContainer(classes="sidebar"):
                     # Workspace info
-                    with Container(classes="workspace-info"):
+                    with TextualContainer(classes="workspace-info"):
                         yield Static("📁 Current Workspace", classes="section-header")
                         yield Static(f"Name: {self.context.workspace_name}")
                         yield Static("Status: Active")
@@ -315,7 +294,7 @@ class ModernPipelineRunnerScreen(Screen):
                     
                     # Template browser
                     yield Static("📋 Pipeline Templates", classes="section-header")
-                    with Container(classes="template-list"):
+                    with TextualContainer(classes="template-list"):
                         yield DataTable(id="template-table")
                     
                     # Actions
@@ -324,9 +303,9 @@ class ModernPipelineRunnerScreen(Screen):
                         yield Button("New Template", id="new-template", variant="success")
                 
                 # Main area
-                with Container(classes="main-area"):
+                with TextualContainer(classes="main-area"):
                     # Dynamic content area (changes based on state)
-                    with Container(id="dynamic-content"):
+                    with TextualContainer(id="dynamic-content"):
                         yield Static("Select a pipeline template to begin", classes="placeholder")
     
     async def on_mount(self) -> None:
@@ -416,7 +395,7 @@ class ModernPipelineRunnerScreen(Screen):
         dynamic_content = self.query_one("#dynamic-content")
         await dynamic_content.remove_children()
         
-        with Container(classes="input-form"):
+        with TextualContainer(classes="input-form"):
             yield Static(f"📝 {template.name} - Inputs", classes="section-header")
             yield Static(template.description, classes="template-description")
             
@@ -504,7 +483,7 @@ class ModernPipelineRunnerScreen(Screen):
         dynamic_content = self.query_one("#dynamic-content")
         await dynamic_content.remove_children()
         
-        with Container(classes="execution-area"):
+        with TextualContainer(classes="execution-area"):
             yield Static("⚡ Pipeline Execution", classes="section-header")
             yield Static(f"Template: {self.selected_template.name}")
             yield Static(f"Execution ID: {self.current_execution_id}")
@@ -514,12 +493,12 @@ class ModernPipelineRunnerScreen(Screen):
             
             # Step list
             yield Static("📋 Execution Steps", classes="section-header")
-            with Container(classes="step-list"):
+            with TextualContainer(classes="step-list"):
                 yield DataTable(id="step-table")
             
             # Output area
             yield Static("📤 Execution Output", classes="section-header")
-            with Container(classes="output-area"):
+            with TextualContainer(classes="output-area"):
                 yield Log(id="execution-log")
             
             # Action buttons
@@ -630,14 +609,14 @@ class ModernWriteItTUI(App):
     def compose(self) -> ComposeResult:
         """Create the main application layout."""
         
-        with Container(classes="main-container"):
+        with TextualContainer(classes="main-container"):
             # Header
-            with Container(classes="header"):
+            with TextualContainer(classes="header"):
                 yield Static("🚀 WriteIt - Modern TUI", classes="title")
                 yield Static(f"Workspace: {self.workspace_name}", classes="status-bar")
             
             # Content area with tabs
-            with Container(classes="content"):
+            with TextualContainer(classes="content"):
                 with Tabs(id="main-tabs"):
                     yield Tab("Pipeline Runner", id="pipeline-tab")
                     yield Tab("Templates", id="templates-tab")
@@ -657,7 +636,7 @@ class ModernWriteItTUI(App):
                     yield Static("Settings coming soon...")
             
             # Footer
-            with Container(classes="footer"):
+            with TextualContainer(classes="footer"):
                 yield Static("Press F1 for help | Ctrl+C to quit", classes="status-bar")
     
     async def on_mount(self) -> None:

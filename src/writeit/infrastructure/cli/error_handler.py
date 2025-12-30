@@ -12,12 +12,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from ...application.services import (
-    PipelineApplicationError,
-    WorkspaceApplicationError,
-    ContentApplicationError,
-    ExecutionApplicationError,
-)
 from ...domains.pipeline.exceptions import (
     PipelineValidationError,
     PipelineExecutionError,
@@ -140,7 +134,7 @@ class CLIErrorHandler:
     
     def _format_error_message(self, error: Exception, context: ErrorContext) -> str:
         """Format user-friendly error message."""
-        error_type = type(error).__name__
+        type(error).__name__
         error_message = str(error)
         
         # Format specific error types

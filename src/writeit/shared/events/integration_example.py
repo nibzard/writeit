@@ -5,8 +5,6 @@ and use it in a real WriteIt application context."""
 
 import asyncio
 from typing import Dict, Any
-from dataclasses import dataclass
-from datetime import datetime
 
 from ..dependencies import Container, ServiceLifetime
 from . import (
@@ -322,7 +320,7 @@ async def main_example() -> None:
         
         # Show event bus stats
         stats = event_bus.get_stats()
-        print(f"\n📊 Event Bus Stats:")
+        print("\n📊 Event Bus Stats:")
         print(f"   Handlers registered: {stats['handlers_registered']}")
         print(f"   Failed attempts: {stats['failed_attempts']}")
         print(f"   Dead letter queue: {stats['dead_letter_queue']}")

@@ -7,7 +7,6 @@ versioning, optimization, enhancement, analytics, and insights capabilities.
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 
 from src.writeit.domains.content.services.content_generation_service import (
     ContentGenerationService,
@@ -16,7 +15,6 @@ from src.writeit.domains.content.services.content_generation_service import (
     ContentAnalysisError,
     QualityAssessmentLevel,
     ContentOptimizationLevel,
-    ContentStatus,
     ContentCreationOptions,
     ContentValidationResult,
     ContentQualityAssessment,
@@ -29,7 +27,6 @@ from src.writeit.domains.content.services.content_generation_service import (
 from src.writeit.domains.content.entities.generated_content import GeneratedContent
 from src.writeit.domains.content.entities.template import Template
 from src.writeit.domains.content.entities.style_primer import StylePrimer
-from src.writeit.domains.content.value_objects.content_id import ContentId
 from src.writeit.domains.content.value_objects.content_type import ContentType
 from src.writeit.domains.content.value_objects.template_name import TemplateName
 from src.writeit.domains.content.value_objects.style_name import StyleName

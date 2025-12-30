@@ -6,14 +6,10 @@ and compatibility checking.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Set, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from enum import Enum
 
 from ..entities.pipeline_template import PipelineTemplate, PipelineStepTemplate, PipelineInput
-from ..value_objects.pipeline_id import PipelineId
-from ..value_objects.step_id import StepId
-from ..value_objects.prompt_template import PromptTemplate
-from ..value_objects.model_preference import ModelPreference, ModelProvider
 
 
 class ValidationSeverity(str, Enum):
@@ -413,7 +409,6 @@ class PipelineValidationService:
         # Check for orphaned steps (steps that don't use their dependencies)
         for step_key, step in template.steps.items():
             if step.depends_on:
-                step_variables = step.prompt_template.variables
                 
                 # Check if step actually uses its dependencies
                 uses_deps = False
@@ -426,7 +421,7 @@ class PipelineValidationService:
                 if not uses_deps:
                     issues.append(ValidationIssue(
                         severity=ValidationSeverity.WARNING,
-                        message=f"Step declares dependencies but doesn't use them in template",
+                        message="Step declares dependencies but doesn't use them in template",
                         location=f"step.{step_key}.depends_on",
                         suggestion="Remove unused dependencies or reference them in template",
                         code="UNUSED_DEPENDENCIES"
@@ -478,7 +473,7 @@ class PipelineValidationService:
         if input_def.label == input_def.key:
             issues.append(ValidationIssue(
                 severity=ValidationSeverity.INFO,
-                message=f"Input label same as key",
+                message="Input label same as key",
                 location=f"input.{key}.label",
                 suggestion="Use a more user-friendly label",
                 code="GENERIC_LABEL"

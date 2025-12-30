@@ -4,7 +4,7 @@ Value object representing token usage metrics with validation.
 """
 
 from dataclasses import dataclass
-from typing import Self, Optional, cast
+from typing import Self, cast
 
 
 @dataclass(frozen=True, eq=True)

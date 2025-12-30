@@ -16,6 +16,7 @@ app = typer.Typer(
     pretty_exceptions_enable=True,  # Rich exception formatting
     no_args_is_help=True,  # Show help when no args provided
     add_completion=False,  # We'll handle completion manually for better control
+    invoke_without_command=True,  # Allow callback to run without command
 )
 
 # Global state for workspace override

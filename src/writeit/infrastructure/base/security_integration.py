@@ -4,14 +4,13 @@ Provides unified security integration across all WriteIt components,
 including access control, file system security, and audit logging.
 """
 
-import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Optional, Union, TYPE_CHECKING
 
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 if TYPE_CHECKING:
-    from .storage_manager import LMDBStorageManager
+    pass
 from .access_control import (
     AccessLevel, 
     ResourceType, 
@@ -27,7 +26,6 @@ from .security_audit import (
     get_security_monitor,
     log_security_event
 )
-from ...shared.errors import SecurityError
 
 
 class WorkspaceSecurityManager:
@@ -138,7 +136,6 @@ class WorkspaceSecurityManager:
         )
         
         # Create secure storage manager using infrastructure layer
-        from ..persistence.secure_storage import create_secure_storage_manager
         return await create_secure_storage_manager(
             workspace_name=self.workspace_name,
             workspace_manager=workspace_manager,

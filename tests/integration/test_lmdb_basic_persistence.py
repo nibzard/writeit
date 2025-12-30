@@ -6,12 +6,10 @@ workspace isolation, and concurrency safety.
 
 import asyncio
 import tempfile
-import time
 from pathlib import Path
 from uuid import uuid4
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.base.storage_manager import LMDBStorageManager
@@ -20,7 +18,6 @@ from writeit.infrastructure.pipeline.pipeline_template_repository_impl import LM
 # Domain entities and value objects
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate, PipelineInput, PipelineStepTemplate
 from writeit.domains.pipeline.value_objects.pipeline_id import PipelineId
-from writeit.domains.pipeline.value_objects.pipeline_name import PipelineName
 from writeit.domains.pipeline.value_objects.step_id import StepId
 from writeit.domains.pipeline.value_objects.prompt_template import PromptTemplate
 from writeit.domains.pipeline.value_objects.model_preference import ModelPreference
@@ -491,7 +488,7 @@ async def test_database_persistence_recovery():
         assert len(recovered_template.steps) == len(original_template.steps)
         
         # Verify specific input preservation
-        input_key = f"input_1"
+        input_key = "input_1"
         assert input_key in recovered_template.inputs
         recovered_input = recovered_template.inputs[input_key]
         original_input = original_template.inputs[input_key]
@@ -500,7 +497,7 @@ async def test_database_persistence_recovery():
         assert recovered_input.default == original_input.default
         
         # Verify specific step preservation
-        step_key = f"step_1"
+        step_key = "step_1"
         assert step_key in recovered_template.steps
         recovered_step = recovered_template.steps[step_key]
         original_step = original_template.steps[step_key]

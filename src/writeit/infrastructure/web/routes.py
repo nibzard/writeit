@@ -5,14 +5,13 @@ API endpoints using FastAPI router patterns.
 """
 
 from typing import Type, List, Optional
-from fastapi import APIRouter, Depends, Query, Path, Body, status
+from fastapi import APIRouter, Query, Path, Body, status
 from fastapi.responses import JSONResponse
 
 from .handlers import WorkspaceHandlers, PipelineHandlers, ContentHandlers, HealthHandlers
 from .validation import (
     CreateWorkspaceRequest, UpdateWorkspaceRequest,
-    CreatePipelineTemplateRequest, UpdatePipelineTemplateRequest,
-    ExecutePipelineRequest, CreateContentRequest
+    CreatePipelineTemplateRequest, ExecutePipelineRequest, CreateContentRequest
 )
 
 

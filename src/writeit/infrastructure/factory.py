@@ -5,12 +5,11 @@ components with proper dependencies and workspace isolation.
 """
 
 from typing import Optional, Dict, Any
-from pathlib import Path
 
 from ..domains.workspace.value_objects.workspace_name import WorkspaceName
 from .base.storage_manager import LMDBStorageManager
 from .base.serialization import DomainEntitySerializer
-from .base.unit_of_work import LMDBUnitOfWork, UnitOfWorkManager
+from .base.unit_of_work import UnitOfWorkManager
 
 # Pipeline repositories
 from .pipeline.pipeline_template_repository_impl import LMDBPipelineTemplateRepository

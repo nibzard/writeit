@@ -5,43 +5,35 @@ while maintaining proper separation between web layer and application layer.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List, Optional, AsyncGenerator
-import uuid
-import asyncio
+from typing import List, Optional
 from datetime import datetime
 
-from fastapi import HTTPException, status, Depends, Query, Path, Body
+from fastapi import HTTPException, status, Query, Path, Body
 from fastapi.responses import JSONResponse
 
 from ...application.commands.workspace_commands import (
     CreateWorkspaceCommand, UpdateWorkspaceCommand, DeleteWorkspaceCommand
 )
 from ...application.commands.pipeline_commands import (
-    CreatePipelineTemplateCommand, UpdatePipelineTemplateCommand, 
-    DeletePipelineTemplateCommand, ExecutePipelineCommand,
-    ValidatePipelineTemplateCommand, PublishPipelineTemplateCommand
+    CreatePipelineTemplateCommand, ExecutePipelineCommand
 )
 from ...application.commands.content_commands import (
-    CreateContentCommand, UpdateContentCommand, DeleteContentCommand
+    CreateContentCommand
 )
 from ...application.queries.workspace_queries import (
-    GetWorkspacesQuery, GetWorkspaceQuery, GetWorkspaceConfigurationQuery
+    GetWorkspacesQuery, GetWorkspaceQuery
 )
 from ...application.queries.pipeline_queries import (
-    GetPipelineTemplatesQuery, GetPipelineTemplateQuery, GetPipelineRunsQuery,
-    GetPipelineRunQuery, SearchPipelineTemplatesQuery
+    GetPipelineTemplatesQuery, GetPipelineRunsQuery,
+    GetPipelineRunQuery
 )
 from ...application.queries.content_queries import (
-    GetContentQuery, GetContentsQuery, SearchContentQuery
+    GetContentsQuery
 )
-from ...shared.dependencies.container import Container
-from ...shared.command import CommandResult
-from ...shared.query import QueryResult
-from .context import APIContextManager, get_current_context, get_current_container
+from .context import get_current_container
 from .validation import (
     CreateWorkspaceRequest, UpdateWorkspaceRequest,
-    CreatePipelineTemplateRequest, UpdatePipelineTemplateRequest,
-    ExecutePipelineRequest, CreateContentRequest,
+    CreatePipelineTemplateRequest, ExecutePipelineRequest, CreateContentRequest,
     api_validator
 )
 from .response_mapper import response_mapper

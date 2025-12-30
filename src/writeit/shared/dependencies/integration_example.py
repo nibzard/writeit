@@ -5,8 +5,6 @@ with WriteIt's domain services and repositories.
 """
 
 import asyncio
-from typing import Optional
-from pathlib import Path
 
 from .factory import ContainerFactory, workspace_containers
 from .resolver import ServiceResolver
@@ -32,7 +30,7 @@ async def example_pipeline_execution(workspace_name: str = "default") -> None:
     container = ContainerFactory.create_for_workspace(workspace_name)
     
     # Create resolver for easier service access
-    resolver = ServiceResolver(container)
+    ServiceResolver(container)
     
     try:
         # Resolve pipeline execution service with all dependencies injected
@@ -59,7 +57,7 @@ def example_workspace_services(workspace_name: str = "test-workspace") -> None:
     
     # Use the workspace container manager
     container = workspace_containers.get_container(workspace_name)
-    resolver = ServiceResolver(container)
+    ServiceResolver(container)
     
     try:
         # Resolve workspace isolation service
@@ -84,7 +82,7 @@ def example_testing_setup() -> None:
         use_mocks=True
     )
     
-    resolver = ServiceResolver(container)
+    ServiceResolver(container)
     
     try:
         # All services resolved will use mock implementations
@@ -108,8 +106,8 @@ def example_scoped_services() -> None:
     container = ContainerFactory.create_default("scoped-workspace")
     
     # Create scope for scoped services
-    with container.create_scope() as scope:
-        resolver = ServiceResolver(container)
+    with container.create_scope():
+        ServiceResolver(container)
         
         try:
             # Scoped services will be the same instance within this scope
@@ -130,7 +128,7 @@ async def example_async_services() -> None:
     print("Resolving async services")
     
     container = ContainerFactory.create_default("async-workspace")
-    resolver = ServiceResolver(container)
+    ServiceResolver(container)
     
     try:
         # Async resolution for services with async factories
@@ -170,13 +168,13 @@ def example_configuration_based_setup() -> None:
     }
     
     try:
-        config = DIConfiguration.from_dict(config_data)
+        DIConfiguration.from_dict(config_data)
         container = ContainerFactory.create_from_config(
             "/path/to/config.yaml",  # Would load from actual file
             workspace_name="config-workspace"
         )
         
-        resolver = ServiceResolver(container)
+        ServiceResolver(container)
         print("Services configured from configuration file")
         
     except Exception as e:
@@ -198,14 +196,14 @@ def example_service_manager_usage() -> None:
         
         # Diagnose container health
         diagnostics = manager.diagnose_container(container)
-        print(f"Container diagnostics:")
+        print("Container diagnostics:")
         print(f"  - Registered services: {len(diagnostics['registered_services'])}")
         print(f"  - Failed resolutions: {len(diagnostics['failed_resolutions'])}")
         print(f"  - Circular dependencies: {len(diagnostics['circular_dependencies'])}")
         
         # Configure for specific environment
         test_manager = configure_for_environment(Environment.TESTING)
-        test_container = test_manager.create_container("test-workspace")
+        test_manager.create_container("test-workspace")
         print(f"Created testing container for environment: {test_manager.environment}")
         
     except Exception as e:
@@ -219,17 +217,17 @@ def example_environment_specific_setup() -> None:
     try:
         # Development environment
         dev_manager = ServiceManager.for_environment(Environment.DEVELOPMENT)
-        dev_container = dev_manager.create_container("dev-workspace")
+        dev_manager.create_container("dev-workspace")
         print(f"Development container created with {len(dev_manager.get_registered_services())} services")
         
         # Testing environment (could have mock services)
         test_manager = ServiceManager.for_environment(Environment.TESTING) 
-        test_container = test_manager.create_container("test-workspace")
+        test_manager.create_container("test-workspace")
         print(f"Testing container created with {len(test_manager.get_registered_services())} services")
         
         # Production environment
         prod_manager = ServiceManager.for_environment(Environment.PRODUCTION)
-        prod_container = prod_manager.create_container("prod-workspace")
+        prod_manager.create_container("prod-workspace")
         print(f"Production container created with {len(prod_manager.get_registered_services())} services")
         
         # Validate configurations
@@ -251,7 +249,7 @@ def example_default_container() -> None:
     try:
         # Simple way to get a container with all default services
         container = create_default_container("simple-workspace")
-        resolver = ServiceResolver(container)
+        ServiceResolver(container)
         
         print("Default container created with all registered services")
         
@@ -279,9 +277,9 @@ def example_child_containers() -> None:
     
     # Child containers inherit parent services but can override
     try:
-        parent_resolver = ServiceResolver(parent)
-        request_resolver = ServiceResolver(request_container)
-        batch_resolver = ServiceResolver(batch_container)
+        ServiceResolver(parent)
+        ServiceResolver(request_container)
+        ServiceResolver(batch_container)
         
         # All resolvers can access shared services from parent
         # shared_service = parent_resolver.resolve(SharedService)

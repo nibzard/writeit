@@ -2,9 +2,7 @@
 
 import pytest
 from datetime import datetime, timedelta
-from pathlib import Path
 
-from src.writeit.domains.workspace.entities.workspace import Workspace
 from src.writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from src.writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
 

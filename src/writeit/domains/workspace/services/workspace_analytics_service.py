@@ -8,12 +8,9 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Set, Tuple
 from datetime import datetime, timedelta
 from enum import Enum
-import asyncio
-from collections import defaultdict, Counter
+from collections import Counter
 
-from ....shared.repository import RepositoryError
 from ..entities.workspace import Workspace
-from ..entities.workspace_configuration import WorkspaceConfiguration
 from ..value_objects.workspace_name import WorkspaceName
 from ..repositories.workspace_repository import WorkspaceRepository
 from ..repositories.workspace_config_repository import WorkspaceConfigRepository

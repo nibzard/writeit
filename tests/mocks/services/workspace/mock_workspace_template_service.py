@@ -207,8 +207,8 @@ class MockWorkspaceTemplateService(WorkspaceTemplateService):
         
         # Return mock dependencies
         return [
-            TemplateName(f"dependent-template-1"),
-            TemplateName(f"dependent-template-2")
+            TemplateName("dependent-template-1"),
+            TemplateName("dependent-template-2")
         ]
         
     async def update_template_metadata(

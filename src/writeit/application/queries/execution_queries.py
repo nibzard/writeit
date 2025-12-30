@@ -11,9 +11,6 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ...domains.execution.value_objects import (
-    ModelName,
-    TokenCount,
-    CacheKey,
     ExecutionMode
 )
 from ...domains.execution.entities import (

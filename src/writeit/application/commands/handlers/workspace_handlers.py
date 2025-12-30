@@ -5,12 +5,10 @@ coordinating between domain services, repositories, and the event bus.
 """
 
 import logging
-import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import List
 import zipfile
-import tempfile
 
 from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus

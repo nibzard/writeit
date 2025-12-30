@@ -6,22 +6,15 @@ concurrency safety.
 """
 
 import asyncio
-import lmdb
 import pytest
 import tempfile
-import threading
-import time
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Optional
-from uuid import uuid4, UUID
+from uuid import uuid4
 
 import sys
-from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from writeit.infrastructure.base.storage_manager import LMDBStorageManager
-from writeit.infrastructure.base.serialization import DomainEntitySerializer
 from writeit.infrastructure.pipeline.pipeline_template_repository_impl import LMDBPipelineTemplateRepository
 
 from writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate, PipelineInput, PipelineStepTemplate
@@ -36,7 +29,7 @@ from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 
-from writeit.shared.repository import RepositoryError, EntityNotFoundError
+from writeit.shared.repository import RepositoryError
 
 
 class TestLMDBRepositoryIntegration:

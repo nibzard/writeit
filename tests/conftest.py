@@ -12,7 +12,7 @@ import os
 import tempfile
 import shutil
 from pathlib import Path
-from typing import AsyncGenerator, Dict, Any, Optional
+from typing import Dict, Any
 from unittest.mock import AsyncMock, Mock
 import pytest
 import pytest_asyncio

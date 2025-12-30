@@ -6,7 +6,6 @@ merging, schema management, and environment-specific overrides.
 
 import pytest
 import os
-from typing import Dict, Any, List
 from datetime import datetime
 from unittest.mock import Mock, AsyncMock, patch
 
@@ -16,20 +15,11 @@ from writeit.domains.workspace.services.workspace_configuration_service import (
     ConfigurationValidationIssue,
     ConfigurationMergeConflict,
     ConfigurationSchema,
-    ConfigurationValidationError,
-    ConfigurationMergeError,
-    ConfigurationSchemaError
+    ConfigurationValidationError
 )
-from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from writeit.domains.workspace.value_objects.configuration_value import (
-    string_config,
-    int_config,
-    bool_config,
-    list_config
-)
 
 
 class TestWorkspaceConfigurationService:

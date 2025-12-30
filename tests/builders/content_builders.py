@@ -1,7 +1,7 @@
 """Test data builders for Content domain entities."""
 
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Self
+from typing import Dict, Any, List, Self
 from pathlib import Path
 
 from src.writeit.domains.content.entities.template import Template
@@ -193,7 +193,7 @@ style_guide: |
                 .with_tags(["article", "markdown", "test"]))
     
     @classmethod
-    def with_dependencies(cls, name: str = "dependent_template", deps: List[str] = None) -> Self:
+    def dependent_template(cls, name: str = "dependent_template", deps: List[str] = None) -> Self:
         """Create a template with dependencies."""
         dependencies = deps or ["base_template", "common_styles"]
         return (cls()
@@ -423,7 +423,7 @@ class StylePrimerBuilder:
                     "The function returns a Promise<string> object that resolves with the API response.",
                     "Implement the Observer pattern to handle state changes efficiently."
                 ])
-                .with_applicable_content_types([ContentType.documentation(), ContentType.code()])
+                .with_applicable_content_types([ContentType.documentation(), ContentType.technical_docs()])
                 .with_tags(["technical", "documentation", "programming"]))
 
 

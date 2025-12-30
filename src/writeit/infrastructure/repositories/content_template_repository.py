@@ -4,7 +4,6 @@ Provides template file management using file system operations
 with file watching and dependency tracking.
 """
 
-import asyncio
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 
@@ -15,7 +14,7 @@ from ...domains.content.value_objects.content_type import ContentType
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from ...shared.repository import RepositoryError
 from ..persistence.file_storage import FileSystemStorage
-from ..base.exceptions import StorageError, ValidationError
+from ..base.exceptions import StorageError
 
 
 class FileSystemContentTemplateRepository(ContentTemplateRepository):

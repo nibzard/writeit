@@ -5,11 +5,11 @@ ensuring data consistency and proper rollback on failures.
 """
 
 import lmdb
-from typing import Dict, Any, Optional, List, Type, TypeVar
+from typing import Dict, Any, Optional, List, TypeVar
 from contextlib import asynccontextmanager
 import logging
 
-from ...shared.repository import UnitOfWork, UnitOfWorkError, RepositoryError
+from ...shared.repository import UnitOfWork, UnitOfWorkError
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
 from .storage_manager import LMDBStorageManager
 

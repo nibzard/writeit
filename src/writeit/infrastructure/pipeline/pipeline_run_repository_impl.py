@@ -20,7 +20,6 @@ from ...domains.pipeline.entities.pipeline_run import PipelineRun
 from ...domains.pipeline.value_objects.pipeline_id import PipelineId
 from ...domains.pipeline.value_objects.execution_status import ExecutionStatus, PipelineExecutionStatus
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

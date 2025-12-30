@@ -6,7 +6,7 @@ performance tracking, retry management, and analytics.
 
 import uuid
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime
 import statistics
 
 from ...domains.pipeline.repositories.step_execution_repository import (
@@ -15,13 +15,12 @@ from ...domains.pipeline.repositories.step_execution_repository import (
     ByRunIdSpecification,
     ByStepIdSpecification,
     FailedExecutionsSpecification,
-    RetryExecutionsSpecification,
-    SuccessfulExecutionsSpecification
+    RetryExecutionsSpecification
 )
 from ...domains.pipeline.value_objects.step_id import StepId
 from ...domains.pipeline.value_objects.execution_status import ExecutionStatus
 from ...domains.workspace.value_objects.workspace_name import WorkspaceName
-from ...shared.repository import RepositoryError, EntityNotFoundError
+from ...shared.repository import EntityNotFoundError
 from ..base.repository_base import LMDBRepositoryBase
 from ..base.storage_manager import LMDBStorageManager
 from ..base.serialization import DomainEntitySerializer

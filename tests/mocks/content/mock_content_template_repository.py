@@ -1,7 +1,6 @@
 """Mock implementation of ContentTemplateRepository for testing."""
 
 from typing import List, Optional, Dict, Any
-from pathlib import Path
 
 from writeit.domains.content.repositories.content_template_repository import ContentTemplateRepository
 from writeit.domains.content.entities.template import Template

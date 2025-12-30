@@ -7,24 +7,22 @@ with the domain-driven design architecture and CQRS pattern.
 from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
-from typing import Dict, Any
 
-from fastapi import FastAPI, Request, WebSocket, Depends, HTTPException
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 
 from ...shared.dependencies.container import Container
 from ...shared.events.event_bus import EventBus
-from ...shared.errors.base import DomainError
-from .context import APIContextMiddleware, APIContextManager
+from ...shared.errors import DomainError
+from .context import APIContextMiddleware
 from .error_handler import (
-    error_handler, domain_exception_handler, generic_exception_handler,
+    domain_exception_handler, generic_exception_handler,
     http_exception_handler_with_context
 )
 from .validation import handle_pydantic_validation_error

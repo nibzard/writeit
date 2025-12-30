@@ -1,14 +1,9 @@
 """Comprehensive unit tests for business rules across all domains."""
 
 import pytest
-from datetime import datetime, timedelta
-from typing import Dict, Any
+from datetime import datetime
 
-from src.writeit.domains.pipeline.entities.pipeline_template import PipelineTemplate
-from src.writeit.domains.pipeline.entities.pipeline_run import PipelineRun
 from src.writeit.domains.pipeline.value_objects.execution_status import ExecutionStatus
-from src.writeit.domains.workspace.entities.workspace import Workspace
-from src.writeit.domains.content.entities.template import Template
 
 from tests.builders.pipeline_builders import (
     PipelineTemplateBuilder, PipelineRunBuilder, PipelineStepTemplateBuilder
@@ -90,7 +85,7 @@ class TestPipelineBusinessRules:
     def test_pipeline_execution_time_constraints(self):
         """Test business rules for pipeline execution time constraints."""
         # Business rule: Execution times should be logical
-        now = datetime.now()
+        datetime.now()
         
         # Running pipeline should have started_at but not completed_at
         running_run = (PipelineRunBuilder
@@ -295,7 +290,7 @@ class TestContentBusinessRules:
     def test_template_dependency_resolution_rule(self):
         """Test business rules for template dependency resolution."""
         # Business rule: Template dependencies should form a valid DAG
-        base_template = TemplateBuilder().with_name("base").with_dependencies([]).build()
+        TemplateBuilder().with_name("base").with_dependencies([]).build()
         
         dependent_template = TemplateBuilder.with_dependencies(
             "dependent", ["base"]

@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime
 from src.writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from src.writeit.domains.workspace.value_objects.configuration_value import (
-    ConfigurationValue, string_config, int_config, bool_config, list_config
+    string_config, int_config, bool_config, list_config
 )
 
 

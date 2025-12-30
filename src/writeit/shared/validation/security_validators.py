@@ -2,9 +2,8 @@
 
 import html
 import re
-import subprocess
 from pathlib import Path
-from typing import Any, List, Optional, Set
+from typing import Any, Optional, Set
 
 from .interfaces import ValidationContext, ValidationResult, ValidationRule
 

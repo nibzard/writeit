@@ -10,7 +10,6 @@ from .workspace_management_service import (
     WorkspaceMigrationPlan,
     WorkspaceBackupInfo,
     WorkspaceValidationError,
-    WorkspaceAccessError,
     WorkspaceMigrationError
 )
 from .workspace_configuration_service import (

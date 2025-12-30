@@ -1,9 +1,7 @@
 """Mock template management service for testing."""
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Any, Set, Tuple
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock
+from typing import Dict, List, Optional, Tuple
+from datetime import datetime
 
 from writeit.domains.content.entities.template import Template
 from writeit.domains.content.value_objects.template_name import TemplateName
@@ -22,7 +20,7 @@ from writeit.domains.content.services.template_management_service import (
     TemplateDependencyError,
     TemplateOptimizationError
 )
-from writeit.shared.repository import EntityAlreadyExistsError, EntityNotFoundError
+from writeit.shared.repository import EntityAlreadyExistsError
 
 
 class MockTemplateManagementService(TemplateManagementService):

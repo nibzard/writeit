@@ -5,12 +5,7 @@ validation, backup/restore, and lifecycle management.
 """
 
 import pytest
-import asyncio
-import tempfile
-import shutil
-from typing import Dict, Any, List
 from datetime import datetime, timedelta
-from pathlib import Path
 from unittest.mock import Mock, AsyncMock, patch
 
 from writeit.domains.workspace.services.workspace_management_service import (
@@ -19,14 +14,12 @@ from writeit.domains.workspace.services.workspace_management_service import (
     WorkspaceMigrationPlan,
     WorkspaceBackupInfo,
     WorkspaceValidationError,
-    WorkspaceAccessError,
-    WorkspaceMigrationError
+    WorkspaceAccessError
 )
-from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
 from writeit.domains.workspace.value_objects.workspace_name import WorkspaceName
 from writeit.domains.workspace.value_objects.workspace_path import WorkspacePath
-from writeit.shared.repository import EntityAlreadyExistsError, EntityNotFoundError, RepositoryError
+from writeit.shared.repository import EntityAlreadyExistsError
 
 
 class TestWorkspaceManagementService:

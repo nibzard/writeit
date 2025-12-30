@@ -10,7 +10,6 @@ from writeit.domains.content.services.template_rendering_service import (
     TemplateRenderingError
 )
 from writeit.domains.content.entities.template import Template
-from writeit.domains.content.value_objects.template_name import TemplateName
 
 
 class MockTemplateRenderingService(TemplateRenderingService):

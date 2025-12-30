@@ -281,16 +281,16 @@ class MockWorkspaceConfigRepository(BaseMockRepository[WorkspaceConfiguration], 
                        settings_count=len(defaults))
         return defaults
         
-    async def reset_to_defaults(self, workspace_name: WorkspaceName) -> None:
-        """Reset workspace settings to defaults."""
+    async def reset_to_defaults_by_name(self, workspace_name: WorkspaceName) -> None:
+        """Reset workspace settings to defaults by workspace name."""
         await self._check_error_condition("reset_to_defaults")
         self._increment_call_count("reset_to_defaults")
         await self._apply_call_delay("reset_to_defaults")
-        
+
         defaults = await self.get_default_settings()
         await self.update_settings(workspace_name, defaults)
-        
-        self._log_event("reset_to_defaults", self._get_entity_type_name(), 
+
+        self._log_event("reset_to_defaults", self._get_entity_type_name(),
                        str(workspace_name.value))
         
     async def export_settings(

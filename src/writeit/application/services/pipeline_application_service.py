@@ -5,11 +5,9 @@ use cases for pipeline creation, execution, and lifecycle management.
 Coordinates workspace, content, and execution domains.
 """
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, AsyncGenerator, Union
 from enum import Enum
-import asyncio
 from datetime import datetime
 from pathlib import Path
 
@@ -34,7 +32,7 @@ from ...domains.execution.services import (
     TokenAnalyticsService,
 )
 
-from ...domains.pipeline.entities import PipelineTemplate, PipelineRun, PipelineStep
+from ...domains.pipeline.entities import PipelineTemplate, PipelineRun
 from ...domains.pipeline.value_objects import (
     PipelineId,
     StepId,

@@ -7,12 +7,11 @@ template processing, and template compilation with validation.
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union, Pattern
+from typing import Any, Dict, List, Optional, Set, Pattern
 
 from ..entities.template import Template
 from ..value_objects.template_name import TemplateName
 from ..value_objects.content_type import ContentType
-from ....shared.repository import RepositoryError
 
 
 class RenderingMode(Enum):

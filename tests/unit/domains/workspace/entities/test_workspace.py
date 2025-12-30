@@ -6,7 +6,6 @@ Tests workspace entity behavior, validation, and business rules.
 import pytest
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any
 
 from writeit.domains.workspace.entities.workspace import Workspace
 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration

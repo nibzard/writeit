@@ -8,8 +8,7 @@ from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any, Type, Callable, Awaitable
-from uuid import uuid4
+from typing import List, Optional, Dict, Any, Callable, Awaitable
 
 from .domain_event import DomainEvent
 from .event_handler import EventHandler, EventHandlerRegistry
@@ -117,7 +116,7 @@ class CircuitBreaker:
             result = await func()
             await self._on_success()
             return result
-        except Exception as e:
+        except Exception:
             await self._on_failure()
             raise
     

@@ -5,7 +5,7 @@ Concrete implementations of workspace-related query handlers.
 
 import logging
 import os
-from typing import Dict, List, Optional, Any
+from typing import Dict, Any
 from datetime import datetime
 from pathlib import Path
 
@@ -35,11 +35,11 @@ from ...queries.workspace_queries import (
     GetWorkspaceTemplatesQueryHandler,
     GetWorkspaceTemplateQueryHandler,
 )
-from ....domains.workspace.repositories import WorkspaceRepository, WorkspaceConfigRepository
-from ....domains.workspace.entities import Workspace, WorkspaceConfiguration
+from ....domains.workspace.repositories import WorkspaceRepository
+from ....domains.workspace.entities import Workspace
 from ....domains.workspace.value_objects import WorkspaceName
 from ....domains.workspace.services import WorkspaceIsolationService
-from ....shared.errors import RepositoryError, QueryError
+from ....shared.errors import RepositoryError
 
 logger = logging.getLogger(__name__)
 

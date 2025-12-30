@@ -7,10 +7,9 @@ from typing import Optional, List
 from pathlib import Path
 
 # Import from DDD structure
-from writeit.domains.workspace.entities import Workspace as DDDWorkspace, WorkspaceConfiguration as DDDWorkspaceConfig
+from writeit.domains.workspace.entities import WorkspaceConfiguration as DDDWorkspaceConfig
 from writeit.domains.workspace.value_objects import WorkspaceName, WorkspacePath
-from writeit.application.services.workspace_application_service import WorkspaceApplicationService
-from writeit.infrastructure.factory import InfrastructureFactory
+from .config import ConfigLoader, get_writeit_home, get_active_workspace
 
 # Issue deprecation warning
 warnings.warn(
@@ -84,8 +83,8 @@ class Workspace:
         try:
             workspace_name = WorkspaceName.from_user_input(name)
             return self._service.get_workspace(workspace_name) is not None
-        except:
-            return False
+        except Exception:
+            return False  # Invalid workspace name or lookup error
     
     def get_workspace_path(self, name: Optional[str] = None) -> Path:
         """Get path to a workspace."""
@@ -196,7 +195,6 @@ class Workspace:
                 
                 # Create a simple workspace entity
                 from writeit.domains.workspace.entities import Workspace
-                from writeit.domains.workspace.value_objects import WorkspacePath, WorkspaceName
                 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
                 
                 return Workspace(
@@ -222,7 +220,6 @@ class Workspace:
                 
                 # Create workspace entity
                 from writeit.domains.workspace.entities import Workspace
-                from writeit.domains.workspace.value_objects import WorkspacePath, WorkspaceName
                 from writeit.domains.workspace.entities.workspace_configuration import WorkspaceConfiguration
                 
                 return Workspace(
@@ -275,9 +272,6 @@ class Workspace:
                 return {"active_workspace": "default", "workspaces": ["default"]}
         
         return SimpleWorkspaceService(self.home_dir)
-
-# Import remaining legacy components
-from .config import ConfigLoader, get_writeit_home, get_active_workspace
 
 __all__ = [
     "Workspace",

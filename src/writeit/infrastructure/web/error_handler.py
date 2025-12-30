@@ -5,7 +5,6 @@ to appropriate HTTP responses while preserving error context.
 """
 
 from __future__ import annotations
-import traceback
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional, Type, Callable
 from enum import Enum
@@ -13,10 +12,8 @@ import logging
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from fastapi.exception_handlers import http_exception_handler
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from ...shared.errors.base import DomainError, ValidationError, NotFoundError, ConflictError
+from ...shared.errors import DomainError, ValidationError, NotFoundError, ConflictError
 from ...shared.errors.exceptions import (
     ServiceNotFoundError,
     CircularDependencyError,

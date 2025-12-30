@@ -6,7 +6,7 @@ without requiring actual LMDB connections.
 
 from typing import List, Optional
 
-from src.writeit.shared.dependencies import Container, ContainerFactory, DIConfiguration
+from src.writeit.shared.dependencies import Container, DIConfiguration
 from src.writeit.domains.pipeline.repositories.pipeline_template_repository import PipelineTemplateRepository
 from src.writeit.domains.workspace.repositories.workspace_repository import WorkspaceRepository
 from src.writeit.domains.content.repositories.content_template_repository import ContentTemplateRepository
@@ -22,7 +22,6 @@ class TestRepositoryRegistration:
         container = Container()
         
         # Register pipeline repository interface to test implementation resolution
-        from src.writeit.infrastructure.pipeline.pipeline_template_repository_impl import LMDBPipelineTemplateRepository
         
         # Mock storage manager for testing
         class MockStorageManager:

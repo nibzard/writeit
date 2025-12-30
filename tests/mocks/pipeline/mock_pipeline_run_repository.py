@@ -319,7 +319,7 @@ class MockPipelineRunRepository(BaseMockRepository[PipelineRun], PipelineRunRepo
             template_run_list.sort(key=lambda r: r.started_at or datetime.min, reverse=True)
             
             # Keep the most recent keep_count runs
-            runs_to_keep = template_run_list[:keep_count]
+            template_run_list[:keep_count]
             runs_to_check = template_run_list[keep_count:]
             
             # Delete old runs beyond keep_count

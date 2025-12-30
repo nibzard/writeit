@@ -7,13 +7,13 @@ coordinating between domain services, repositories, and the event bus.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from ....shared.command import CommandHandler, Command
 from ....shared.events import EventBus
 from ....domains.pipeline.entities import PipelineTemplate
 from ....domains.pipeline.repositories import PipelineTemplateRepository
-from ....domains.pipeline.services import PipelineValidationService, PipelineExecutionService
+from ....domains.pipeline.services import PipelineValidationService
 from ....domains.pipeline.value_objects import PipelineId, PipelineName
 from ....domains.workspace.value_objects import WorkspaceName
 from ....domains.pipeline.events import PipelineCreated, PipelineUpdated, PipelineDeleted, PipelinePublished
@@ -297,7 +297,7 @@ class ConcreteUpdatePipelineTemplateCommandHandler(
             
             return PipelineTemplateCommandResult(
                 success=True,
-                message=f"Pipeline template updated successfully",
+                message="Pipeline template updated successfully",
                 pipeline_id=command.pipeline_id,
                 template=updated_template
             )
@@ -382,7 +382,7 @@ class ConcreteDeletePipelineTemplateCommandHandler(
             
             return PipelineTemplateCommandResult(
                 success=True,
-                message=f"Pipeline template deleted successfully",
+                message="Pipeline template deleted successfully",
                 pipeline_id=command.pipeline_id
             )
             
@@ -511,7 +511,7 @@ class ConcreteValidatePipelineTemplateCommandHandler(
     
     async def handle(self, command: ValidatePipelineTemplateCommand) -> PipelineTemplateCommandResult:
         """Handle pipeline template validation."""
-        logger.info(f"Validating pipeline template")
+        logger.info("Validating pipeline template")
         
         try:
             content = command.content
